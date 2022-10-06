@@ -19,7 +19,14 @@ export type AgentId =
   | 14
   | 15;
 
-export type AgentRole = 'villager' | 'seer' | 'werewolf' | 'possessed';
+export const agentRoles = [
+  'villager',
+  'seer',
+  'werewolf',
+  'possessed'
+] as const;
+
+export type AgentRole = typeof agentRoles[number];
 
 export const roleCombinations = new Map<number, AgentRole[]>([
   [2, ['villager', 'werewolf']],
@@ -28,16 +35,16 @@ export const roleCombinations = new Map<number, AgentRole[]>([
   [5, ['villager', 'seer', 'possessed', 'werewolf', 'werewolf']]
 ]);
 
-export type Team = 'villager' | 'werewolf';
+export type Team = 'villagers' | 'werewolves';
 
 export const team = (role: AgentRole): Team => {
   switch (role) {
     case 'villager':
     case 'seer':
     case 'possessed':
-      return 'villager';
+      return 'villagers';
     case 'werewolf':
-      return 'werewolf';
+      return 'werewolves';
   }
   throw new Error(`Unknown role passed to getTeam()`);
 };
@@ -209,6 +216,7 @@ export interface LogEntries {
 export interface Game {
   startedAt: TimeStamp;
   finishedAt?: TimeStamp;
+  wasAborted?: boolean;
   winner?: Team;
   agents: AgentInfo[];
   status: GameStatus;

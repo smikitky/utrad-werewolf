@@ -6,22 +6,29 @@ import {
   AgentId,
   AgentInfo,
   AgentRole,
+  agentRoles,
+  BaseTalkLogEntry,
   Game,
   LogEntries,
+  LogEntry,
+  LogType,
+  ResultLogEntry,
+  StatusLogEntry,
   TalkLogEntry
 } from './game-data.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
 import { useLoginUser } from './utils/user.js';
 
+const roleTextMap: { [key in AgentRole]: string } = {
+  villager: '村人',
+  werewolf: '人狼',
+  seer: '占い師',
+  possessed: '裏切り者'
+};
+
 const RoleDisplay: FC<{ role: AgentRole }> = props => {
   const { role } = props;
-  const roleTextMap: { [key in AgentRole]: string } = {
-    villager: '村人',
-    werewolf: '人狼',
-    seer: '占い師',
-    possessed: '裏切り者'
-  };
   return <>{roleTextMap[role]}</>;
 };
 
@@ -56,6 +63,7 @@ const StyledPlayers = styled.ul`
   display: flex;
   flex-flow: row wrap;
   gap: 10px;
+  margin: 10px;
   li {
     border: 2px solid black;
     width: 80px;
@@ -70,29 +78,106 @@ const StyledPlayers = styled.ul`
   }
 `;
 
-const ChatLog: FC<{ log: LogEntries }> = props => {
-  const { log } = props;
-  const filteredLog = Object.values(log).filter(
-    entry => entry.type === 'talk' || entry.type === 'whisper'
-  ) as TalkLogEntry[];
+const StatusLogItem: FC<{ game: Game; entry: StatusLogEntry }> = props => {
+  const { game, entry } = props;
+
+  const counts = agentRoles
+    .map(role => {
+      const count = game.agents.filter(
+        a =>
+          a.role === role &&
+          entry.agents.find(a2 => a2.agentId === a.agentId)?.life === 'alive'
+      ).length;
+      return [role, count] as [AgentRole, number];
+    })
+    .filter(([role, count]) => count > 0);
+  const totalAlive = entry.agents.filter(a => a.life === 'alive').length;
+
+  const countsText = counts
+    .map(([role, count]) => `${count}人の${roleTextMap[role]}`)
+    .join('、');
+
+  const content = (() => {
+    switch (entry.event) {
+      case 'periodStart':
+        if (entry.day === 0) {
+          return (
+            <>
+              この村には {countsText} がいるらしい。
+              <br />
+              村人による人狼対策会議が始まった。今日は、追放の投票および襲撃は行われない。
+            </>
+          );
+        } else {
+          return `${entry.day}日目の${
+            entry.period === 'day' ? '昼' : '夜'
+          }が始まった。現在生き残っているのは${totalAlive}人だ。`;
+        }
+      default:
+        return entry.event;
+    }
+  })();
+
+  return <li className="status">{content}</li>;
+};
+
+const ChatLogItem: FC<{ entry: BaseTalkLogEntry }> = props => {
+  const { entry } = props;
   return (
-    <StyledChatLog>
-      {filteredLog.map((entry, i) => (
-        <li key={i}>
-          <span className="speaker">{entry.agent}</span> {entry.content}
-        </li>
-      ))}
-    </StyledChatLog>
+    <li>
+      <span className="speaker">{entry.agent}</span> {entry.content}
+    </li>
   );
 };
 
-const StyledChatLog = styled.ul`
-  list-style: none;
+const ResultLogItem: FC<{ entry: ResultLogEntry }> = props => {
+  const {
+    entry: { survivingVillagers, survivingWerewolves, winner }
+  } = props;
+  const text = winner === 'villagers' ? '村人陣営の勝利。' : '人狼陣営の勝利。';
+  const survivors =
+    `${survivingVillagers}人の村人と` +
+    `${survivingWerewolves}人の人狼が生き残った。`;
+  return (
+    <li className="result">
+      <strong>{text}</strong>
+      {survivors}
+    </li>
+  );
+};
+
+const GameLog: FC<{ game: Game }> = props => {
+  const { game } = props;
+  const { log } = game;
+  const filteredLog = Object.values(log);
+  return (
+    <StyledGameLog>
+      {filteredLog.map((entry, i) => {
+        const itemMap: { [type in LogType]?: FC<any> } = {
+          status: StatusLogItem,
+          talk: ChatLogItem,
+          result: ResultLogItem
+        };
+        const Item = itemMap[entry.type] ?? (() => null);
+        return <Item key={i} game={game} entry={entry as any} />;
+      })}
+    </StyledGameLog>
+  );
+};
+
+const StyledGameLog = styled.ul`
+  margin: 10px;
   li {
     border: 1px solid #eeeeee;
     .speaker {
       font-weight: bold;
       margin-right: 15px;
+    }
+    &.status {
+      background: #bbbbff;
+    }
+    &.result {
+      background: yellow;
     }
   }
 `;
@@ -129,7 +214,14 @@ const StyledStatus = styled.div`
   }
 `;
 
-type Action = 'wait' | 'divine' | 'vote' | 'attackVote' | 'talk' | 'whisper';
+type Action =
+  | 'wait'
+  | 'divine'
+  | 'vote'
+  | 'attackVote'
+  | 'talk'
+  | 'whisper'
+  | 'finish';
 
 type ActionComp = FC<{
   gameId: string;
@@ -156,19 +248,25 @@ const ChatAction: ActionComp = props => {
   };
 
   return (
-    <>
-      <div>
-        <input
-          type="text"
-          value={content}
-          onChange={e => setContent(e.target.value)}
-        />
-        <button onClick={handleSend}>発話</button>
-      </div>
-      <button onClick={handleOver}>発話終了</button>
-    </>
+    <StyledChatAction>
+      <input
+        type="text"
+        value={content}
+        onChange={e => setContent(e.target.value)}
+      />
+      <button onClick={handleSend}>発話</button>
+      <button onClick={handleOver}>会話を終了</button>
+    </StyledChatAction>
   );
 };
+
+const StyledChatAction = styled.div`
+  display: flex;
+  gap: 5px;
+  input {
+    flex: 1;
+  }
+`;
 
 const ChooseAction: ActionComp = props => {
   const { gameId, game, myAgent, action } = props;
@@ -197,6 +295,10 @@ const ChooseAction: ActionComp = props => {
   );
 };
 
+const FinishAction: ActionComp = () => {
+  return <div>このゲームは終了しました</div>;
+};
+
 const WaitAction: ActionComp = () => {
   return <div>他のプレーヤーの行動をお待ちください</div>;
 };
@@ -215,10 +317,12 @@ const ActionPane: FC<{
       return logDay === game.status.day;
     });
   })();
+  const gameFinished = todaysLog.some(l => l.type === 'result');
   const action = ((): Action => {
     if (myAgent.life === 'dead') return 'wait';
     switch (period) {
       case 'day':
+        if (gameFinished) return 'finish';
         if (typeof votePhase === 'number') {
           return todaysLog.some(
             l => l.type === 'vote' && l.agent === myAgent.agentId
@@ -259,6 +363,7 @@ const ActionPane: FC<{
     [key in Action]: ActionComp;
   } = {
     wait: WaitAction,
+    finish: FinishAction,
     divine: ChooseAction,
     vote: ChooseAction,
     attackVote: ChooseAction,
@@ -268,17 +373,31 @@ const ActionPane: FC<{
   const ActionComp = actionMap[action];
 
   return (
-    <div>
-      <h2>あなたの行動</h2>
-      <ActionComp
-        gameId={gameId}
-        game={game}
-        myAgent={myAgent}
-        action={action}
-      />
-    </div>
+    <StyledActionPane>
+      <div className="title">あなたの行動</div>
+      <div className="body">
+        <ActionComp
+          gameId={gameId}
+          game={game}
+          myAgent={myAgent}
+          action={action}
+        />
+      </div>
+    </StyledActionPane>
   );
 };
+
+const StyledActionPane = styled.div`
+  margin: 10px;
+  border: 1px solid silver;
+  margin-top: 15px;
+  .title {
+    background: #eeeeee;
+  }
+  .body {
+    padding: 15px;
+  }
+`;
 
 const GameStage: FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -293,14 +412,25 @@ const GameStage: FC = () => {
 
   const myAgent = game.agents.find(a => a.userId === loginUser.uid)!;
 
+  const handleAbortClick = async () => {
+    await api('abortGame', { gameId });
+  };
+
   return (
     <div>
-      Game {gameId}
-      <pre>{JSON.stringify(game, null, 2)}</pre>
+      <div>Game {gameId}</div>
       <Status game={game} myAgent={myAgent} />
       <Players game={game} myAgent={myAgent} />
-      <ChatLog log={game.log} />
+      <GameLog game={game} />
       <ActionPane gameId={gameId!} game={game} myAgent={myAgent} />
+      <pre style={{ maxHeight: '100px', overflowY: 'auto' }}>
+        {JSON.stringify(game, null, 2)}
+      </pre>
+      {!game.finishedAt && (
+        <div>
+          <button onClick={handleAbortClick}>Abort</button>
+        </div>
+      )}
     </div>
   );
 };

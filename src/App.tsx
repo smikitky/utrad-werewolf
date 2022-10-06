@@ -8,7 +8,12 @@ import {
 } from 'firebase/auth';
 import * as db from 'firebase/database';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Link,
+  Outlet
+} from 'react-router-dom';
 import styled from 'styled-components';
 import { UserEntry } from './game-data.js';
 import { auth, database, googleAuthProvider } from './utils/firebase.js';
@@ -19,15 +24,48 @@ import {
   LoginManagerContext,
   LoginType,
   LoginUser,
-  LoginUserContext
+  LoginUserContext,
+  useLoginUser
 } from './utils/user.js';
 
 import GameStage from './GameStage.js';
 import Menu from './Menu.js';
 
+const Layout: FC = props => {
+  const user = useLoginUser();
+  return (
+    <>
+      <header>
+        <div>
+          <Link to="/">UTRAD Werewolf</Link>
+        </div>
+        <div>
+          User:{' '}
+          {user.status === 'loggedIn' ? (
+            <>
+              <b>{user.data.name}</b> ({user.uid})
+            </>
+          ) : (
+            'logged out'
+          )}
+        </div>
+      </header>
+      <main>
+        <Outlet />
+      </main>
+    </>
+  );
+};
+
 const router = createBrowserRouter([
-  { path: '/', element: <Menu /> },
-  { path: '/game/:gameId', element: <GameStage /> }
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      { path: '/', element: <Menu /> },
+      { path: 'game/:gameId', element: <GameStage /> }
+    ]
+  }
 ]);
 
 const App: FC = () => {
@@ -139,19 +177,6 @@ const App: FC = () => {
       <LoginUserContext.Provider value={user}>
         <ApiContext.Provider value={apiCaller}>
           <StyledDiv>
-            <header>
-              <div>UTRAD Werewolf</div>
-              <div>
-                User:{' '}
-                {user.status === 'loggedIn' ? (
-                  <>
-                    <b>{user.data.name}</b> ({uid})
-                  </>
-                ) : (
-                  'logged out'
-                )}
-              </div>
-            </header>
             {linkErrorCode && <div>Error {linkErrorCode}</div>}
             <RouterProvider router={router} />
           </StyledDiv>
@@ -175,6 +200,10 @@ const StyledDiv = styled.div`
     justify-content: space-between;
     background: silver;
     border-bottom: 1px solid gray;
+  }
+  main {
+    flex: 1;
+    overflow: auto;
   }
 `;
 

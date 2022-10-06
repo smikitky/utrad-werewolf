@@ -13,6 +13,12 @@ const GlobalStyle = createGlobalStyle`
   * {
     box-sizing: border-box;
   }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
 `;
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
