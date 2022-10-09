@@ -134,6 +134,7 @@ export interface WhisperLogEntry extends BaseTalkLogEntry {
 
 export interface OverLogEntry extends ActionLogEntry {
   type: 'over';
+  chatType: 'talk' | 'whisper';
 }
 
 export interface DivineLogEntry extends ActionLogEntry {

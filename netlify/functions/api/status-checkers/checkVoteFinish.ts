@@ -1,5 +1,5 @@
 import { BaseVoteLogEntry } from '../../../../src/game-data';
-import { mostVotes, extractLogOfPeriod } from '../utils';
+import { mostVotes, extractLogOfPeriod } from '../../../../src/game-utils';
 import StatusChecker from './StatusChecker';
 
 const checkVoteFinish: StatusChecker = game => {
@@ -19,7 +19,7 @@ const checkVoteFinish: StatusChecker = game => {
   );
   if (allVotesCast) {
     const voteResult = mostVotes(voteLog);
-    if (voteResult || votePhase >= 2) {
+    if (voteResult.length === 1 || votePhase >= 2) {
       return { event: 'voteSettle', nextStatus: { votePhase: 'settled' } };
     } else {
       // The result was a tie, proceed to the next vote round

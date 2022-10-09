@@ -7,18 +7,13 @@ import {
   AgentId,
   AgentInfo,
   AgentStatus,
-  AttackLogEntry,
   AttackVoteLogEntry,
   BaseTalkLogEntry,
-  BaseVoteLogEntry,
   DivineLogEntry,
-  DivineResultLogEntry,
-  ExecuteLogEntry,
   Game,
   GameStatus,
   LogEntry,
   OverLogEntry,
-  ResultLogEntry,
   roleCombinations,
   StatusLogEntry,
   StatusLogEvent,
@@ -26,21 +21,19 @@ import {
   UserEntries,
   VoteLogEntry
 } from '../../../src/game-data.js';
-import StatusEventHandler from './event-handlers/SatusEventHandler.js';
+import { extractLogOfPeriod, shuffleArray } from '../../../src/game-utils.js';
+import StatusEventHandler, {
+  PushLog
+} from './event-handlers/SatusEventHandler.js';
 import showDivineResults from './event-handlers/showDivineResults.js';
 import showGameResult from './event-handlers/showGameResult.js';
 import showKilledResult from './event-handlers/showKilledResult.js';
 import checkChatFinish from './status-checkers/checkChatFinish.js';
-import checkDayFinish from './status-checkers/checkDayFinish.js';
 import checkGameFinish from './status-checkers/checkGameFinish.js';
+import checkPeriodFinish from './status-checkers/checkPeriodFinish.js';
 import checkVoteFinish from './status-checkers/checkVoteFinish.js';
 import StatusChecker from './status-checkers/StatusChecker.js';
-import {
-  extractLogOfPeriod,
-  mostVotes,
-  pickRandomFromArray,
-  shuffleArray
-} from './utils.js';
+import { now } from './utils.js';
 
 config(); // Loads environment variables from .env file
 
@@ -72,7 +65,7 @@ const assignRoles = (userIds: string[], count: number = 5): AgentInfo[] => {
   return userIds.map((userId, i) => ({
     agentId: (i + 1) as AgentId,
     role: shuffled[i],
-    name: `Agent[${i}]`,
+    name: `Agent[${i + 1}]`,
     life: 'alive',
     userId
   }));
@@ -94,10 +87,15 @@ const checkAuth = async (event: HandlerEvent): Promise<string> => {
   const idToken = event.headers['authorization']?.replace(/^Bearer /, '');
   if (!idToken) throw jsonResponse(401, 'Unauthorized');
   const decodedToken = await getAuth().verifyIdToken(idToken);
+
+  // Check god mode
+  if (event.headers['x-godmode-uid-override']) {
+    console.log('God mode request detected.');
+    return event.headers['x-godmode-uid-override'];
+  }
+
   return decodedToken.uid;
 };
-
-const now = () => fb.database.ServerValue.TIMESTAMP;
 
 const newPushId = () => {
   // According to the spec, this is ensured to be in chronological order
@@ -110,8 +108,9 @@ interface ReqPayload {
   [key: string]: unknown;
 }
 
-type ReqType =
+type GameRequestType =
   | 'matchNewGame'
+  | 'addUser'
   | 'abortGame'
   | 'talk'
   | 'whisper'
@@ -120,17 +119,18 @@ type ReqType =
   | 'attackVote'
   | 'divine';
 
-type ReqData = {
-  type: ReqType;
+type GameRequestData = {
+  type: GameRequestType;
   payload: ReqPayload;
 };
 
 type ModeHandler = (params: {
   uid: string;
+  requestType: GameRequestType;
   payload: any;
 }) => Promise<HandlerResponse>;
 
-const pushLog = <T extends LogEntry>(
+const pushLog: PushLog = <T extends LogEntry>(
   game: Game,
   entry: Omit<T, 'timestamp'>
 ) => {
@@ -145,15 +145,23 @@ const pushLog = <T extends LogEntry>(
 
 type GameHandler = (params: {
   game: Game;
+  requestType: GameRequestType;
   myAgent: AgentInfo;
   payload: ReqPayload;
 }) => Game;
 
+/**
+ * This contains the base logic shared by all request types that
+ * require a game to be in progress.
+ */
 const makeGameHandler = (handler: GameHandler): ModeHandler => {
-  return async ({ uid, payload }) => {
+  return async ({ requestType, uid, payload }) => {
     const gameId = payload.gameId as string;
     if (!gameId) return jsonResponse(400, 'gameId is required');
     const gameRef = db.ref(`games/${gameId}`);
+
+    const game = (await gameRef.once('value')).val() as Game;
+    if (!game) return jsonResponse(404, 'Game not found');
 
     let error: any = null;
     let releasePlayers: string[] | null = null;
@@ -165,10 +173,10 @@ const makeGameHandler = (handler: GameHandler): ModeHandler => {
 
         const myAgent = game.agents.find(a => a.userId === uid);
         if (!myAgent)
-          return jsonResponse(403, 'You are not a player of this game');
+          throw jsonResponse(403, 'You are not a player of this game');
         if (myAgent.life === 'dead')
-          return jsonResponse(400, 'You are already dead');
-        const g = movePhase(handler({ game, myAgent, payload }));
+          throw jsonResponse(400, 'You are already dead');
+        const g = movePhase(handler({ requestType, game, myAgent, payload }));
         if (g.finishedAt) releasePlayers = g.agents.map(a => a.userId);
         return g;
       } catch (err) {
@@ -218,11 +226,11 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
     }
     return data;
   });
-  if (!res.committed) throw jsonResponse(500, 'Failed to create a game');
-  if (pickedUsers.length < count) {
-    // return jsonResponse(400, 'Not enough players');
+  if (!res.committed) throw jsonResponse(500, 'Failed to assign players');
+  if (pickedUsers.length + 1 < count) {
+    return jsonResponse(400, 'Not enough players');
   }
-  const agents = assignRoles([uid, ...pickedUsers], count);
+  const agents = assignRoles(shuffleArray([uid, ...pickedUsers]), count);
   const initialGame: Game = {
     startedAt: now(),
     agents,
@@ -240,6 +248,7 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
     }
   };
   const game = movePhase(initialGame);
+  console.log('New game created', game);
   await gameRef.set(game);
   if (game.finishedAt) await releaseUsers([uid, ...pickedUsers]);
 
@@ -247,7 +256,7 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
 };
 
 const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
-  const gameId = payload.gameId;
+  const gameId = payload.gameId as string;
   if (!gameId) return jsonResponse(400, 'gameId is required');
   const gameRef = db.ref(`games/${gameId}`);
   const game = (await gameRef.once('value')).val() as Game;
@@ -263,6 +272,21 @@ const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
   return jsonResponse(200, 'OK');
 };
 
+const handleAddUser: ModeHandler = async ({ uid, payload }) => {
+  const newUid = payload.newUid as string;
+  const name = (payload.name as string) ?? 'bot';
+  if (!newUid) return jsonResponse(400, 'newUid is required');
+  const usersRef = db.ref('users').child(newUid);
+  await usersRef.set({ createdAt: now(), name, onlineStatus: true });
+  return jsonResponse(200, 'OK');
+};
+
+const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1);
+
+type EventHandlerKey<T extends StatusLogEvent> =
+  | `${T}`
+  | `before${Capitalize<T>}`;
+
 /**
  * This is the "game master" function of this program. It reads the existing
  * log and proceeds the game status (day/period/phase) when necessary.
@@ -272,14 +296,15 @@ const movePhase = (game: Game): Game => {
   const statusCheckers: StatusChecker[] = [
     checkChatFinish,
     checkVoteFinish,
-    checkDayFinish,
+    checkPeriodFinish,
     checkGameFinish
   ];
 
   const statusEventHandlers: {
-    [event in StatusLogEvent]?: StatusEventHandler[];
+    [event in StatusLogEvent as EventHandlerKey<event>]?: StatusEventHandler[];
   } = {
-    periodStart: [showKilledResult, showDivineResults, showGameResult]
+    beforePeriodStart: [showKilledResult],
+    periodStart: [showDivineResults, showGameResult]
   };
 
   const pushState = (
@@ -311,23 +336,20 @@ const movePhase = (game: Game): Game => {
       const result = checker(nextGame);
       if (result) {
         statusChanged = true;
-        console.log('changed', checker.name, result);
         const { event, nextStatus } = result;
+        const preHandlers =
+          statusEventHandlers[
+            ('before' + capitalize(event)) as EventHandlerKey<typeof event>
+          ] ?? [];
+        for (const handler of preHandlers)
+          nextGame = handler(nextGame, pushLog);
         nextGame = pushState(nextGame, event, {
           ...nextGame.status,
           ...nextStatus
         });
-        const handlers = statusEventHandlers[event] ?? [];
-        for (const handler of handlers) {
-          const entries = handler(nextGame);
-          if (Array.isArray(entries))
-            entries.forEach(e => (nextGame = pushLog(nextGame, e)));
-        }
-        if (event === 'gameFinish') {
-          nextGame = produce(nextGame, draft => {
-            draft.finishedAt = now();
-          });
-        }
+        const postHandlers = statusEventHandlers[event] ?? [];
+        for (const handler of postHandlers)
+          nextGame = handler(nextGame, pushLog);
         break;
       }
     }
@@ -339,29 +361,38 @@ const movePhase = (game: Game): Game => {
   return nextGame;
 };
 
-const handleChat = makeGameHandler(({ game, myAgent, payload }) => {
+const availableChatType = (
+  game: Game,
+  agent: AgentInfo
+): 'whisper' | 'talk' | null => {
   const { day, period, votePhase } = game.status;
-  const { type, content } = payload as ReqPayload & {
-    type: 'talk' | 'whisper';
-    content: string;
-  };
-  if (
-    votePhase !== 'chat' ||
-    (period === 'day' && type === 'whisper') ||
-    (period === 'night' && type === 'talk')
-  )
-    throw jsonResponse(400, 'Invalid game status');
+  if (period === 'night' && votePhase === 'chat' && agent.role === 'werewolf')
+    return 'whisper';
+  if (period === 'day' && votePhase === 'chat') return 'talk';
+  return null;
+};
 
-  const periodLog = extractLogOfPeriod(game, day, period);
-  if (periodLog.some(l => l.type === 'over' && l.agent === myAgent.agentId))
-    throw jsonResponse(400, 'You have already finished your talk');
+const handleChat = makeGameHandler(
+  ({ requestType, game, myAgent, payload }) => {
+    const { day, period } = game.status;
+    const type = requestType;
+    const content = payload.content as string;
 
-  return pushLog<BaseTalkLogEntry>(game, {
-    type,
-    agent: myAgent.agentId,
-    content
-  });
-});
+    const chatType = availableChatType(game, myAgent);
+    if (type !== chatType)
+      throw jsonResponse(400, 'You cannot do this action now');
+
+    const periodLog = extractLogOfPeriod(game, day, period);
+    if (periodLog.some(l => l.type === 'over' && l.agent === myAgent.agentId))
+      throw jsonResponse(400, 'You have already finished your talk');
+
+    return pushLog<BaseTalkLogEntry>(game, {
+      type,
+      agent: myAgent.agentId,
+      content
+    });
+  }
+);
 
 const handleOver = makeGameHandler(({ game, myAgent }) => {
   const periodLog = extractLogOfPeriod(
@@ -370,52 +401,77 @@ const handleOver = makeGameHandler(({ game, myAgent }) => {
     game.status.period
   );
 
+  const chatType = availableChatType(game, myAgent);
+  if (!chatType) throw jsonResponse(400, 'You cannot chat now');
+
   if (periodLog.some(l => l.type === 'over' && l.agent === myAgent.agentId))
-    throw jsonResponse(400, 'You have already finished your talk');
+    throw jsonResponse(400, 'You have already finished your chat');
 
-  return pushLog<OverLogEntry>(game, { type: 'over', agent: myAgent.agentId });
-});
-
-const handleVote = makeGameHandler(({ game, myAgent, payload }) => {
-  const { day, period, votePhase } = game.status;
-  const { type, target } = payload as ReqPayload & {
-    type: 'vote' | 'attackVote';
-    target: AgentId;
-  };
-
-  const voteType = period === 'day' ? 'vote' : 'attackVote';
-  if (typeof votePhase !== 'number' || voteType !== type)
-    throw jsonResponse(400, 'Invalid game status');
-
-  const targetAgent = game.agents.find(a => a.agentId === target);
-  if (!targetAgent) throw jsonResponse(400, 'Invalid target');
-  if (targetAgent.life !== 'alive') throw jsonResponse(400, 'Target is dead');
-  if (type === 'attackVote' && team(targetAgent.role) !== 'villagers')
-    throw jsonResponse(400, 'Invalid target');
-
-  const periodLog = extractLogOfPeriod(game, day, period);
-  if (periodLog.some(l => l.type === voteType && l.agent === myAgent.agentId))
-    throw jsonResponse(400, 'You have already cast your vote');
-
-  return pushLog<AttackVoteLogEntry | VoteLogEntry>(game, {
-    type,
-    agent: myAgent.agentId,
-    votePhase,
-    target
+  return pushLog<OverLogEntry>(game, {
+    type: 'over',
+    chatType,
+    agent: myAgent.agentId
   });
 });
+
+const handleVote = makeGameHandler(
+  ({ game, requestType, myAgent, payload }) => {
+    const { day, period, votePhase } = game.status;
+    const type = requestType;
+    const target = payload.target as AgentId;
+
+    const voteType = period === 'day' ? 'vote' : 'attackVote';
+    if (typeof votePhase !== 'number')
+      throw jsonResponse(400, 'No voting is active now');
+    if (voteType !== type)
+      throw jsonResponse(400, 'You cannot do this action now');
+
+    if (voteType === 'attackVote' && myAgent.role !== 'werewolf')
+      throw jsonResponse(400, 'You cannot cast an attack vote');
+
+    const targetAgent = game.agents.find(a => a.agentId === target);
+    if (!targetAgent) throw jsonResponse(400, 'Invalid target');
+
+    if (targetAgent.agentId === myAgent.agentId)
+      throw jsonResponse(400, 'You cannot vote yourself');
+    if (targetAgent.life !== 'alive')
+      throw jsonResponse(400, 'Your vote target is dead');
+    if (type === 'attackVote' && team(targetAgent.role) === 'werewolves')
+      throw jsonResponse(400, 'You cannot attack a werewolf');
+
+    const periodLog = extractLogOfPeriod(game, day, period).filter(
+      l => l.type === voteType
+    ) as VoteLogEntry[];
+    if (
+      periodLog.some(
+        l =>
+          l.votePhase === game.status.votePhase && l.agent === myAgent.agentId
+      )
+    )
+      throw jsonResponse(400, 'You have already cast your vote');
+
+    return pushLog<AttackVoteLogEntry | VoteLogEntry>(game, {
+      type,
+      agent: myAgent.agentId,
+      votePhase,
+      target
+    });
+  }
+);
 
 const handleDivine = makeGameHandler(({ game, myAgent, payload }) => {
   const { day, period } = game.status;
   const { target } = payload as ReqPayload & { target: AgentId };
 
   if (game.status.period !== 'night')
-    throw jsonResponse(400, 'Invalid game status');
-
+    throw jsonResponse(400, 'It is not night now');
+  if (myAgent.role !== 'seer') throw jsonResponse(400, 'You are not a seer');
   const targetAgent = game.agents.find(a => a.agentId === target);
-  // if (targetAgent?.agentId === myAgent.agentId)
-  //   throw jsonResponse(400, 'You cannot divine yourself');
-  if (targetAgent?.life !== 'alive') throw jsonResponse(400, 'Invalid target');
+  if (!targetAgent) throw jsonResponse(400, 'Invalid target');
+  if (targetAgent.agentId === myAgent.agentId)
+    throw jsonResponse(400, 'You cannot divine yourself');
+  if (targetAgent.life !== 'alive')
+    throw jsonResponse(400, 'The target is already dead');
 
   const periodLog = extractLogOfPeriod(game, day, period);
   if (periodLog.some(l => l.type === 'divine' && l.agent === myAgent.agentId)) {
@@ -431,10 +487,11 @@ const handleDivine = makeGameHandler(({ game, myAgent, payload }) => {
 
 export const handler: Handler = async (event, context) => {
   try {
-    const { type, payload } = parseInput(event) as ReqData;
+    const { type, payload } = parseInput(event) as GameRequestData;
     const uid = await checkAuth(event);
-    const handlers: { [key in ReqType]: ModeHandler } = {
+    const handlers: { [key in GameRequestType]: ModeHandler } = {
       matchNewGame: handleMatchNewGame,
+      addUser: handleAddUser,
       abortGame: handleAbortGame,
       talk: handleChat,
       whisper: handleChat,
@@ -444,7 +501,7 @@ export const handler: Handler = async (event, context) => {
       divine: handleDivine
     };
     if (!handlers[type]) throw jsonResponse(400, 'Invalid request type');
-    return await handlers[type]({ uid, payload });
+    return await handlers[type]({ requestType: type, uid, payload });
   } catch (err: any) {
     if ('statusCode' in err && 'headers' in err) return err;
     console.error('Internal server error:');

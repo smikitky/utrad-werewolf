@@ -1,7 +1,10 @@
 import { Game, LogEntry } from '../../../../src/game-data';
 
-type StatusEventHandler = (
-  game: Game
-) => undefined | Omit<LogEntry, 'timestamp'>[];
+export type PushLog = <T extends LogEntry>(
+  game: Game,
+  entry: Omit<T, 'timestamp'>
+) => Game;
+
+type StatusEventHandler = (game: Game, pushLog: PushLog) => Game;
 
 export default StatusEventHandler;

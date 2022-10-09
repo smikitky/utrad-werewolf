@@ -14,8 +14,15 @@ const OnlineUsers: FC = () => {
   return (
     <StyledList>
       {Object.entries(users.data).map(([uid, user]) => (
-        <li key={uid} className={classNames({ online: user.onlineStatus })}>
+        <li
+          key={uid}
+          className={classNames({
+            online: user.onlineStatus,
+            'in-game': user.currentGameId
+          })}
+        >
           {user.name}
+          {user.currentGameId && <span>(In game)</span>}
         </li>
       ))}
     </StyledList>

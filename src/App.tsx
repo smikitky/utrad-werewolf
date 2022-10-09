@@ -10,9 +10,9 @@ import * as db from 'firebase/database';
 import { FC, useEffect, useMemo, useState } from 'react';
 import {
   createBrowserRouter,
-  RouterProvider,
   Link,
-  Outlet
+  Outlet,
+  RouterProvider
 } from 'react-router-dom';
 import styled from 'styled-components';
 import { UserEntry } from './game-data.js';
@@ -29,6 +29,8 @@ import {
 } from './utils/user.js';
 
 import GameStage from './GameStage.js';
+import GodMenu from './GodMenu.js';
+import GodMode from './GodMode.js';
 import Menu from './Menu.js';
 
 const Layout: FC = props => {
@@ -63,7 +65,9 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { path: '/', element: <Menu /> },
-      { path: 'game/:gameId', element: <GameStage /> }
+      { path: 'game/:gameId', element: <GameStage /> },
+      { path: 'god', element: <GodMenu /> },
+      { path: 'god/:gameId', element: <GodMode /> }
     ]
   }
 ]);
@@ -114,12 +118,13 @@ const App: FC = () => {
   }, [uid, loginType, userProfile, idToken]);
 
   const apiCaller = useMemo<ApiCaller>(() => {
-    return (type: string, payload: any) => {
+    return (type: string, payload: any, asUser?: string) => {
       return fetch('/.netlify/functions/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`
+          Authorization: `Bearer ${idToken}`,
+          ...(asUser ? { 'X-Godmode-UID-Override': asUser } : {})
         },
         body: JSON.stringify({ type, payload })
       });
