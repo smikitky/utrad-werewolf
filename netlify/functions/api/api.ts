@@ -472,8 +472,8 @@ const handleDivineProtect = makeGameHandler(
       throw jsonResponse(400, 'You are not a seer');
     if (type === 'protect' && myAgent.role !== 'hunter')
       throw jsonResponse(400, 'You are not a hunter');
-    if (game.status.period !== 'night')
-      throw jsonResponse(400, 'It is not night now');
+    if (game.status.period !== 'night' || (type === 'protect' && day === 0))
+      throw jsonResponse(400, `This action is not allowed in this period`);
     const targetAgent = game.agents.find(a => a.agentId === target);
     if (!targetAgent) throw jsonResponse(400, 'Invalid target');
     if (targetAgent.agentId === myAgent.agentId)
