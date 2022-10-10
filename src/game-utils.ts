@@ -14,7 +14,9 @@ export const roleTextMap: { [key in AgentRole]: string } = {
   villager: '村人',
   werewolf: '人狼',
   seer: '占い師',
-  possessed: '裏切り者'
+  possessed: '裏切り者',
+  medium: '霊能者',
+  hunter: '狩人'
 };
 
 export const teamTextMap: { [key in Team]: string } = {

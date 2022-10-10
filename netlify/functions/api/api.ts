@@ -8,7 +8,7 @@ import {
   AgentInfo,
   AgentStatus,
   AttackVoteLogEntry,
-  BaseTalkLogEntry,
+  ChatLogEntry,
   DivineLogEntry,
   Game,
   GameStatus,
@@ -28,6 +28,7 @@ import StatusEventHandler, {
 import showDivineResults from './event-handlers/showDivineResults.js';
 import showGameResult from './event-handlers/showGameResult.js';
 import showKilledResult from './event-handlers/showKilledResult.js';
+import showMediumResults from './event-handlers/showMediumResults.js';
 import checkChatFinish from './status-checkers/checkChatFinish.js';
 import checkGameFinish from './status-checkers/checkGameFinish.js';
 import checkPeriodFinish from './status-checkers/checkPeriodFinish.js';
@@ -303,8 +304,8 @@ const movePhase = (game: Game): Game => {
   const statusEventHandlers: {
     [event in StatusLogEvent as EventHandlerKey<event>]?: StatusEventHandler[];
   } = {
-    beforePeriodStart: [showKilledResult],
-    periodStart: [showDivineResults, showGameResult]
+    beforePeriodStart: [showKilledResult, showGameResult],
+    periodStart: [showDivineResults, showMediumResults]
   };
 
   const pushState = (
@@ -386,7 +387,7 @@ const handleChat = makeGameHandler(
     if (periodLog.some(l => l.type === 'over' && l.agent === myAgent.agentId))
       throw jsonResponse(400, 'You have already finished your talk');
 
-    return pushLog<BaseTalkLogEntry>(game, {
+    return pushLog<ChatLogEntry>(game, {
       type,
       agent: myAgent.agentId,
       content

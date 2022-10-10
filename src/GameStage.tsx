@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import {
   FC,
-  useState,
-  KeyboardEvent,
   KeyboardEventHandler,
+  MouseEventHandler,
+  useEffect,
   useRef,
-  useEffect
+  useState
 } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
@@ -14,7 +14,7 @@ import {
   AgentInfo,
   AgentRole,
   agentRoles,
-  BaseTalkLogEntry,
+  ChatLogEntry,
   BaseVoteLogEntry,
   DivineLogEntry,
   DivineResultLogEntry,
@@ -24,9 +24,10 @@ import {
   OverLogEntry,
   ResultLogEntry,
   StatusLogEntry,
-  team
+  team,
+  ExecuteLogEntry
 } from './game-data.js';
-import { roleTextMap, teamTextMap } from './game-utils.js';
+import { extractLogOfPeriod, roleTextMap } from './game-utils.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
 import { useLoginUser } from './utils/user.js';
@@ -41,15 +42,39 @@ const Player: FC<{
   name: string;
   isMe: boolean;
   isDead: boolean;
-  isWerewolf: boolean;
+  isWerewolf?: boolean;
+  revealRole?: AgentRole;
+  onClick?: MouseEventHandler;
+  active?: boolean;
+  disabled?: boolean;
 }> = props => {
-  const { agentId, name, isMe, isDead, isWerewolf } = props;
-  const text = [isMe ? 'あなた' : null, isWerewolf ? '🐺' : null]
-    .filter(Boolean)
-    .join('/');
+  const {
+    agentId,
+    name,
+    isMe,
+    isDead,
+    isWerewolf,
+    revealRole,
+    onClick,
+    active,
+    disabled
+  } = props;
+  const text = revealRole
+    ? roleTextMap[revealRole]
+    : [isMe ? 'あなた' : null, isWerewolf ? '人狼' : null]
+        .filter(Boolean)
+        .join('/');
   return (
     <StyledPlayerDiv
-      className={classNames({ me: isMe, dead: isDead, werewolf: isWerewolf })}
+      className={classNames({
+        me: isMe,
+        dead: isDead,
+        werewolf: isWerewolf,
+        clickable: !!onClick,
+        active,
+        disabled
+      })}
+      onClick={onClick ?? (() => {})}
     >
       <img src={`/public/agent${agentId}.jpg`} alt={`Agent[${agentId}]`} />
       <div className="name">{name}</div>
@@ -59,7 +84,7 @@ const Player: FC<{
 };
 
 const StyledPlayerDiv = styled.div`
-  border: 2px solid black;
+  border: 2px solid gray;
   background: white;
   width: 80px;
   &.me {
@@ -67,14 +92,30 @@ const StyledPlayerDiv = styled.div`
     color: blue;
   }
   &.dead {
+    border-color: brown;
     color: red;
     img {
-      filter: grayscale(100%) brightness(0.5);
+      filter: grayscale(100%) brightness(0.3);
     }
   }
   img {
     width: 100%;
     aspect-ratio: 3/4;
+  }
+  &.clickable {
+    cursor: pointer;
+    transition: 0.2s;
+    &.active {
+      box-shadow: 0 0 0 2px blue;
+      transform: scale(1.05);
+    }
+    &:hover:not(.disabled) {
+      transform: scale(1.05);
+    }
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
   }
   > .name,
   > .indicator {
@@ -161,7 +202,15 @@ const StatusLogItem: FC<{
         if (entry.votePhase === 1)
           return `村の誰を${type}するかの投票が始まった。`;
         else
-          return `${type}の投票は決着しなかったため ${entry.votePhase} 回目の投票が始まった。`;
+          return (
+            <>
+              {type}の投票は決着しなかったため、{entry.votePhase}{' '}
+              回目の投票が始まった。
+              <br />
+              再投票は 1
+              回のみで、次も決着が付かない場合は最多得票者からランダムで犠牲者が選ばれる。
+            </>
+          );
       }
       default:
         return null;
@@ -169,13 +218,13 @@ const StatusLogItem: FC<{
   })();
 
   if (!content) return null;
-  return <li className="status">{content}</li>;
+  return <li className={classNames('status', entry.event)}>{content}</li>;
 };
 
 const ChatLogItem: FC<{
   game: Game;
   myAgent: AgentInfo;
-  entry: BaseTalkLogEntry;
+  entry: ChatLogEntry;
 }> = props => {
   const { game, myAgent, entry } = props;
   const invisible =
@@ -198,7 +247,29 @@ const DivineLogItem: FC<{
   if (myAgent.agentId !== entry.agent) return null;
   const target = game.agents.find(a => a.agentId === entry.target)!;
   return (
-    <li className="divine">{target.name} を占った。結果は翌朝に分かる。</li>
+    <li className="ability">
+      あなたは <b>{target.name}</b> の正体を占った。結果は翌朝に分かるだろう。
+    </li>
+  );
+};
+
+const MediumResultLogItem: FC<{
+  game: Game;
+  myAgent: AgentInfo;
+  entry: DivineLogEntry;
+}> = props => {
+  const { game, myAgent, entry } = props;
+  if (myAgent.agentId !== entry.agent) return null;
+  const target = game.agents.find(a => a.agentId === entry.target)!;
+  const result = target.role === 'werewolf' ? '人狼だった' : '人狼ではなかった';
+  return (
+    <li className="ability">
+      あなたの霊媒師の能力が発動した。さきほど追放された{' '}
+      <strong>
+        {target.name} は{result}
+      </strong>
+      。
+    </li>
   );
 };
 
@@ -212,7 +283,7 @@ const DivineResultLogItem: FC<{
   const target = game.agents.find(a => a.agentId === entry.target)!;
   const result = target.role === 'werewolf' ? '人狼だった' : '人狼ではなかった';
   return (
-    <li className="divine">
+    <li className="ability">
       占いの結果、
       <strong>
         {target.name} は{result}
@@ -245,7 +316,7 @@ const VoteLogItem: FC<{
   entry: BaseVoteLogEntry;
 }> = props => {
   const { game, myAgent, entry } = props;
-  const invisible = myAgent.role === 'villager' && entry.type === 'attackVote';
+  const invisible = myAgent.role !== 'werewolf' && entry.type === 'attackVote';
   if (invisible) return null;
   const agent = game.agents.find(a => a.agentId === entry.agent)!;
   return (
@@ -273,8 +344,14 @@ const KillLogItem: FC<{
   );
 };
 
-const ResultLogItem: FC<{ entry: ResultLogEntry }> = props => {
+const ResultLogItem: FC<{
+  game: Game;
+  myAgent: AgentInfo;
+  entry: ResultLogEntry;
+}> = props => {
   const {
+    game,
+    myAgent,
     entry: { survivingVillagers, survivingWerewolves, winner }
   } = props;
   const text = winner === 'villagers' ? '村人陣営の勝利。' : '人狼陣営の勝利。';
@@ -283,8 +360,20 @@ const ResultLogItem: FC<{ entry: ResultLogEntry }> = props => {
     `${survivingWerewolves} 人の人狼が生き残った。`;
   return (
     <li className="result">
-      <strong>{text}</strong>
-      {survivors}
+      <div className="winner">{text}</div>
+      <div className="details">{survivors}</div>
+      <div className="players">
+        {game.agents.map(agent => (
+          <Player
+            key={agent.agentId}
+            agentId={agent.agentId}
+            name={agent.name}
+            isDead={agent.life === 'dead'}
+            isMe={agent.agentId === myAgent.agentId}
+            revealRole={agent.role}
+          />
+        ))}
+      </div>
     </li>
   );
 };
@@ -313,6 +402,7 @@ const GameLog: FC<{ game: Game }> = props => {
           whisper: ChatLogItem,
           divine: DivineLogItem,
           divineResult: DivineResultLogItem,
+          mediumResult: MediumResultLogItem,
           vote: VoteLogItem,
           attackVote: VoteLogItem,
           attack: KillLogItem,
@@ -348,21 +438,34 @@ const StyledGameLog = styled.ul`
       color: white;
     }
     &.status {
-      background: #bbbbbb;
-      border: 2px solid #888888;
+      &.periodStart {
+        border: 2px solid #aaaaaa;
+        padding: 7px 3px;
+      }
+      background: #cccccc;
       margin: 5px 0;
       border-radius: 10px;
       padding: 3px;
       text-align: center;
     }
     &.result {
-      background: yellow;
+      background: #ffddaa;
+      text-align: center;
+      border-radius: 10px;
+      padding: 5px;
+      > .winner {
+        font-size: 120%;
+        font-weight: bold;
+      }
+      > .players {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+      }
     }
-    &.divine {
+    &.ability {
       color: green;
-    }
-    &.divine-result {
-      color: green;
+      background: #eeffee;
     }
     &.over,
     &.vote {
@@ -373,7 +476,7 @@ const StyledGameLog = styled.ul`
     &.execute {
       color: red;
       font-weight: bold;
-      background: #ffbbbb;
+      background: #ffdddd;
     }
   }
 `;
@@ -409,7 +512,7 @@ const StyledStatus = styled.div`
   background: linear-gradient(to bottom, #ffffaa, #ffff88);
   border: 1px solid silver;
   &.night {
-    background: linear-gradient(to bottom, #8888ff, #888888);
+    background: linear-gradient(to bottom, #8888ff, #aaaaaa);
   }
   .status {
     display: flex;
@@ -418,6 +521,7 @@ const StyledStatus = styled.div`
   }
   big {
     font-size: 180%;
+    font-weight: bolder;
   }
 `;
 
@@ -487,6 +591,8 @@ const StyledChatAction = styled.div`
 
 const ChooseAction: ActionComp = props => {
   const { gameId, game, myAgent, action } = props;
+  const [target, setTarget] = useState<AgentId | null>(null);
+
   if (action !== 'vote' && action !== 'attackVote' && action !== 'divine')
     return null;
   const prompt = {
@@ -496,44 +602,62 @@ const ChooseAction: ActionComp = props => {
   }[action];
   const api = useApi();
 
-  const handleVote = async (target: AgentId) => {
-    await api(action, { gameId, type: action, target });
+  const handleVote = async () => {
+    if (typeof target === 'number')
+      await api(action, { gameId, type: action, target });
   };
 
   return (
     <StyledChooseDiv>
       <div className="prompt">{prompt}</div>
-      <div className="choices">
-        {game.agents.map(agent => {
-          const canVote =
-            agent.life === 'alive' && agent.agentId !== myAgent.agentId;
-          return (
-            <button
-              disabled={!canVote}
-              key={agent.agentId}
-              onClick={() => handleVote(agent.agentId)}
-            >
-              <Player
-                agentId={agent.agentId}
-                name={agent.name}
-                isDead={agent.life === 'dead'}
-                isMe={agent.userId === myAgent.userId}
-                isWerewolf={false}
-              />
-            </button>
-          );
-        })}
+      <div className="panel">
+        <ul className="choices">
+          {game.agents.map(agent => {
+            const canVote =
+              agent.life === 'alive' &&
+              agent.agentId !== myAgent.agentId &&
+              !(action === 'attackVote' && agent.role === 'werewolf');
+            return (
+              <li key={agent.agentId}>
+                <Player
+                  agentId={agent.agentId}
+                  name={agent.name}
+                  isDead={agent.life === 'dead'}
+                  isMe={agent.userId === myAgent.userId}
+                  isWerewolf={false}
+                  onClick={() => setTarget(agent.agentId)}
+                  active={canVote && target === agent.agentId}
+                  disabled={!canVote}
+                />
+              </li>
+            );
+          })}
+        </ul>
+        <button disabled={target === null} onClick={handleVote}>
+          決定
+        </button>
       </div>
     </StyledChooseDiv>
   );
 };
 
 const StyledChooseDiv = styled.div`
-  .choices {
+  > .panel {
     display: flex;
-    gap: 5px;
-    button:disabled {
-      opacity: 0.5;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+    > .choices {
+      display: flex;
+      gap: 5px;
+      button:disabled {
+        opacity: 0.5;
+      }
+    }
+    > button {
+      font-size: 150%;
+      width: 120px;
+      height: 60px;
     }
   }
 `;
@@ -568,7 +692,10 @@ const ActionPane: FC<{
       case 'day':
         if (typeof votePhase === 'number') {
           return todaysLog.some(
-            l => l.type === 'vote' && l.agent === myAgent.agentId
+            l =>
+              l.type === 'vote' &&
+              l.agent === myAgent.agentId &&
+              l.votePhase === votePhase
           )
             ? 'wait'
             : 'vote';
@@ -586,10 +713,19 @@ const ActionPane: FC<{
             )
               ? 'wait'
               : 'divine';
+          case 'medium':
+            console.warn('Medium is not implemented yet');
+            return 'wait';
+          case 'hunter':
+            console.warn('Hunter is not implemented yet');
+            return 'wait';
           case 'werewolf':
             if (typeof votePhase === 'number') {
               return todaysLog.some(
-                l => l.type === 'attackVote' && l.agent === myAgent.agentId
+                l =>
+                  l.type === 'attackVote' &&
+                  l.agent === myAgent.agentId &&
+                  l.votePhase === votePhase
               )
                 ? 'wait'
                 : 'attackVote';
@@ -632,13 +768,21 @@ const ActionPane: FC<{
 
 const StyledActionPane = styled.div`
   margin: 10px;
-  border: 3px solid gray;
+  border: 3px inset #770000;
+  border-radius: 5px;
   margin-top: 15px;
+  position: relative;
   > .title {
-    background: #aaaaaa;
+    position: relative;
+    width: 120px;
+    text-align: center;
+    left: 20px;
+    top: -13px;
+    font-weight: bolder;
+    background: white;
   }
   > .body {
-    padding: 15px;
+    padding: 0px 15px 15px 15px;
   }
 `;
 

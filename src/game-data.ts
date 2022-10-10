@@ -23,7 +23,9 @@ export const agentRoles = [
   'villager',
   'seer',
   'werewolf',
-  'possessed'
+  'possessed',
+  'medium',
+  'hunter'
 ] as const;
 
 export type AgentRole = typeof agentRoles[number];
@@ -32,7 +34,7 @@ export const roleCombinations = new Map<number, AgentRole[]>([
   [2, ['villager', 'werewolf']],
   [3, ['villager', 'seer', 'werewolf']],
   [4, ['villager', 'seer', 'possessed', 'werewolf']],
-  [5, ['villager', 'seer', 'possessed', 'werewolf', 'werewolf']]
+  [5, ['medium', 'seer', 'possessed', 'werewolf', 'werewolf']]
 ]);
 
 export type Team = 'villagers' | 'werewolves';
@@ -42,11 +44,12 @@ export const team = (role: AgentRole): Team => {
     case 'villager':
     case 'seer':
     case 'possessed':
+    case 'medium':
+    case 'hunter':
       return 'villagers';
     case 'werewolf':
       return 'werewolves';
   }
-  throw new Error(`Unknown role passed to getTeam()`);
 };
 
 export type Life = 'alive' | 'dead';
@@ -71,6 +74,9 @@ export type LogType =
   | 'attackVote' // by werewolves
   | 'divine' // by seer
   | 'divineResult'
+  | 'mediumResult' // by medium
+  | 'protect' // by hunter
+  | 'protectResult'
   | 'execute' // by daytime vote
   | 'attack' // by werewolves
   | 'result';
@@ -119,16 +125,16 @@ export interface ActionLogEntry extends BaseLogEntry {
   agent: AgentId;
 }
 
-export interface BaseTalkLogEntry extends ActionLogEntry {
+export interface ChatLogEntry extends ActionLogEntry {
   type: 'talk' | 'whisper';
   content: string;
 }
 
-export interface TalkLogEntry extends BaseTalkLogEntry {
+export interface TalkLogEntry extends ChatLogEntry {
   type: 'talk';
 }
 
-export interface WhisperLogEntry extends BaseTalkLogEntry {
+export interface WhisperLogEntry extends ChatLogEntry {
   type: 'whisper';
 }
 
@@ -144,6 +150,21 @@ export interface DivineLogEntry extends ActionLogEntry {
 
 export interface DivineResultLogEntry extends ActionLogEntry {
   type: 'divineResult';
+  target: AgentId;
+}
+
+export interface MediumResultLogEntry extends ActionLogEntry {
+  type: 'mediumResult';
+  target: AgentId;
+}
+
+export interface ProtectLogEntry extends ActionLogEntry {
+  type: 'protect';
+  target: AgentId;
+}
+
+export interface ProtectResultLogEntry extends ActionLogEntry {
+  type: 'protectResult';
   target: AgentId;
 }
 
@@ -188,6 +209,9 @@ export type LogEntry =
   | OverLogEntry
   | DivineLogEntry
   | DivineResultLogEntry
+  | MediumResultLogEntry
+  | ProtectLogEntry
+  | ProtectResultLogEntry
   | VoteLogEntry
   | AttackVoteLogEntry
   | ExecuteLogEntry
@@ -213,6 +237,14 @@ export interface GameStatus {
 export interface LogEntries {
   [logId: string]: LogEntry;
 }
+
+/*
+export interface GameRuleSet {
+  maxVoteRounds: number;
+  maxChat: number;
+  topVoteGetterFate: 'killAll' | 'killOne';
+}
+*/
 
 export interface Game {
   startedAt: TimeStamp;

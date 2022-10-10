@@ -1,5 +1,5 @@
-import { FC, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { FC, useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { Game } from './game-data';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
@@ -15,9 +15,16 @@ const GodMode: FC = () => {
   const game = gameData.data;
   const api = useApi();
 
+  useEffect(() => {
+    if (!selectedUser && game?.agents[0]) {
+      setSelectedUser(game.agents[0].userId);
+    }
+  }, [selectedUser, game]);
+
   if (!game) return null;
 
   const actionClick = async () => {
+    if (!selectedUser) return;
     const payload = (() => {
       switch (selectedAction) {
         case 'talk':
@@ -47,16 +54,23 @@ const GodMode: FC = () => {
 
   return (
     <StyledDiv>
-      <h1>God Mode</h1>
+      <h1>
+        <Link to="/god">God Mode</Link>
+      </h1>
       <div>Game ID: {gameId}</div>
       <h2>Game Status</h2>
       <div>
-        {game.agents.map((agent, i) => (
-          <div key={i}>
-            {agent.userId} {agent.name} ({agent.role}) {agent.life}
-          </div>
-        ))}
+        Day: {game.status.day}, Period: {game.status.period}, VotePhase:{' '}
+        {game.status.votePhase}
       </div>
+      <hr />
+      <ul>
+        {game.agents.map((agent, i) => (
+          <li key={i}>
+            <b>{agent.name}</b> ({agent.role}) {agent.life} {agent.userId}
+          </li>
+        ))}
+      </ul>
       <h2>Action</h2>
       <div>
         <select
