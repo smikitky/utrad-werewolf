@@ -388,6 +388,14 @@ const handleChat = makeGameHandler(
     const periodLog = extractLogOfPeriod(game, day, period);
     if (periodLog.some(l => l.type === 'over' && l.agent === myAgent.agentId))
       throw jsonResponse(400, 'You have already finished your talk');
+    if (
+      periodLog.filter(l => l.type === type && l.agent === myAgent.agentId)
+        .length >= 10
+    )
+      throw jsonResponse(
+        400,
+        'You cannot make a statement more than 10 times in one period'
+      );
 
     return pushLog<ChatLogEntry>(game, {
       type,
