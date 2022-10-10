@@ -34,7 +34,7 @@ export const roleCombinations = new Map<number, AgentRole[]>([
   [2, ['villager', 'werewolf']],
   [3, ['villager', 'seer', 'werewolf']],
   [4, ['villager', 'seer', 'possessed', 'werewolf']],
-  [5, ['medium', 'seer', 'possessed', 'werewolf', 'werewolf']]
+  [5, ['villager', 'seer', 'possessed', 'werewolf', 'werewolf']]
 ]);
 
 export type Team = 'villagers' | 'werewolves';

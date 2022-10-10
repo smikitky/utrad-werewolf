@@ -14,6 +14,7 @@ import {
   GameStatus,
   LogEntry,
   OverLogEntry,
+  ProtectLogEntry,
   roleCombinations,
   StatusLogEntry,
   StatusLogEvent,
@@ -118,7 +119,8 @@ type GameRequestType =
   | 'over'
   | 'vote'
   | 'attackVote'
-  | 'divine';
+  | 'divine'
+  | 'protect';
 
 type GameRequestData = {
   type: GameRequestType;
@@ -460,31 +462,36 @@ const handleVote = makeGameHandler(
   }
 );
 
-const handleDivine = makeGameHandler(({ game, myAgent, payload }) => {
-  const { day, period } = game.status;
-  const { target } = payload as ReqPayload & { target: AgentId };
+const handleDivineProtect = makeGameHandler(
+  ({ requestType, game, myAgent, payload }) => {
+    const { day, period } = game.status;
+    const type = requestType as 'divine' | 'protect';
+    const target = payload.target as AgentId;
 
-  if (game.status.period !== 'night')
-    throw jsonResponse(400, 'It is not night now');
-  if (myAgent.role !== 'seer') throw jsonResponse(400, 'You are not a seer');
-  const targetAgent = game.agents.find(a => a.agentId === target);
-  if (!targetAgent) throw jsonResponse(400, 'Invalid target');
-  if (targetAgent.agentId === myAgent.agentId)
-    throw jsonResponse(400, 'You cannot divine yourself');
-  if (targetAgent.life !== 'alive')
-    throw jsonResponse(400, 'The target is already dead');
+    if (type === 'divine' && myAgent.role !== 'seer')
+      throw jsonResponse(400, 'You are not a seer');
+    if (type === 'protect' && myAgent.role !== 'hunter')
+      throw jsonResponse(400, 'You are not a hunter');
+    if (game.status.period !== 'night')
+      throw jsonResponse(400, 'It is not night now');
+    const targetAgent = game.agents.find(a => a.agentId === target);
+    if (!targetAgent) throw jsonResponse(400, 'Invalid target');
+    if (targetAgent.agentId === myAgent.agentId)
+      throw jsonResponse(400, `You cannot ${type} yourself`);
+    if (targetAgent.life !== 'alive')
+      throw jsonResponse(400, `The target you tried to ${type} is dead`);
 
-  const periodLog = extractLogOfPeriod(game, day, period);
-  if (periodLog.some(l => l.type === 'divine' && l.agent === myAgent.agentId)) {
-    throw jsonResponse(400, 'You have already selected your target');
+    const periodLog = extractLogOfPeriod(game, day, period);
+    if (periodLog.some(l => l.type === type && l.agent === myAgent.agentId))
+      throw jsonResponse(400, 'You have already selected your target');
+
+    return pushLog<DivineLogEntry | ProtectLogEntry>(game, {
+      type,
+      agent: myAgent.agentId,
+      target
+    });
   }
-
-  return pushLog<DivineLogEntry>(game, {
-    type: 'divine',
-    agent: myAgent.agentId,
-    target
-  });
-});
+);
 
 export const handler: Handler = async (event, context) => {
   try {
@@ -499,7 +506,8 @@ export const handler: Handler = async (event, context) => {
       over: handleOver,
       vote: handleVote,
       attackVote: handleVote,
-      divine: handleDivine
+      divine: handleDivineProtect,
+      protect: handleDivineProtect
     };
     if (!handlers[type]) throw jsonResponse(400, 'Invalid request type');
     return await handlers[type]({ requestType: type, uid, payload });

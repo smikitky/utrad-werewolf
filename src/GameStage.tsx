@@ -332,16 +332,20 @@ const KillLogItem: FC<{
   entry: KillLogEntry;
 }> = props => {
   const { game, myAgent, entry } = props;
-  const agent = game.agents.find(a => a.agentId === entry.target)!;
-  const killType =
-    entry.type === 'execute'
-      ? '村人達によって追放された'
-      : '人狼によって襲撃された';
-  return (
-    <li className={entry.type}>
-      {agent.name} は{killType}。
-    </li>
-  );
+  const agent = game.agents.find(a => a.agentId === entry.target);
+  const message =
+    entry.target === 'NOBODY' ? (
+      <>人狼による襲撃により、誰も死ななかった。</>
+    ) : entry.type === 'execute' ? (
+      <>
+        <strong>${agent!.name}</strong> は村人達によって追放された。
+      </>
+    ) : (
+      <>
+        <strong>${agent!.name}</strong> は人狼によって襲撃された。
+      </>
+    );
+  return <li className={entry.type}>{message}</li>;
 };
 
 const ResultLogItem: FC<{
@@ -528,6 +532,7 @@ const StyledStatus = styled.div`
 type Action =
   | 'wait'
   | 'divine'
+  | 'protect'
   | 'vote'
   | 'attackVote'
   | 'talk'
@@ -593,12 +598,18 @@ const ChooseAction: ActionComp = props => {
   const { gameId, game, myAgent, action } = props;
   const [target, setTarget] = useState<AgentId | null>(null);
 
-  if (action !== 'vote' && action !== 'attackVote' && action !== 'divine')
+  if (
+    action !== 'vote' &&
+    action !== 'attackVote' &&
+    action !== 'divine' &&
+    action !== 'protect'
+  )
     return null;
   const prompt = {
     vote: '誰を追放するか投票してください',
     attackVote: '誰を襲撃するか選択してください',
-    divine: '誰を占うか選択してください'
+    divine: '誰を占うか選択してください',
+    protect: '誰を襲撃から守るか選択してください'
   }[action];
   const api = useApi();
 
@@ -717,8 +728,11 @@ const ActionPane: FC<{
             console.warn('Medium is not implemented yet');
             return 'wait';
           case 'hunter':
-            console.warn('Hunter is not implemented yet');
-            return 'wait';
+            return todaysLog.some(
+              l => l.type === 'protect' && l.agent === myAgent.agentId
+            ) || day === 0
+              ? 'wait'
+              : 'protect';
           case 'werewolf':
             if (typeof votePhase === 'number') {
               return todaysLog.some(
@@ -744,6 +758,7 @@ const ActionPane: FC<{
     wait: WaitAction,
     finish: FinishAction,
     divine: ChooseAction,
+    protect: ChooseAction,
     vote: ChooseAction,
     attackVote: ChooseAction,
     talk: ChatAction,

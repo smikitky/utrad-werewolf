@@ -33,6 +33,7 @@ const GodMode: FC = () => {
         case 'vote':
         case 'attackVote':
         case 'divine':
+        case 'protect':
           return { gameId, target: Number(param) };
         default:
           return { gameId };
@@ -97,6 +98,7 @@ const GodMode: FC = () => {
           <option value="vote">vote</option>
           <option value="attackVote">attackVote</option>
           <option value="divine">divine</option>
+          <option value="protect">protect</option>
         </select>
         <input
           type="text"
