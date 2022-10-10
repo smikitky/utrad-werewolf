@@ -7,7 +7,7 @@ import {
   signOut
 } from 'firebase/auth';
 import * as db from 'firebase/database';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createBrowserRouter,
   Link,
@@ -78,7 +78,7 @@ const App: FC = () => {
   const [linkErrorCode, setLinkErrorCode] = useState<string | undefined>(
     undefined
   );
-  const [idToken, setIdToken] = useState<string>('');
+  const getTokenRef = useRef<null | (() => Promise<string>)>(null);
 
   const userProfile = useFirebaseSubscription<UserEntry | null>(
     uid ? `/users/${uid}` : undefined
@@ -105,7 +105,7 @@ const App: FC = () => {
   }, []);
 
   const user = useMemo<LoginUser>(() => {
-    return uid && loginType && userProfile.data?.createdAt && idToken
+    return uid && loginType && userProfile.data?.createdAt
       ? {
           status: 'loggedIn',
           uid,
@@ -115,11 +115,13 @@ const App: FC = () => {
       : uid === undefined || (uid && userProfile.data === undefined)
       ? { status: 'indeterminate' }
       : { status: 'loggedOut' };
-  }, [uid, loginType, userProfile, idToken]);
+  }, [uid, loginType, userProfile]);
 
   const apiCaller = useMemo<ApiCaller>(() => {
-    return (type: string, payload: any, asUser?: string) => {
-      return fetch('/.netlify/functions/api', {
+    return async (type: string, payload: any, asUser?: string) => {
+      if (!getTokenRef.current) throw new Error('Not signed in');
+      const idToken = await getTokenRef.current();
+      return await fetch('/.netlify/functions/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +131,7 @@ const App: FC = () => {
         body: JSON.stringify({ type, payload })
       });
     };
-  }, [idToken]);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
@@ -137,7 +139,7 @@ const App: FC = () => {
       setLoginType(
         user ? (user.isAnonymous ? 'anonymous' : 'google') : undefined
       );
-      user?.getIdToken().then(setIdToken);
+      getTokenRef.current = user ? user.getIdToken.bind(user) : null;
     });
     return unsubscribe;
   }, []);

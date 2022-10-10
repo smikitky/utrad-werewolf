@@ -14,20 +14,20 @@ import {
   AgentInfo,
   AgentRole,
   agentRoles,
-  ChatLogEntry,
   BaseVoteLogEntry,
+  ChatLogEntry,
   DivineLogEntry,
   DivineResultLogEntry,
   Game,
   KillLogEntry,
   LogType,
   OverLogEntry,
+  ProtectLogEntry,
   ResultLogEntry,
   StatusLogEntry,
-  team,
-  ExecuteLogEntry
+  team
 } from './game-data.js';
-import { extractLogOfPeriod, roleTextMap } from './game-utils.js';
+import { roleTextMap } from './game-utils.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
 import { useLoginUser } from './utils/user.js';
@@ -238,17 +238,26 @@ const ChatLogItem: FC<{
   );
 };
 
-const DivineLogItem: FC<{
+const AbilityLogItem: FC<{
   game: Game;
   myAgent: AgentInfo;
-  entry: DivineLogEntry;
+  entry: DivineLogEntry | ProtectLogEntry;
 }> = props => {
   const { game, myAgent, entry } = props;
   if (myAgent.agentId !== entry.agent) return null;
   const target = game.agents.find(a => a.agentId === entry.target)!;
   return (
     <li className="ability">
-      あなたは <b>{target.name}</b> の正体を占った。結果は翌朝に分かるだろう。
+      {entry.type === 'divine' ? (
+        <>
+          あなたは <b>{target.name}</b>{' '}
+          の正体を占った。結果は翌朝に分かるだろう。
+        </>
+      ) : (
+        <>
+          あなたは <b>{target.name}</b> を人狼の襲撃から守るために護衛した。
+        </>
+      )}
     </li>
   );
 };
@@ -264,7 +273,7 @@ const MediumResultLogItem: FC<{
   const result = target.role === 'werewolf' ? '人狼だった' : '人狼ではなかった';
   return (
     <li className="ability">
-      あなたの霊媒師の能力が発動した。さきほど追放された{' '}
+      あなたの霊媒師としての能力が発動した。さきほど追放された{' '}
       <strong>
         {target.name} は{result}
       </strong>
@@ -284,7 +293,7 @@ const DivineResultLogItem: FC<{
   const result = target.role === 'werewolf' ? '人狼だった' : '人狼ではなかった';
   return (
     <li className="ability">
-      占いの結果、
+      あなたの占いの結果、
       <strong>
         {target.name} は{result}
       </strong>
@@ -335,14 +344,14 @@ const KillLogItem: FC<{
   const agent = game.agents.find(a => a.agentId === entry.target);
   const message =
     entry.target === 'NOBODY' ? (
-      <>人狼による襲撃により、誰も死ななかった。</>
+      <>今回の人狼による襲撃では誰も死ななかった。</>
     ) : entry.type === 'execute' ? (
       <>
-        <strong>${agent!.name}</strong> は村人達によって追放された。
+        <strong>{agent!.name}</strong> は村人達によって追放された。
       </>
     ) : (
       <>
-        <strong>${agent!.name}</strong> は人狼によって襲撃された。
+        <strong>{agent!.name}</strong> は人狼によって襲撃された。
       </>
     );
   return <li className={entry.type}>{message}</li>;
@@ -404,7 +413,8 @@ const GameLog: FC<{ game: Game }> = props => {
           status: StatusLogItem,
           talk: ChatLogItem,
           whisper: ChatLogItem,
-          divine: DivineLogItem,
+          divine: AbilityLogItem,
+          protect: AbilityLogItem,
           divineResult: DivineResultLogItem,
           mediumResult: MediumResultLogItem,
           vote: VoteLogItem,
