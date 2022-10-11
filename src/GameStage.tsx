@@ -27,7 +27,7 @@ import {
   StatusLogEntry,
   team
 } from './game-data.js';
-import { roleTextMap } from './game-utils.js';
+import { Action, agentAction, roleTextMap } from './game-utils.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
 import { useLoginUser } from './utils/user.js';
@@ -185,7 +185,7 @@ const StatusLogItem: FC<{
         if (entry.day === 0) {
           return (
             <>
-              この村には {countsText} がいるらしい。
+              この村には <strong>{countsText}</strong> がいるらしい。
               <br />
               村人による人狼対策会議が始まった。今日は、追放の投票および襲撃は行われない。
             </>
@@ -453,10 +453,14 @@ const StyledGameLog = styled.ul`
     }
     &.status {
       &.periodStart {
+        background: #ccccdd;
         border: 2px solid #aaaaaa;
         padding: 7px 3px;
+        &:not(:first-child) {
+          margin-top: 20px;
+        }
       }
-      background: #cccccc;
+      background: #dddddd;
       margin: 5px 0;
       border-radius: 10px;
       padding: 3px;
@@ -497,24 +501,31 @@ const StyledGameLog = styled.ul`
 
 const Status: FC<{ game: Game; myAgent: AgentInfo }> = props => {
   const { game, myAgent } = props;
+
   return (
     <StyledStatus
       className={classNames({ night: game.status.period === 'night' })}
     >
       <div className="status">
-        <div className="day">
-          <big>{game.status.day}</big> 日目
-        </div>
-        <div className="time">
-          <big>{game.status.period === 'day' ? '昼' : '夜'}</big>
-        </div>
-        <div className="my-role">
-          あなた:{' '}
-          <big>
-            <RoleDisplay role={myAgent.role} />
-          </big>{' '}
-          ({myAgent.life === 'alive' ? '生存' : '死亡'})
-        </div>
+        {game.finishedAt ? (
+          <big>ゲーム{game.wasAborted ? '中断' : '終了'}</big>
+        ) : (
+          <>
+            <div className="day">
+              <big>{game.status.day}</big> 日目
+            </div>
+            <div className="time">
+              <big>{game.status.period === 'day' ? '昼' : '夜'}</big>
+            </div>
+            <div className="my-role">
+              あなた:{' '}
+              <big>
+                <RoleDisplay role={myAgent.role} />
+              </big>{' '}
+              ({myAgent.life === 'alive' ? '生存' : '死亡'})
+            </div>
+          </>
+        )}
       </div>
       <Players game={game} myAgent={myAgent} />
     </StyledStatus>
@@ -539,16 +550,6 @@ const StyledStatus = styled.div`
   }
 `;
 
-type Action =
-  | 'wait'
-  | 'divine'
-  | 'protect'
-  | 'vote'
-  | 'attackVote'
-  | 'talk'
-  | 'whisper'
-  | 'finish';
-
 type ActionComp = FC<{
   gameId: string;
   game: Game;
@@ -558,7 +559,9 @@ type ActionComp = FC<{
 
 const ChatAction: ActionComp = props => {
   const { gameId, game, myAgent, action } = props;
+
   const [content, setContent] = useState('');
+  const [busy, setBusy] = useState(false);
   const api = useApi();
 
   if (action !== 'talk' && action !== 'whisper') return null;
@@ -566,8 +569,13 @@ const ChatAction: ActionComp = props => {
 
   const handleSend = async () => {
     if (!content) return;
-    const res = await api(action, { gameId, content });
-    if (res.ok) setContent('');
+    setBusy(true);
+    try {
+      const res = await api(action, { gameId, content });
+      if (res.ok) setContent('');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleKeyDown: KeyboardEventHandler = event => {
@@ -575,7 +583,13 @@ const ChatAction: ActionComp = props => {
   };
 
   const handleOver = async () => {
-    const res = await api('over', { gameId });
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await api('over', { gameId });
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -607,6 +621,7 @@ const StyledChatAction = styled.div`
 const ChooseAction: ActionComp = props => {
   const { gameId, game, myAgent, action } = props;
   const [target, setTarget] = useState<AgentId | null>(null);
+  const [busy, setBusy] = useState(false);
 
   if (
     action !== 'vote' &&
@@ -615,6 +630,7 @@ const ChooseAction: ActionComp = props => {
     action !== 'protect'
   )
     return null;
+
   const prompt = {
     vote: '誰を追放するか投票してください',
     attackVote: '誰を襲撃するか選択してください',
@@ -624,8 +640,11 @@ const ChooseAction: ActionComp = props => {
   const api = useApi();
 
   const handleVote = async () => {
-    if (typeof target === 'number')
+    if (typeof target === 'number') {
+      setBusy(true);
       await api(action, { gameId, type: action, target });
+      setBusy(false);
+    }
   };
 
   return (
@@ -654,7 +673,7 @@ const ChooseAction: ActionComp = props => {
             );
           })}
         </ul>
-        <button disabled={target === null} onClick={handleVote}>
+        <button disabled={target === null || busy} onClick={handleVote}>
           決定
         </button>
       </div>
@@ -683,12 +702,20 @@ const StyledChooseDiv = styled.div`
   }
 `;
 
-const FinishAction: ActionComp = () => {
-  return <div>このゲームは終了しました</div>;
+const FinishAction: ActionComp = props => {
+  const { game } = props;
+  return (
+    <div>このゲームは{game.wasAborted ? '中断されました' : '終了しました'}</div>
+  );
 };
 
-const WaitAction: ActionComp = () => {
-  return <div>他のプレーヤーの行動をお待ちください</div>;
+const WaitAction: ActionComp = props => {
+  const { myAgent } = props;
+  if (myAgent.life === 'alive') {
+    return <div>他のプレーヤーの行動をお待ちください</div>;
+  } else {
+    return <div>あなたは死亡してしまった</div>;
+  }
 };
 
 const ActionPane: FC<{
@@ -697,70 +724,7 @@ const ActionPane: FC<{
   myAgent: AgentInfo;
 }> = props => {
   const { gameId, game, myAgent } = props;
-  const { day, period, votePhase } = game.status;
-  const todaysLog = (() => {
-    let logDay = 0;
-    return Object.values(game.log).filter(l => {
-      if (l.type === 'status') logDay = l.day;
-      return logDay === game.status.day;
-    });
-  })();
-  const gameFinished = !!game.finishedAt;
-  const action = ((): Action => {
-    if (myAgent.life === 'dead') return 'wait';
-    if (gameFinished) return 'finish';
-    switch (period) {
-      case 'day':
-        if (typeof votePhase === 'number') {
-          return todaysLog.some(
-            l =>
-              l.type === 'vote' &&
-              l.agent === myAgent.agentId &&
-              l.votePhase === votePhase
-          )
-            ? 'wait'
-            : 'vote';
-        } else {
-          return 'talk';
-        }
-      case 'night':
-        switch (myAgent.role) {
-          case 'villager':
-          case 'possessed':
-            return 'wait';
-          case 'seer':
-            return todaysLog.some(
-              l => l.type === 'divine' && l.agent === myAgent.agentId
-            )
-              ? 'wait'
-              : 'divine';
-          case 'medium':
-            console.warn('Medium is not implemented yet');
-            return 'wait';
-          case 'hunter':
-            return todaysLog.some(
-              l => l.type === 'protect' && l.agent === myAgent.agentId
-            ) || day === 0
-              ? 'wait'
-              : 'protect';
-          case 'werewolf':
-            if (typeof votePhase === 'number') {
-              return todaysLog.some(
-                l =>
-                  l.type === 'attackVote' &&
-                  l.agent === myAgent.agentId &&
-                  l.votePhase === votePhase
-              )
-                ? 'wait'
-                : 'attackVote';
-            } else if (votePhase === 'settled') {
-              return 'wait';
-            } else {
-              return 'whisper';
-            }
-        }
-    }
-  })();
+  const action = agentAction(game, myAgent);
 
   const actionMap: {
     [key in Action]: ActionComp;
@@ -825,25 +789,11 @@ const GameStage: FC = () => {
 
   const myAgent = game.agents.find(a => a.userId === loginUser.uid)!;
 
-  const handleAbortClick = async () => {
-    await api('abortGame', { gameId });
-  };
-
   return (
     <StyledGameStage>
       <Status game={game} myAgent={myAgent} />
       <GameLog game={game} />
       <ActionPane gameId={gameId!} game={game} myAgent={myAgent} />
-      <div>
-        <button disabled={!!game.finishedAt} onClick={handleAbortClick}>
-          Abort
-        </button>
-        <button onClick={() => setShowDebugLog(!showDebugLog)}>Debug</button>
-        <span>Game: {gameId}</span>
-      </div>
-      {showDebugLog && (
-        <pre className="debug-log">{JSON.stringify(game, null, 2)}</pre>
-      )}
     </StyledGameStage>
   );
 };
@@ -853,15 +803,6 @@ const StyledGameStage = styled.div`
   height: 100%;
   position: relative;
   grid-template-rows: auto 1fr auto auto;
-  .debug-log {
-    position: absolute;
-    border: 1px solid silver;
-    background: white;
-    overflow: scroll;
-    width: 100%;
-    max-height: 90%;
-    resize: both;
-  }
 `;
 
 export default GameStage;

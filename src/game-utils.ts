@@ -1,9 +1,9 @@
 import {
   AgentId,
+  AgentInfo,
   AgentRole,
   BaseVoteLogEntry,
   Game,
-  GamePeriod,
   GameStatus,
   LogEntry,
   Team,
@@ -22,6 +22,84 @@ export const roleTextMap: { [key in AgentRole]: string } = {
 export const teamTextMap: { [key in Team]: string } = {
   villagers: '村人陣営',
   werewolves: '人狼陣営'
+};
+
+export type Action =
+  | 'wait'
+  | 'divine'
+  | 'protect'
+  | 'vote'
+  | 'attackVote'
+  | 'talk'
+  | 'whisper'
+  | 'finish';
+
+export const agentAction = (game: Game, agent: AgentInfo): Action => {
+  const { day, period, votePhase } = game.status;
+  const gameFinished = !!game.finishedAt;
+  const periodLog = extractLogOfPeriod(game);
+
+  if (gameFinished) return 'finish';
+  if (agent.life === 'dead') return 'wait';
+  switch (period) {
+    case 'day':
+      if (typeof votePhase === 'number') {
+        return periodLog.some(
+          l =>
+            l.type === 'vote' &&
+            l.agent === agent.agentId &&
+            l.votePhase === votePhase
+        )
+          ? 'wait'
+          : 'vote';
+      } else {
+        return periodLog.some(
+          l => l.type === 'over' && l.agent === agent.agentId
+        )
+          ? 'wait'
+          : 'talk';
+      }
+    case 'night':
+      switch (agent.role) {
+        case 'villager':
+        case 'possessed':
+          return 'wait';
+        case 'seer':
+          return periodLog.some(
+            l => l.type === 'divine' && l.agent === agent.agentId
+          )
+            ? 'wait'
+            : 'divine';
+        case 'medium':
+          console.warn('Medium is not implemented yet');
+          return 'wait';
+        case 'hunter':
+          return periodLog.some(
+            l => l.type === 'protect' && l.agent === agent.agentId
+          ) || day === 0
+            ? 'wait'
+            : 'protect';
+        case 'werewolf':
+          if (typeof votePhase === 'number') {
+            return periodLog.some(
+              l =>
+                l.type === 'attackVote' &&
+                l.agent === agent.agentId &&
+                l.votePhase === votePhase
+            )
+              ? 'wait'
+              : 'attackVote';
+          } else if (votePhase === 'settled') {
+            return 'wait';
+          } else {
+            return periodLog.some(
+              l => l.type === 'over' && l.agent === agent.agentId
+            )
+              ? 'wait'
+              : 'whisper';
+          }
+      }
+  }
 };
 
 export const extractLogOfPeriod = (

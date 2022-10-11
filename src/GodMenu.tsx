@@ -25,10 +25,14 @@ const GodMenu: FC = () => {
     navigate(`/god/${gameId}`);
   };
 
+  const handleUserClick = (uid: string, gameId?: string) => {
+    if (gameId) navigate(`/god/${gameId}`);
+  };
+
   return (
     <div>
       <h1>God Mode Menu</h1>
-
+      <OnlineUsers onUserClick={handleUserClick} />
       <h2>See Game</h2>
       <div>
         <input
@@ -39,7 +43,6 @@ const GodMenu: FC = () => {
         <button onClick={handleGoToGame}>Go</button>
       </div>
       <h2>Add User</h2>
-      <OnlineUsers />
       <p>Users added here will be always online.</p>
       <div>
         <input

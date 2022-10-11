@@ -1,15 +1,30 @@
 import { FC, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Game } from './game-data';
+import { AgentInfo, Game } from './game-data';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import styled from 'styled-components';
+import classNames from 'classnames';
+import { Action, agentAction, roleTextMap } from './game-utils';
+
+const actionTextMap: Record<Action, string> = {
+  attackVote: '襲撃投票中',
+  protect: '護衛先選択中',
+  divine: '占い先選択中',
+  vote: '追放投票中',
+  talk: '話し合い中（発話終了待ち）',
+  whisper: '囁き中（発話終了待ち）',
+  finish: 'ゲーム終了',
+  wait: '他のユーザの行動待ち'
+};
 
 const GodMode: FC = () => {
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedAction, setSelectedAction] = useState('talk');
   const [param, setParam] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [apiResponses, setApiResponses] = useState<any[]>([]);
+  const [showDebugLog, setShowDebugLog] = useState(false);
+
   const gameId = useParams().gameId as string;
   const gameData = useFirebaseSubscription<Game>(`/games/${gameId}`);
   const game = gameData.data;
@@ -46,11 +61,16 @@ const GodMode: FC = () => {
       status: res.status,
       result: await res.json()
     };
-    setResults([item, ...results]);
+    setApiResponses([item, ...apiResponses]);
   };
 
   const handleClearLog = () => {
-    setResults([]);
+    setApiResponses([]);
+  };
+
+  const handleAbortClick = async () => {
+    if (!confirm('強制中断しますか？')) return;
+    await api('abortGame', { gameId });
   };
 
   return (
@@ -58,22 +78,49 @@ const GodMode: FC = () => {
       <h1>
         <Link to="/god">God Mode</Link>
       </h1>
-      <div>Game ID: {gameId}</div>
-      <h2>Game Status</h2>
-      <div>
-        Day: {game.status.day}, Period: {game.status.period}, VotePhase:{' '}
-        {game.status.votePhase}
-      </div>
-      <hr />
+      <div>ゲーム ID: {gameId}</div>
+      <h2>ゲーム状況</h2>
       <ul>
-        {game.agents.map((agent, i) => (
-          <li key={i}>
-            <b>{agent.name}</b> ({agent.role}) {agent.life} {agent.userId}
-          </li>
-        ))}
+        日付：{game.status.day}、時間帯：{game.status.period}、投票ラウンド：
+        {game.status.votePhase}
       </ul>
-      <h2>Action</h2>
-      <div>
+      <div>開始時刻：{new Date(game.startedAt as number).toLocaleString()}</div>
+      <h2>プレーヤーの状況</h2>
+      <table className="players">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>名前</th>
+            <th>役割</th>
+            <th>生死</th>
+            <th>現在の行動</th>
+            <th>UID</th>
+          </tr>
+        </thead>
+        <tbody>
+          {game.agents.map(agent => {
+            const action = agentAction(game, agent);
+            return (
+              <tr
+                key={agent.agentId}
+                className={classNames({ dead: agent.life === 'dead' })}
+                onClick={() => setSelectedUser(agent.userId)}
+              >
+                <td>{agent.agentId}</td>
+                <td>{agent.name}</td>
+                <td>{roleTextMap[agent.role]}</td>
+                <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
+                <td className={classNames('action', action)}>
+                  {actionTextMap[action]}
+                </td>
+                <td>{agent.userId}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <h2>行動命令</h2>
+      <div className="action-pane">
         <select
           name="user"
           value={selectedUser}
@@ -82,7 +129,8 @@ const GodMode: FC = () => {
           {game.agents.map(agent => {
             return (
               <option key={agent.userId} value={agent.userId}>
-                {agent.name} ({agent.role}, {agent.life}) {agent.userId}
+                {agent.name} ({roleTextMap[agent.role]}, {agent.life}){' '}
+                {agent.userId}
               </option>
             );
           })}
@@ -104,25 +152,70 @@ const GodMode: FC = () => {
           type="text"
           value={param}
           onChange={e => setParam(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && actionClick()}
         />
         <button onClick={actionClick}>Go</button>
       </div>
-      <ul>
-        {results.map((result, i) => (
+      <ul className="log">
+        {apiResponses.map((result, i) => (
           <li key={i} className={result.status === 200 ? 'ok' : 'error'}>
             {JSON.stringify(result)}
           </li>
         ))}
       </ul>
       <div>
-        <button onClick={handleClearLog}>Clear Log</button>
+        <button onClick={handleClearLog} disabled={apiResponses.length === 0}>
+          ログ消去
+        </button>
       </div>
+      <h2>ゲーム強制中断</h2>
+      <button
+        onClick={handleAbortClick}
+        disabled={typeof game.finishedAt === 'number'}
+      >
+        強制中断
+      </button>
+      <h2>ゲーム生ログ</h2>
+      <button onClick={() => setShowDebugLog(!showDebugLog)}>
+        {showDebugLog ? '隠す' : '表示'}
+      </button>
+      {showDebugLog && (
+        <pre className="debug-log">{JSON.stringify(game, null, 2)}</pre>
+      )}
     </StyledDiv>
   );
 };
 
 const StyledDiv = styled.div`
-  ul {
+  position: relative;
+  padding: 10px;
+  table.players {
+    border-collapse: collapse;
+    tr {
+      border-top: 1px solid silver;
+      border-bottom: 1px solid silver;
+      &.dead {
+        color: silver;
+      }
+    }
+    tbody > tr:hover {
+      cursor: pointer;
+      background-color: #eeeeee;
+    }
+    td {
+      padding: 3px 10px;
+      &.action {
+        &:not(.wait):not(.finish) {
+          color: brown;
+          font-weight: bold;
+        }
+        &.wait {
+          color: gray;
+        }
+      }
+    }
+  }
+  ul.log {
     li {
       &.ok {
         color: green;
@@ -131,6 +224,24 @@ const StyledDiv = styled.div`
         color: red;
       }
     }
+  }
+  .action-pane {
+    display: flex;
+    flex-flow: row wrap;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #dddddd;
+    > button {
+      margin-left: 10px;
+    }
+  }
+  .debug-log {
+    border: 1px solid silver;
+    background: white;
+    overflow: scroll;
+    width: 100%;
+    max-height: 800px;
+    resize: vertical;
   }
 `;
 
