@@ -1,8 +1,5 @@
-import {
-  DivineLogEntry,
-  DivineResultLogEntry
-} from '../../../../src/game-data';
-import { extractLogOfPeriod, prevPeriod } from '../../../../src/game-utils';
+import { DivineLogEntry, DivineResultLogEntry } from '../../../game-data';
+import { extractLogOfPeriod, prevPeriod } from '../../../game-utils';
 import StatusEventHandler from './SatusEventHandler';
 
 /**

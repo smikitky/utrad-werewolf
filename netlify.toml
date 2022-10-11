@@ -5,3 +5,6 @@
 [dev]
   command = "npm run dev-vite"
   targetPort = 5173
+
+[functions]
+  directory = "src/functions"

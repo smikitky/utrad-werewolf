@@ -1,4 +1,4 @@
-import { extractLogOfPeriod, nextPeriod } from '../../../../src/game-utils';
+import { extractLogOfPeriod, nextPeriod } from '../../../game-utils';
 import StatusChecker from './StatusChecker';
 
 const checkPeriodFinish: StatusChecker = game => {

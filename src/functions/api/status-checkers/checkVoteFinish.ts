@@ -1,5 +1,5 @@
-import { BaseVoteLogEntry } from '../../../../src/game-data';
-import { extractLogOfPeriod, mostVotes } from '../../../../src/game-utils';
+import { BaseVoteLogEntry } from '../../../game-data';
+import { extractLogOfPeriod, mostVotes } from '../../../game-utils';
 import StatusChecker from './StatusChecker';
 
 const checkVoteFinish: StatusChecker = game => {

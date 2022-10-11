@@ -1,4 +1,4 @@
-import { Game, LogEntry } from '../../../../src/game-data';
+import { Game, LogEntry } from '../../../game-data';
 
 export type PushLog = <T extends LogEntry>(
   game: Game,

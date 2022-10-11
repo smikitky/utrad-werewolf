@@ -1,5 +1,5 @@
 import produce from 'immer';
-import { ResultLogEntry, team } from '../../../../src/game-data';
+import { ResultLogEntry, team } from '../../../game-data';
 import { now } from '../utils';
 import StatusEventHandler from './SatusEventHandler';
 

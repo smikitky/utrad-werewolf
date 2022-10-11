@@ -21,8 +21,8 @@ import {
   team,
   UserEntries,
   VoteLogEntry
-} from '../../../src/game-data.js';
-import { extractLogOfPeriod, shuffleArray } from '../../../src/game-utils.js';
+} from '../../game-data.js';
+import { extractLogOfPeriod, shuffleArray } from '../../game-utils.js';
 import StatusEventHandler, {
   PushLog
 } from './event-handlers/SatusEventHandler.js';

@@ -3,12 +3,12 @@ import {
   AttackLogEntry,
   BaseVoteLogEntry,
   ExecuteLogEntry
-} from '../../../../src/game-data';
+} from '../../../game-data';
 import {
   extractLogOfPeriod,
   mostVotes,
   pickRandomFromArray
-} from '../../../../src/game-utils';
+} from '../../../game-utils';
 import StatusEventHandler from './SatusEventHandler';
 
 /**

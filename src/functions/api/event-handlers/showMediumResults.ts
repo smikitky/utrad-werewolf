@@ -1,8 +1,5 @@
-import {
-  ExecuteLogEntry,
-  MediumResultLogEntry
-} from '../../../../src/game-data';
-import { extractLogOfPeriod, prevPeriod } from '../../../../src/game-utils';
+import { ExecuteLogEntry, MediumResultLogEntry } from '../../../game-data';
+import { extractLogOfPeriod, prevPeriod } from '../../../game-utils';
 import StatusEventHandler from './SatusEventHandler';
 
 /**

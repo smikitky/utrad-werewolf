@@ -1,4 +1,4 @@
-import { Game, GameStatus, StatusLogEvent } from '../../../../src/game-data';
+import { Game, GameStatus, StatusLogEvent } from '../../../game-data';
 
 type StatusChecker = (
   game: Game
