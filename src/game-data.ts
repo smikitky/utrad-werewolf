@@ -20,22 +20,15 @@ export type AgentId =
   | 15;
 
 export const agentRoles = [
+  'werewolf',
   'villager',
   'seer',
-  'werewolf',
   'possessed',
   'medium',
   'hunter'
 ] as const;
 
 export type AgentRole = typeof agentRoles[number];
-
-export const roleCombinations = new Map<number, AgentRole[]>([
-  [2, ['villager', 'werewolf']],
-  [3, ['villager', 'seer', 'werewolf']],
-  [4, ['villager', 'seer', 'possessed', 'werewolf']],
-  [5, ['villager', 'seer', 'possessed', 'werewolf', 'werewolf']]
-]);
 
 export type Team = 'villagers' | 'werewolves';
 
@@ -275,3 +268,14 @@ export interface Database {
   users: UserEntries;
   games: GameEntries;
 }
+
+export type AgentCount = Record<AgentRole, number>;
+
+export const defaultAgentCount: AgentCount = {
+  villager: 1,
+  werewolf: 2,
+  seer: 1,
+  possessed: 1,
+  medium: 0,
+  hunter: 0
+};

@@ -8,6 +8,8 @@ const checkPeriodFinish: StatusChecker = game => {
   const hunters = alivePeople.filter(a => a.role === 'hunter');
   const periodLog = extractLogOfPeriod(game);
 
+  if (game.finishedAt) return null;
+
   const seersCheck =
     period === 'day' ||
     (period === 'night' &&

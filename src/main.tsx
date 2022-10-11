@@ -19,6 +19,10 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     margin: 0;
   }
+
+  h1 {
+    background-color: silver;
+  }
 `;
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

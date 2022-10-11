@@ -5,7 +5,6 @@ import StatusEventHandler from './SatusEventHandler';
 
 const showGameResult: StatusEventHandler = (game, pushLog) => {
   const { day } = game.status;
-  if (day === 0) return game;
   const aliveWerewolves = game.agents.filter(
     a => team(a.role) === 'werewolves' && a.life === 'alive'
   ).length;

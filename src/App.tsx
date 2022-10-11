@@ -216,7 +216,6 @@ const StyledDiv = styled.div`
   main {
     flex: 1;
     overflow: auto;
-    padding: 10px;
   }
 `;
 

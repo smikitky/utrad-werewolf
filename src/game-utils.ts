@@ -1,7 +1,9 @@
 import {
+  AgentCount,
   AgentId,
   AgentInfo,
   AgentRole,
+  agentRoles,
   BaseVoteLogEntry,
   Game,
   GameStatus,
@@ -22,6 +24,21 @@ export const roleTextMap: { [key in AgentRole]: string } = {
 export const teamTextMap: { [key in Team]: string } = {
   villagers: '村人陣営',
   werewolves: '人狼陣営'
+};
+
+export const agentTotalCount = (counts: AgentCount) =>
+  Object.values(counts).reduce((a, b) => a + b, 0) as number;
+
+export const isValidAgentCount = (counts: AgentCount) => {
+  if (typeof counts !== 'object') return false;
+  if (Object.keys(counts).length !== agentRoles.length) return false;
+  if (agentRoles.some(role => typeof counts[role] !== 'number')) return false;
+  const total = agentTotalCount(counts);
+  const totalWerewolves = counts.werewolf;
+  const totalVillagers = total - totalWerewolves;
+  return (
+    total >= 2 && total <= 15 && totalVillagers >= 1 && totalWerewolves >= 1
+  );
 };
 
 export type Action =

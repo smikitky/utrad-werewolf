@@ -1,5 +1,6 @@
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import { UserEntries } from './game-data';
 import OnlineUsers from './OnlineUsers';
 import { useApi } from './utils/useApi';
@@ -30,7 +31,7 @@ const GodMenu: FC = () => {
   };
 
   return (
-    <div>
+    <StyledDiv>
       <h1>God Mode Menu</h1>
       <OnlineUsers onUserClick={handleUserClick} />
       <h2>See Game</h2>
@@ -52,8 +53,12 @@ const GodMenu: FC = () => {
         />
         <button onClick={addUserClick}>Add</button>
       </div>
-    </div>
+    </StyledDiv>
   );
 };
+
+const StyledDiv = styled.div`
+  padding: 10px;
+`;
 
 export default GodMenu;

@@ -1,6 +1,9 @@
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import AgentCountEditor from './AgentCountEditor.js';
+import { AgentCount, defaultAgentCount } from './game-data.js';
+import { agentTotalCount } from './game-utils.js';
 import OnlineUsers from './OnlineUsers.js';
 import { useApi } from './utils/useApi.js';
 import { useLoginManager, useLoginUser } from './utils/user.js';
@@ -11,6 +14,9 @@ const Menu: FC = () => {
   const api = useApi();
   const navigate = useNavigate();
 
+  const [customMode, setCustomMode] = useState(false);
+  const [agentCount, setAgentCount] = useState<AgentCount>(defaultAgentCount);
+
   const handleLoginClick = async () => {
     await loginManager.login('google');
   };
@@ -20,7 +26,7 @@ const Menu: FC = () => {
   };
 
   const handleStartNewGame = async () => {
-    await api('matchNewGame', {});
+    await api('matchNewGame', customMode ? { agentCount } : {});
   };
 
   const handleProfileClick = async () => {
@@ -68,18 +74,48 @@ const Menu: FC = () => {
           プロフィールを編集
         </button>
       </nav>
+      <div className="custom">
+        <label>
+          <input
+            type="checkbox"
+            checked={customMode}
+            onChange={e => setCustomMode(e.target.checked)}
+          />{' '}
+          メンバー構成をカスタマイズする
+        </label>
+        {customMode && (
+          <>
+            <AgentCountEditor value={agentCount} onChange={setAgentCount} />
+            <div className="menu">
+              (合計: {agentTotalCount(agentCount)}人)&ensp;
+              <button onClick={() => setAgentCount(defaultAgentCount)}>
+                リセット
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </StyledDiv>
   );
 };
 
 const StyledDiv = styled.div`
+  padding: 10px;
   > nav {
     display: grid;
     gap: 10px;
-    padding: 0 15px;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     button {
       padding: 15px 0;
+    }
+  }
+  .custom {
+    user-select: none;
+    margin: 20px 0;
+    border: 1px solid silver;
+    padding: 5px;
+    > .menu {
+      margin-top: 10px;
     }
   }
 `;

@@ -4,25 +4,31 @@ import fb from 'firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 import produce from 'immer';
 import {
+  AgentCount,
   AgentId,
   AgentInfo,
+  AgentRole,
   AgentStatus,
   AttackVoteLogEntry,
   ChatLogEntry,
+  defaultAgentCount,
   DivineLogEntry,
   Game,
   GameStatus,
   LogEntry,
   OverLogEntry,
   ProtectLogEntry,
-  roleCombinations,
   StatusLogEntry,
   StatusLogEvent,
   team,
   UserEntries,
   VoteLogEntry
 } from '../../game-data.js';
-import { extractLogOfPeriod, shuffleArray } from '../../game-utils.js';
+import {
+  extractLogOfPeriod,
+  isValidAgentCount,
+  shuffleArray
+} from '../../game-utils.js';
 import StatusEventHandler, {
   PushLog
 } from './event-handlers/SatusEventHandler.js';
@@ -60,8 +66,7 @@ export const jsonResponse = (
   };
 };
 
-const assignRoles = (userIds: string[], count: number = 5): AgentInfo[] => {
-  const roles = roleCombinations.get(count);
+const assignRoles = (userIds: string[], roles: AgentRole[]): AgentInfo[] => {
   if (!roles) throw jsonResponse(400, 'Invalid player count');
   const shuffled = shuffleArray(roles);
   return userIds.map((userId, i) => ({
@@ -207,10 +212,19 @@ const releaseUsers = async (userIds: string[]): Promise<void> => {
 };
 
 const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
+  const agentCount = (payload.agentCount as AgentCount) ?? defaultAgentCount;
+
+  if (!isValidAgentCount(agentCount))
+    return jsonResponse(400, 'Invalid agent count');
+
+  const roles = Object.entries(agentCount).flatMap(([role, count]) =>
+    new Array<AgentRole>(count).fill(role as AgentRole)
+  ) as AgentRole[];
+  const count = roles.length;
+
   const gameRef = db.ref('games').push();
   const gameId = gameRef.key!;
   const usersRef = db.ref('users');
-  const { count = 5 } = payload as { count?: number };
   let pickedUsers: string[] = [];
   const res = await usersRef.transaction((data: UserEntries) => {
     // Pick the current user and other users waiting for a match
@@ -223,7 +237,6 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
       pickedUsers = shuffleArray(waitingUsers)
         .slice(0, count - 1)
         .map(([uid]) => uid);
-      // if (pickedUsers.length < 4) return data;
       [uid, ...pickedUsers].forEach(uid => {
         data[uid].currentGameId = gameId;
       });
@@ -234,7 +247,7 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
   if (pickedUsers.length + 1 < count) {
     return jsonResponse(400, 'Not enough players');
   }
-  const agents = assignRoles(shuffleArray([uid, ...pickedUsers]), count);
+  const agents = assignRoles(shuffleArray([uid, ...pickedUsers]), roles);
   const initialGame: Game = {
     startedAt: now(),
     agents,
@@ -252,7 +265,6 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
     }
   };
   const game = movePhase(initialGame);
-  console.log('New game created', game);
   await gameRef.set(game);
   if (game.finishedAt) await releaseUsers([uid, ...pickedUsers]);
 
