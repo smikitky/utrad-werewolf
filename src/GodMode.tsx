@@ -1,11 +1,16 @@
+import classNames from 'classnames';
 import { FC, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { AgentInfo, Game } from './game-data';
+import styled from 'styled-components';
+import { BaseVoteLogEntry, Game } from './game-data';
+import {
+  Action,
+  agentAction,
+  extractLogOfPeriod,
+  roleTextMap
+} from './game-utils';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
-import styled from 'styled-components';
-import classNames from 'classnames';
-import { Action, agentAction, roleTextMap } from './game-utils';
 
 const actionTextMap: Record<Action, string> = {
   attackVote: '襲撃投票中',
@@ -100,6 +105,14 @@ const GodMode: FC = () => {
         <tbody>
           {game.agents.map(agent => {
             const action = agentAction(game, agent);
+            const voteTarget = extractLogOfPeriod(game).find(
+              l =>
+                (l.type === 'vote' || l.type === 'attackVote') &&
+                l.agent === agent.agentId
+            ) as BaseVoteLogEntry | undefined;
+            const voteTargetAgent = game.agents.find(
+              a => a.agentId === voteTarget?.target
+            );
             return (
               <tr
                 key={agent.agentId}
@@ -112,6 +125,7 @@ const GodMode: FC = () => {
                 <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
                 <td className={classNames('action', action)}>
                   {actionTextMap[action]}
+                  {voteTargetAgent && <> 投票先: {voteTargetAgent.name}</>}
                 </td>
                 <td>{agent.userId}</td>
               </tr>
