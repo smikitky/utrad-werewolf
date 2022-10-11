@@ -6,7 +6,7 @@ const checkPeriodFinish: StatusChecker = game => {
   const alivePeople = game.agents.filter(a => a.life === 'alive');
   const seers = alivePeople.filter(a => a.role === 'seer');
   const hunters = alivePeople.filter(a => a.role === 'hunter');
-  const periodLog = extractLogOfPeriod(game, day, period);
+  const periodLog = extractLogOfPeriod(game);
 
   const seersCheck =
     period === 'day' ||

@@ -2,7 +2,7 @@ import {
   ExecuteLogEntry,
   MediumResultLogEntry
 } from '../../../../src/game-data';
-import { extractLogOfPeriod } from '../../../../src/game-utils';
+import { extractLogOfPeriod, prevPeriod } from '../../../../src/game-utils';
 import StatusEventHandler from './SatusEventHandler';
 
 /**
@@ -11,7 +11,7 @@ import StatusEventHandler from './SatusEventHandler';
 const showMediumResults: StatusEventHandler = (game, pushLog) => {
   const { day, period } = game.status;
   if (!(period === 'night' || day > 0)) return game;
-  const executeEntry = extractLogOfPeriod(game, day, 'day').find(
+  const executeEntry = extractLogOfPeriod(game, prevPeriod(game.status)).find(
     l => l.type === 'execute'
   ) as ExecuteLogEntry | undefined;
   if (!executeEntry) return game;

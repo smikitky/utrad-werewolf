@@ -18,7 +18,7 @@ const showKilledResult: StatusEventHandler = (game, pushLog) => {
   const { day, period } = game.status;
   if (day === 0) return game;
   const voteType = period === 'day' ? 'vote' : 'attackVote';
-  const periodLog = extractLogOfPeriod(game, day, period);
+  const periodLog = extractLogOfPeriod(game);
   const periodVoteLog = periodLog.filter(
     l => l.type === voteType
   ) as BaseVoteLogEntry[];

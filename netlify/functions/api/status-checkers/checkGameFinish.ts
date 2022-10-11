@@ -3,7 +3,7 @@ import StatusChecker from './StatusChecker';
 
 const checkGameFinish: StatusChecker = game => {
   const { day, period } = game.status;
-  const periodLog = extractLogOfPeriod(game, day, period);
+  const periodLog = extractLogOfPeriod(game);
   if (periodLog.some(l => l.type === 'result')) {
     return { event: 'gameFinish', nextStatus: {} };
   }

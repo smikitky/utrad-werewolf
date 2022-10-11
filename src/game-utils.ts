@@ -26,9 +26,10 @@ export const teamTextMap: { [key in Team]: string } = {
 
 export const extractLogOfPeriod = (
   game: Game,
-  day: number,
-  period: GamePeriod
+  status?: Omit<GameStatus, 'votePhase'>
 ): LogEntry[] => {
+  const targetDay = status ? status.day : game.status.day;
+  const targetPeriod = status ? status.period : game.status.period;
   let logDay = 0;
   let logPeriod = 'nightTime';
   return Object.values(game.log).filter(l => {
@@ -36,7 +37,7 @@ export const extractLogOfPeriod = (
       logDay = l.day;
       logPeriod = l.period;
     }
-    return logDay === day && logPeriod === period;
+    return logDay === targetDay && logPeriod === targetPeriod;
   });
 };
 

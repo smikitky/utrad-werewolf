@@ -385,7 +385,7 @@ const handleChat = makeGameHandler(
     if (type !== chatType)
       throw jsonResponse(400, 'You cannot do this action now');
 
-    const periodLog = extractLogOfPeriod(game, day, period);
+    const periodLog = extractLogOfPeriod(game);
     if (periodLog.some(l => l.type === 'over' && l.agent === myAgent.agentId))
       throw jsonResponse(400, 'You have already finished your talk');
     if (
@@ -406,11 +406,7 @@ const handleChat = makeGameHandler(
 );
 
 const handleOver = makeGameHandler(({ game, myAgent }) => {
-  const periodLog = extractLogOfPeriod(
-    game,
-    game.status.day,
-    game.status.period
-  );
+  const periodLog = extractLogOfPeriod(game);
 
   const chatType = availableChatType(game, myAgent);
   if (!chatType) throw jsonResponse(400, 'You cannot chat now');
@@ -450,7 +446,7 @@ const handleVote = makeGameHandler(
     if (type === 'attackVote' && team(targetAgent.role) === 'werewolves')
       throw jsonResponse(400, 'You cannot attack a werewolf');
 
-    const periodLog = extractLogOfPeriod(game, day, period).filter(
+    const periodLog = extractLogOfPeriod(game).filter(
       l => l.type === voteType
     ) as VoteLogEntry[];
     if (
@@ -489,7 +485,7 @@ const handleDivineProtect = makeGameHandler(
     if (targetAgent.life !== 'alive')
       throw jsonResponse(400, `The target you tried to ${type} is dead`);
 
-    const periodLog = extractLogOfPeriod(game, day, period);
+    const periodLog = extractLogOfPeriod(game);
     if (periodLog.some(l => l.type === type && l.agent === myAgent.agentId))
       throw jsonResponse(400, 'You have already selected your target');
 

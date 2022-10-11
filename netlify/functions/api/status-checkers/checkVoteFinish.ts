@@ -1,5 +1,5 @@
 import { BaseVoteLogEntry } from '../../../../src/game-data';
-import { mostVotes, extractLogOfPeriod } from '../../../../src/game-utils';
+import { extractLogOfPeriod, mostVotes } from '../../../../src/game-utils';
 import StatusChecker from './StatusChecker';
 
 const checkVoteFinish: StatusChecker = game => {
@@ -10,7 +10,7 @@ const checkVoteFinish: StatusChecker = game => {
   const werewolves = alivePeople.filter(a => a.role === 'werewolf');
   const voters = period === 'day' ? alivePeople : werewolves;
   const voteType = period === 'day' ? 'vote' : 'attackVote';
-  const periodLog = extractLogOfPeriod(game, day, period);
+  const periodLog = extractLogOfPeriod(game);
   const voteLog = periodLog.filter(
     l => l.type === voteType && l.votePhase === votePhase
   ) as BaseVoteLogEntry[];

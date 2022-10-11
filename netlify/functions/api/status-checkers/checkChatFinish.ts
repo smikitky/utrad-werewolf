@@ -10,7 +10,7 @@ const checkChatFinish: StatusChecker = game => {
   const alivePeople = game.agents.filter(a => a.life === 'alive');
   const werewolves = alivePeople.filter(a => a.role === 'werewolf');
   const voters = period === 'day' ? alivePeople : werewolves;
-  const periodLog = extractLogOfPeriod(game, day, period);
+  const periodLog = extractLogOfPeriod(game);
   const chatPhaseFinished =
     (period === 'night' && voters.length === 1) ||
     voters.every(c =>
