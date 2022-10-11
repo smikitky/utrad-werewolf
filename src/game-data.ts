@@ -32,14 +32,18 @@ export type AgentRole = typeof agentRoles[number];
 
 export type Team = 'villagers' | 'werewolves';
 
+/**
+ * Determines which team the agent will be playing for.
+ * Note that possessed agents will play for the werewolves team.
+ */
 export const team = (role: AgentRole): Team => {
   switch (role) {
     case 'villager':
     case 'seer':
-    case 'possessed':
     case 'medium':
     case 'hunter':
       return 'villagers';
+    case 'possessed':
     case 'werewolf':
       return 'werewolves';
   }

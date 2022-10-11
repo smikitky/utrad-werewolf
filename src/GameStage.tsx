@@ -27,7 +27,7 @@ import {
   StatusLogEntry,
   team
 } from './game-data.js';
-import { Action, agentAction, roleTextMap } from './game-utils.js';
+import { Action, agentAction, roleTextMap, teamTextMap } from './game-utils.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
 import { useLoginUser } from './utils/user.js';
@@ -197,7 +197,7 @@ const StatusLogItem: FC<{
         }
       case 'voteStart': {
         const type = entry.period === 'day' ? '追放' : '襲撃';
-        if (entry.period === 'night' && team(myAgent.role) !== 'werewolves')
+        if (entry.period === 'night' && myAgent.role !== 'werewolf')
           return null;
         if (entry.votePhase === 1)
           return `村の誰を${type}するかの投票が始まった。`;
@@ -227,8 +227,7 @@ const ChatLogItem: FC<{
   entry: ChatLogEntry;
 }> = props => {
   const { game, myAgent, entry } = props;
-  const invisible =
-    team(myAgent.role) === 'villagers' && entry.type === 'whisper';
+  const invisible = myAgent.role !== 'werewolf' && entry.type === 'whisper';
   if (invisible) return null;
   const agent = game.agents.find(a => a.agentId === entry.agent)!;
   return (
@@ -309,8 +308,7 @@ const OverItem: FC<{
 }> = props => {
   const { game, myAgent, entry } = props;
   const agent = game.agents.find(a => a.agentId === entry.agent)!;
-  const invisible =
-    team(myAgent.role) === 'villagers' && entry.chatType === 'whisper';
+  const invisible = myAgent.role !== 'werewolf' && entry.chatType === 'whisper';
   if (invisible) return null;
   return (
     <li className="over">
@@ -368,13 +366,23 @@ const ResultLogItem: FC<{
     entry: { survivingVillagers, survivingWerewolves, winner }
   } = props;
   const text = winner === 'villagers' ? '村人陣営の勝利。' : '人狼陣営の勝利。';
-  const survivors =
-    `${survivingVillagers} 人の村人と ` +
-    `${survivingWerewolves} 人の人狼が生き残った。`;
   return (
     <li className="result">
       <div className="winner">{text}</div>
-      <div className="details">{survivors}</div>
+      <div className="details">
+        {winner === 'werewolves' ? (
+          <>
+            生き残っている人狼の数（{survivingWerewolves} 名）が村人陣営の人数（
+            {survivingVillagers} 名）以上となったため、人狼陣営の勝利となった。
+          </>
+        ) : (
+          <>
+            この村からはすべての人狼が追放された。
+            <br />
+            村人陣営からは {survivingVillagers} 名の村人が生き残った。
+          </>
+        )}
+      </div>
       <div className="players">
         {game.agents.map(agent => (
           <Player
@@ -386,6 +394,10 @@ const ResultLogItem: FC<{
             revealRole={agent.role}
           />
         ))}
+      </div>
+      <div className="your-result">
+        あなたが味方した陣営（{teamTextMap[team(myAgent.role)]}）
+        {winner === team(myAgent.role) ? 'の勝利' : 'の敗北'}。
       </div>
     </li>
   );
@@ -479,6 +491,11 @@ const StyledGameLog = styled.ul`
         display: flex;
         gap: 5px;
         justify-content: center;
+      }
+      > .your-result {
+        font-weight: bold;
+        background: white;
+        margin: 5px auto;
       }
     }
     &.ability {
@@ -601,8 +618,12 @@ const ChatAction: ActionComp = props => {
         onChange={e => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
       />
-      <button onClick={handleSend}>{actionName}</button>
-      <button onClick={handleOver}>会話を終了</button>
+      <button onClick={handleSend} disabled={busy || !content}>
+        {actionName}
+      </button>
+      <button onClick={handleOver} disabled={busy}>
+        会話を終了
+      </button>
     </StyledChatAction>
   );
 };

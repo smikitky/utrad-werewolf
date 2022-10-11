@@ -6,6 +6,14 @@ const checkPeriodFinish: StatusChecker = game => {
   const alivePeople = game.agents.filter(a => a.life === 'alive');
   const seers = alivePeople.filter(a => a.role === 'seer');
   const hunters = alivePeople.filter(a => a.role === 'hunter');
+
+  if (Object.keys(game.log).length === 0) {
+    return {
+      event: 'periodStart',
+      nextStatus: { day: 0, period: 'night', votePhase: 'chat' }
+    };
+  }
+
   const periodLog = extractLogOfPeriod(game);
 
   if (game.finishedAt) return null;

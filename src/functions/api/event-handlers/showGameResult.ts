@@ -4,12 +4,11 @@ import { now } from '../utils';
 import StatusEventHandler from './SatusEventHandler';
 
 const showGameResult: StatusEventHandler = (game, pushLog) => {
-  const { day } = game.status;
   const aliveWerewolves = game.agents.filter(
-    a => team(a.role) === 'werewolves' && a.life === 'alive'
+    a => a.role === 'werewolf' && a.life === 'alive'
   ).length;
   const aliveVillagers = game.agents.filter(
-    a => team(a.role) === 'villagers' && a.life === 'alive'
+    a => a.role !== 'werewolf' && a.life === 'alive'
   ).length;
   const gameEnd = aliveWerewolves === 0 || aliveWerewolves >= aliveVillagers;
   if (!gameEnd) return game;

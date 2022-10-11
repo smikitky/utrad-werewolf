@@ -20,7 +20,6 @@ import {
   ProtectLogEntry,
   StatusLogEntry,
   StatusLogEvent,
-  team,
   UserEntries,
   VoteLogEntry
 } from '../../game-data.js';
@@ -37,7 +36,6 @@ import showGameResult from './event-handlers/showGameResult.js';
 import showKilledResult from './event-handlers/showKilledResult.js';
 import showMediumResults from './event-handlers/showMediumResults.js';
 import checkChatFinish from './status-checkers/checkChatFinish.js';
-import checkGameFinish from './status-checkers/checkGameFinish.js';
 import checkPeriodFinish from './status-checkers/checkPeriodFinish.js';
 import checkVoteFinish from './status-checkers/checkVoteFinish.js';
 import StatusChecker from './status-checkers/StatusChecker.js';
@@ -234,6 +232,7 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
           userId !== uid && entry.onlineStatus === true && !entry.currentGameId
       );
       // pick random users
+      if (waitingUsers.length < count - 1) return data;
       pickedUsers = shuffleArray(waitingUsers)
         .slice(0, count - 1)
         .map(([uid]) => uid);
@@ -252,17 +251,7 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
     startedAt: now(),
     agents,
     status: { day: 0, period: 'night', votePhase: 'chat' },
-    log: {
-      [newPushId()]: {
-        timestamp: now(),
-        type: 'status',
-        day: 0,
-        period: 'night',
-        votePhase: 'chat',
-        event: 'periodStart',
-        agents: agentStatus(agents)
-      }
-    }
+    log: {}
   };
   const game = movePhase(initialGame);
   await gameRef.set(game);
@@ -321,8 +310,7 @@ const movePhase = (game: Game): Game => {
   const statusCheckers: StatusChecker[] = [
     checkChatFinish,
     checkVoteFinish,
-    checkPeriodFinish,
-    checkGameFinish
+    checkPeriodFinish
   ];
 
   const statusEventHandlers: {
@@ -368,6 +356,7 @@ const movePhase = (game: Game): Game => {
           ] ?? [];
         for (const handler of preHandlers)
           nextGame = handler(nextGame, pushLog);
+        if (nextGame.finishedAt) break;
         nextGame = pushState(nextGame, event, {
           ...nextGame.status,
           ...nextStatus
@@ -465,7 +454,7 @@ const handleVote = makeGameHandler(
       throw jsonResponse(400, 'You cannot vote yourself');
     if (targetAgent.life !== 'alive')
       throw jsonResponse(400, 'Your vote target is dead');
-    if (type === 'attackVote' && team(targetAgent.role) === 'werewolves')
+    if (type === 'attackVote' && targetAgent.role === 'werewolf')
       throw jsonResponse(400, 'You cannot attack a werewolf');
 
     const periodLog = extractLogOfPeriod(game).filter(
