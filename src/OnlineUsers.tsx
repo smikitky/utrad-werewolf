@@ -38,7 +38,7 @@ const StyledList = styled.ul`
   display: grid;
   gap: 10px;
   padding: 0 15px;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 200px));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   list-style: none;
   li {
     border-radius: 4px;

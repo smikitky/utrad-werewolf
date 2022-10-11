@@ -23,6 +23,13 @@ const Menu: FC = () => {
     await api('matchNewGame', {});
   };
 
+  const handleProfileClick = async () => {
+    if (loginUser.status !== 'loggedIn') return;
+    const name = prompt('ユーザ名を入力してください', loginUser.data.name);
+    if (name === null) return;
+    await api('setProfile', { name });
+  };
+
   useEffect(() => {
     // Navigate to the game screen if the user is (already) in a game
     if (loginUser.status === 'loggedIn' && loginUser.data.currentGameId) {
@@ -32,27 +39,33 @@ const Menu: FC = () => {
 
   return (
     <StyledDiv>
-      <h2>Users</h2>
+      <h2>登録ユーザー</h2>
       <OnlineUsers />
-      <h2>Menu</h2>
+      <h2>メニュー</h2>
       <nav>
         <button
           onClick={handleStartNewGame}
           disabled={loginUser.status !== 'loggedIn'}
         >
-          Start New Game
+          新規ゲームを始める
         </button>
         <button
           onClick={handleLoginClick}
           disabled={loginUser.status !== 'loggedOut'}
         >
-          Login with Google
+          Googleアカウントでログイン
         </button>
         <button
           onClick={handleLogoutClick}
           disabled={loginUser.status !== 'loggedIn'}
         >
-          Logout
+          ログアウト
+        </button>
+        <button
+          onClick={handleProfileClick}
+          disabled={loginUser.status !== 'loggedIn'}
+        >
+          プロフィールを編集
         </button>
       </nav>
     </StyledDiv>

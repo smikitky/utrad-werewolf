@@ -207,10 +207,16 @@ const StyledDiv = styled.div`
     justify-content: space-between;
     background: silver;
     border-bottom: 1px solid gray;
+    a {
+      font-weight: bold;
+      color: inherit;
+      text-decoration: none;
+    }
   }
   main {
     flex: 1;
     overflow: auto;
+    padding: 10px;
   }
 `;
 

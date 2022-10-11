@@ -113,6 +113,7 @@ interface ReqPayload {
 type GameRequestType =
   | 'matchNewGame'
   | 'addUser'
+  | 'setProfile'
   | 'abortGame'
   | 'talk'
   | 'whisper'
@@ -281,6 +282,15 @@ const handleAddUser: ModeHandler = async ({ uid, payload }) => {
   if (!newUid) return jsonResponse(400, 'newUid is required');
   const usersRef = db.ref('users').child(newUid);
   await usersRef.set({ createdAt: now(), name, onlineStatus: true });
+  return jsonResponse(200, 'OK');
+};
+
+const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
+  const name = payload.name as string;
+  if (!name) return jsonResponse(400, 'Name is required');
+  if (name.length > 20) return jsonResponse(400, 'Name is too long');
+  const userRef = db.ref('users').child(uid);
+  await userRef.update({ name });
   return jsonResponse(200, 'OK');
 };
 
@@ -504,6 +514,7 @@ export const handler: Handler = async (event, context) => {
     const handlers: { [key in GameRequestType]: ModeHandler } = {
       matchNewGame: handleMatchNewGame,
       addUser: handleAddUser,
+      setProfile: handleSetProfile,
       abortGame: handleAbortGame,
       talk: handleChat,
       whisper: handleChat,
