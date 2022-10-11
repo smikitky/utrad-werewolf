@@ -76,7 +76,7 @@ const Player: FC<{
       })}
       onClick={onClick ?? (() => {})}
     >
-      <img src={`/public/agent${agentId}.jpg`} alt={`Agent[${agentId}]`} />
+      <img src={`/agent${agentId}.jpg`} alt={`Agent[${agentId}]`} />
       <div className="name">{name}</div>
       <div className="indicator">{text}</div>
     </StyledPlayerDiv>
