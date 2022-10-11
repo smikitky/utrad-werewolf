@@ -21,6 +21,7 @@ import {
   Game,
   KillLogEntry,
   LogType,
+  MediumResultLogEntry,
   OverLogEntry,
   ProtectLogEntry,
   ResultLogEntry,
@@ -261,10 +262,10 @@ const AbilityLogItem: FC<{
   );
 };
 
-const MediumResultLogItem: FC<{
+const AbilityResultLogItem: FC<{
   game: Game;
   myAgent: AgentInfo;
-  entry: DivineLogEntry;
+  entry: DivineResultLogEntry | MediumResultLogEntry;
 }> = props => {
   const { game, myAgent, entry } = props;
   if (myAgent.agentId !== entry.agent) return null;
@@ -272,31 +273,23 @@ const MediumResultLogItem: FC<{
   const result = target.role === 'werewolf' ? '人狼だった' : '人狼ではなかった';
   return (
     <li className="ability">
-      あなたの霊媒師としての能力が発動した。さきほど追放された{' '}
-      <strong>
-        {target.name} は{result}
-      </strong>
-      。
-    </li>
-  );
-};
-
-const DivineResultLogItem: FC<{
-  game: Game;
-  myAgent: AgentInfo;
-  entry: DivineResultLogEntry;
-}> = props => {
-  const { game, myAgent, entry } = props;
-  if (myAgent.agentId !== entry.agent) return null;
-  const target = game.agents.find(a => a.agentId === entry.target)!;
-  const result = target.role === 'werewolf' ? '人狼だった' : '人狼ではなかった';
-  return (
-    <li className="ability">
-      あなたの占いの結果、
-      <strong>
-        {target.name} は{result}
-      </strong>
-      。
+      {entry.type === 'divineResult' ? (
+        <>
+          あなたの占いの結果、
+          <strong>
+            {target.name} は{result}
+          </strong>
+          。
+        </>
+      ) : (
+        <>
+          あなたの霊媒師としての能力が発動した。昨日の昼に追放された{' '}
+          <strong>
+            {target.name} は{result}
+          </strong>
+          。
+        </>
+      )}
     </li>
   );
 };
@@ -326,9 +319,11 @@ const VoteLogItem: FC<{
   const invisible = myAgent.role !== 'werewolf' && entry.type === 'attackVote';
   if (invisible) return null;
   const agent = game.agents.find(a => a.agentId === entry.agent)!;
+  const targetAgent = game.agents.find(a => a.agentId === entry.target)!;
   return (
     <li className="over">
       <span className="speaker">{agent.name}</span> (投票終了)
+      {myAgent.agentId === entry.agent && <> 投票先: {targetAgent.name}</>}
     </li>
   );
 };
@@ -427,8 +422,8 @@ const GameLog: FC<{ game: Game }> = props => {
           whisper: ChatLogItem,
           divine: AbilityLogItem,
           protect: AbilityLogItem,
-          divineResult: DivineResultLogItem,
-          mediumResult: MediumResultLogItem,
+          divineResult: AbilityResultLogItem,
+          mediumResult: AbilityResultLogItem,
           vote: VoteLogItem,
           attackVote: VoteLogItem,
           attack: KillLogItem,
