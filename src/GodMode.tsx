@@ -111,7 +111,8 @@ const GodMode: FC = () => {
             const voteTarget = extractLogOfPeriod(game).find(
               l =>
                 (l.type === 'vote' || l.type === 'attackVote') &&
-                l.agent === agent.agentId
+                l.agent === agent.agentId &&
+                l.votePhase === game.status.votePhase
             ) as BaseVoteLogEntry | undefined;
             const voteTargetAgent = game.agents.find(
               a => a.agentId === voteTarget?.target
