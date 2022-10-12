@@ -3,6 +3,7 @@ import { UserEntry } from './game-data';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import classNames from 'classnames';
 import styled from 'styled-components';
+import Icon from './Icon';
 
 const OnlineUsers: FC<{
   onUserClick?: (uid: string, user: UserEntry) => void;
@@ -27,7 +28,15 @@ const OnlineUsers: FC<{
           })}
           onClick={() => onUserClick && onUserClick(uid, user)}
         >
-          {user.onlineStatus && user.ready ? '✅ ' : '❌ '}
+          <Icon
+            icon={
+              !user.onlineStatus
+                ? 'no_accounts'
+                : user.ready
+                ? 'check_circle'
+                : 'hourglass_empty'
+            }
+          />
           {user.name}
           {user.currentGameId && <span> (In game)</span>}
         </li>
@@ -42,6 +51,10 @@ const StyledList = styled.ul`
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   list-style: none;
   li {
+    height: 2em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     border-radius: 4px;
     background-color: silver;
     padding: 0 10px;
@@ -51,6 +64,12 @@ const StyledList = styled.ul`
     }
     &.in-game {
       background-color: #ffffaa;
+    }
+    &.ready .material-icons {
+      color: green;
+    }
+    &:not(.ready) .material-icons {
+      color: brown;
     }
     &.clickable {
       cursor: pointer;

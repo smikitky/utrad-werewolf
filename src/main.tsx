@@ -23,6 +23,10 @@ const GlobalStyle = createGlobalStyle`
   h1 {
     background-color: silver;
   }
+
+  .material-icons {
+    vertical-align: middle;
+  }
 `;
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
