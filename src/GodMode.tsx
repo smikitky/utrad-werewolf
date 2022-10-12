@@ -59,12 +59,15 @@ const GodMode: FC = () => {
           return { gameId };
       }
     })();
-    const res = await api(selectedAction, payload, selectedUser);
+    const res = await api(selectedAction, payload, {
+      asUser: selectedUser,
+      noError: true
+    });
     const item = {
       action: selectedAction,
       payload,
       status: res.status,
-      result: await res.json()
+      result: res.data
     };
     setApiResponses([item, ...apiResponses]);
   };

@@ -20,7 +20,7 @@ const GodMenu: FC = () => {
 
   const addUserClick = async () => {
     const res = await api('addUser', { newUid });
-    const item = { ok: res.ok, status: res.status, data: await res.json() };
+    const item = res;
     setResults([item, ...results]);
   };
 

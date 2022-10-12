@@ -60,7 +60,7 @@ const AgentCountEditor: FC<{
 
 const StyledDiv = styled.div`
   display: flex;
-  flex-direction: row;
+  flex-flow: row wrap;
   gap: 5px;
   .cell {
     width: 85px;

@@ -3,8 +3,11 @@ import { createContext, useContext } from 'react';
 export type ApiCaller = (
   type: string,
   payload: any,
-  asUser?: string
-) => Promise<Response>;
+  options?: {
+    asUser?: string;
+    noError?: boolean;
+  }
+) => Promise<{ ok: boolean; status: number; data: any }>;
 
 export const ApiContext = createContext<ApiCaller>(null as any);
 

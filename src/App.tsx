@@ -7,7 +7,17 @@ import {
   signOut
 } from 'firebase/auth';
 import * as db from 'firebase/database';
-import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  FC,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react';
 import {
   createBrowserRouter,
   Link,
@@ -33,8 +43,15 @@ import GodMenu from './GodMenu.js';
 import GodMode from './GodMode.js';
 import Menu from './Menu.js';
 
+const MessagesContext = createContext<{
+  list: (ReactNode | string)[];
+  dismiss: (index: number) => void;
+}>({ list: [], dismiss: () => {} });
+
 const Layout: FC = props => {
   const user = useLoginUser();
+  const messages = useContext(MessagesContext);
+
   return (
     <>
       <header>
@@ -55,6 +72,13 @@ const Layout: FC = props => {
       <main>
         <Outlet />
       </main>
+      <div className="messages">
+        {messages.list.map((message, i) => (
+          <div className="message" key={i} onClick={() => messages.dismiss(i)}>
+            {message}
+          </div>
+        ))}
+      </div>
     </>
   );
 };
@@ -79,6 +103,7 @@ const App: FC = () => {
     undefined
   );
   const getTokenRef = useRef<null | (() => Promise<string>)>(null);
+  const [messages, setMessages] = useState<(string | ReactNode)[]>([]);
 
   const userProfile = useFirebaseSubscription<UserEntry | null>(
     uid ? `/users/${uid}` : undefined
@@ -118,10 +143,15 @@ const App: FC = () => {
   }, [uid, loginType, userProfile]);
 
   const apiCaller = useMemo<ApiCaller>(() => {
-    return async (type: string, payload: any, asUser?: string) => {
+    const callApi = async (
+      type: string,
+      payload: any,
+      options: { asUser?: string; noError?: boolean } = {}
+    ) => {
+      const { asUser, noError } = options;
       if (!getTokenRef.current) throw new Error('Not signed in');
       const idToken = await getTokenRef.current();
-      return await fetch('/.netlify/functions/api', {
+      const res = await fetch('/.netlify/functions/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,8 +160,28 @@ const App: FC = () => {
         },
         body: JSON.stringify({ type, payload })
       });
+      const data = await res.json();
+      if (!res.ok && !noError) {
+        setMessages(messages => [
+          ...messages,
+          <div>
+            <b>エラー:</b> {data.message}
+          </div>
+        ]);
+      }
+      return { ok: res.ok, status: res.status, data };
     };
+    return callApi;
   }, []);
+
+  const dismissMessage = useCallback((index: number) => {
+    setMessages(messages => messages.filter((_, i) => i !== index));
+  }, []);
+
+  const messageList = useMemo(
+    () => ({ list: messages, dismiss: dismissMessage }),
+    [messages, dismissMessage]
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
@@ -184,10 +234,12 @@ const App: FC = () => {
     <LoginManagerContext.Provider value={loginManager}>
       <LoginUserContext.Provider value={user}>
         <ApiContext.Provider value={apiCaller}>
-          <StyledDiv>
-            {linkErrorCode && <div>Error {linkErrorCode}</div>}
-            <RouterProvider router={router} />
-          </StyledDiv>
+          <MessagesContext.Provider value={messageList}>
+            <StyledDiv>
+              {linkErrorCode && <div>Error {linkErrorCode}</div>}
+              <RouterProvider router={router} />
+            </StyledDiv>
+          </MessagesContext.Provider>
         </ApiContext.Provider>
       </LoginUserContext.Provider>
     </LoginManagerContext.Provider>
@@ -195,6 +247,7 @@ const App: FC = () => {
 };
 
 const StyledDiv = styled.div`
+  position: relative;
   height: 100vh;
   width: 100vw;
   margin: 0 auto;
@@ -217,6 +270,18 @@ const StyledDiv = styled.div`
   main {
     flex: 1;
     overflow: auto;
+  }
+  .messages {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    > .message {
+      padding: 10px 15px;
+      border: 1px solid orange;
+      margin-bottom: 10px;
+      background: pink;
+    }
   }
 `;
 
