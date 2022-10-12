@@ -681,7 +681,7 @@ const ChooseAction: ActionComp = props => {
                   isDead={agent.life === 'dead'}
                   isMe={agent.userId === myAgent.userId}
                   isWerewolf={false}
-                  onClick={() => setTarget(agent.agentId)}
+                  onClick={() => canVote && setTarget(agent.agentId)}
                   active={canVote && target === agent.agentId}
                   disabled={!canVote}
                 />
