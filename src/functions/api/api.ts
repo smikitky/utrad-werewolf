@@ -36,6 +36,7 @@ import showGameResult from './event-handlers/showGameResult.js';
 import showKilledResult from './event-handlers/showKilledResult.js';
 import showMediumResults from './event-handlers/showMediumResults.js';
 import checkChatFinish from './status-checkers/checkChatFinish.js';
+import checkNewGame from './status-checkers/checkNewGame.js';
 import checkPeriodFinish from './status-checkers/checkPeriodFinish.js';
 import checkVoteFinish from './status-checkers/checkVoteFinish.js';
 import StatusChecker from './status-checkers/StatusChecker.js';
@@ -316,6 +317,7 @@ type EventHandlerKey<T extends StatusLogEvent> =
  */
 const movePhase = (game: Game): Game => {
   const statusCheckers: StatusChecker[] = [
+    checkNewGame,
     checkChatFinish,
     checkVoteFinish,
     checkPeriodFinish
