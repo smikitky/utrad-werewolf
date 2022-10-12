@@ -261,6 +261,7 @@ export interface UserEntry {
   createdAt: number;
   name: string;
   onlineStatus?: boolean;
+  ready: boolean;
   currentGameId?: string;
 }
 

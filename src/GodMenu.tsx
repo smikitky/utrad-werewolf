@@ -1,10 +1,12 @@
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { UserEntries } from './game-data';
+import { UserEntries, UserEntry } from './game-data';
 import OnlineUsers from './OnlineUsers';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
+import { database } from './utils/firebase.js';
+import * as db from 'firebase/database';
 
 const GodMenu: FC = () => {
   const [newUid, setNewUid] = useState('');
@@ -26,8 +28,13 @@ const GodMenu: FC = () => {
     navigate(`/god/${gameId}`);
   };
 
-  const handleUserClick = (uid: string, gameId?: string) => {
-    if (gameId) navigate(`/god/${gameId}`);
+  const handleUserClick = async (uid: string, user: UserEntry) => {
+    if (user.currentGameId) {
+      navigate(`/god/${user.currentGameId}`);
+    } else {
+      const ref = db.ref(database, 'users/' + uid);
+      await db.update(ref, { ready: !user.ready });
+    }
   };
 
   return (

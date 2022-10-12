@@ -1,3 +1,4 @@
+import * as db from 'firebase/database';
 import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -5,6 +6,7 @@ import AgentCountEditor from './AgentCountEditor.js';
 import { AgentCount, defaultAgentCount } from './game-data.js';
 import { agentTotalCount } from './game-utils.js';
 import OnlineUsers from './OnlineUsers.js';
+import { database } from './utils/firebase.js';
 import { useApi } from './utils/useApi.js';
 import { useLoginManager, useLoginUser } from './utils/user.js';
 
@@ -27,6 +29,13 @@ const Menu: FC = () => {
 
   const handleStartNewGame = async () => {
     await api('matchNewGame', customMode ? { agentCount } : {});
+  };
+
+  const handleReadyClick = async () => {
+    if (loginUser.status !== 'loggedIn') return;
+    const ready = !loginUser.data.ready;
+    const ref = db.ref(database, 'users/' + loginUser.uid);
+    await db.update(ref, { ready });
   };
 
   const handleProfileClick = async () => {
@@ -56,6 +65,18 @@ const Menu: FC = () => {
           新規ゲームを始める
         </button>
         <button
+          onClick={handleReadyClick}
+          disabled={loginUser.status !== 'loggedIn'}
+        >
+          準備状態の切り替え
+        </button>
+        <button
+          onClick={handleProfileClick}
+          disabled={loginUser.status !== 'loggedIn'}
+        >
+          プロフィールを編集
+        </button>
+        <button
           onClick={handleLoginClick}
           disabled={loginUser.status !== 'loggedOut'}
         >
@@ -66,12 +87,6 @@ const Menu: FC = () => {
           disabled={loginUser.status !== 'loggedIn'}
         >
           ログアウト
-        </button>
-        <button
-          onClick={handleProfileClick}
-          disabled={loginUser.status !== 'loggedIn'}
-        >
-          プロフィールを編集
         </button>
       </nav>
       <div className="custom">

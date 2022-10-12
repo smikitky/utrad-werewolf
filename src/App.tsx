@@ -148,7 +148,8 @@ const App: FC = () => {
     if (uid && userProfile?.data === null) {
       userProfile.update({
         createdAt: new Date().getTime(),
-        name: 'new user'
+        name: 'new user',
+        ready: true
       });
     }
   }, [uid, userProfile]);

@@ -229,7 +229,10 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
     if (data) {
       const waitingUsers = Object.entries(data).filter(
         ([userId, entry]) =>
-          userId !== uid && entry.onlineStatus === true && !entry.currentGameId
+          userId !== uid &&
+          entry.onlineStatus === true &&
+          entry.ready === true &&
+          !entry.currentGameId
       );
       // pick random users
       if (waitingUsers.length < count - 1) return data;
@@ -282,7 +285,12 @@ const handleAddUser: ModeHandler = async ({ uid, payload }) => {
   const name = (payload.name as string) ?? 'bot';
   if (!newUid) return jsonResponse(400, 'newUid is required');
   const usersRef = db.ref('users').child(newUid);
-  await usersRef.set({ createdAt: now(), name, onlineStatus: true });
+  await usersRef.set({
+    createdAt: now(),
+    name,
+    onlineStatus: true,
+    ready: true
+  });
   return jsonResponse(200, 'OK');
 };
 

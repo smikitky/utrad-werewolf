@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import styled from 'styled-components';
 
 const OnlineUsers: FC<{
-  onUserClick?: (userId: string, currentGameId: string | undefined) => void;
+  onUserClick?: (uid: string, user: UserEntry) => void;
 }> = props => {
   const { onUserClick } = props;
   const users = useFirebaseSubscription<{
@@ -20,12 +20,14 @@ const OnlineUsers: FC<{
         <li
           key={uid}
           className={classNames({
-            online: user.onlineStatus,
+            online: !!user.onlineStatus,
+            ready: !!user.ready,
             'in-game': user.currentGameId,
             clickable: !!onUserClick
           })}
-          onClick={() => onUserClick && onUserClick(uid, user.currentGameId)}
+          onClick={() => onUserClick && onUserClick(uid, user)}
         >
+          {user.onlineStatus && user.ready ? '✅ ' : '❌ '}
           {user.name}
           {user.currentGameId && <span> (In game)</span>}
         </li>
@@ -43,6 +45,7 @@ const StyledList = styled.ul`
     border-radius: 4px;
     background-color: silver;
     padding: 0 10px;
+    user-select: none;
     &.online {
       background-color: #aaffaa;
     }
