@@ -60,7 +60,7 @@ const Menu: FC = () => {
       <nav>
         <button
           onClick={handleStartNewGame}
-          disabled={loginUser.status !== 'loggedIn'}
+          disabled={loginUser.status !== 'loggedIn' || !loginUser.data.ready}
         >
           新規ゲームを始める
         </button>

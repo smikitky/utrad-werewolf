@@ -89,10 +89,30 @@ const GodMode: FC = () => {
       <div>ゲーム ID: {gameId}</div>
       <h2>ゲーム状況</h2>
       <ul>
-        日付：{game.status.day}、時間帯：{game.status.period}、投票ラウンド：
-        {game.status.votePhase}
+        {game.finishedAt ? (
+          <b>
+            ゲーム終了（
+            {game.wasAborted
+              ? '強制中断'
+              : game.winner === 'villagers'
+              ? '村人陣営の勝利'
+              : '人狼陣営の勝利'}
+            ）
+          </b>
+        ) : (
+          <>
+            日付：{game.status.day}、時間帯：{game.status.period}
+            、投票ラウンド：
+            {game.status.votePhase}
+          </>
+        )}
       </ul>
       <div>開始時刻：{new Date(game.startedAt as number).toLocaleString()}</div>
+      {game.finishedAt && (
+        <div>
+          終了時刻：{new Date(game.finishedAt as number).toLocaleString()}
+        </div>
+      )}
       <h2>プレーヤーの状況</h2>
       <table className="players">
         <thead>
