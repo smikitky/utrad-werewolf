@@ -145,7 +145,7 @@ const App: FC = () => {
   }, []);
 
   useEffect(() => {
-    if (uid && !userProfile?.data) {
+    if (uid && userProfile?.data === null) {
       userProfile.update({
         createdAt: new Date().getTime(),
         name: 'new user'
