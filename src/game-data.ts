@@ -276,8 +276,8 @@ export interface Database {
 export type AgentCount = Record<AgentRole, number>;
 
 export const defaultAgentCount: AgentCount = {
-  villager: 1,
-  werewolf: 2,
+  villager: 2,
+  werewolf: 1,
   seer: 1,
   possessed: 1,
   medium: 0,
