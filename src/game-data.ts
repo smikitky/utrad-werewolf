@@ -213,7 +213,8 @@ export type LogEntry =
   | AttackVoteLogEntry
   | ExecuteLogEntry
   | AttackLogEntry
-  | ResultLogEntry;
+  | ResultLogEntry
+  | KillLogEntry;
 
 export interface GameStatus {
   /**
