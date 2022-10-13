@@ -3,7 +3,13 @@ import { ResultLogEntry, team } from '../../../game-data';
 import { now } from '../utils';
 import StatusEventHandler from './SatusEventHandler';
 
+/**
+ * Checks if one of the tems won the game.
+ * This check is done before a new day starts (i.e., at the end of each night).
+ */
 const showGameResult: StatusEventHandler = (game, pushLog) => {
+  const { day, period } = game.status;
+  if (period !== 'night') return game;
   const aliveWerewolves = game.agents.filter(
     a => a.role === 'werewolf' && a.life === 'alive'
   ).length;
