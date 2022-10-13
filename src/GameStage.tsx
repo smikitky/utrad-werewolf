@@ -28,7 +28,15 @@ import {
   StatusLogEntry,
   team
 } from './game-data.js';
-import { Action, agentAction, roleTextMap, teamTextMap } from './game-utils.js';
+import {
+  Action,
+  agentAction,
+  extractLogOfPeriod,
+  lastVoteEntries,
+  roleTextMap,
+  teamTextMap
+} from './game-utils.js';
+import Icon from './Icon.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
 import { useLoginUser } from './utils/user.js';
@@ -157,6 +165,43 @@ const StyledPlayers = styled.ul`
   gap: 10px;
 `;
 
+const VoteDetails: FC<{
+  game: Game;
+  voteEntries: BaseVoteLogEntry[];
+}> = props => {
+  const { game, voteEntries } = props;
+  const agentName = (agentId: AgentId) =>
+    game.agents.find(a => a.agentId === agentId)?.name;
+  const sorted = [...voteEntries].sort((a, b) => a.agent - b.agent);
+  return (
+    <StyledVotes>
+      <div>
+        <Icon icon="how_to_vote" />
+        投票結果
+      </div>
+      <ul>
+        {sorted.map((entry, i) => {
+          return (
+            <li key={i}>
+              {agentName(entry.agent)}
+              <Icon icon="arrow_right" />
+              {agentName(entry.target)}
+            </li>
+          );
+        })}
+      </ul>
+    </StyledVotes>
+  );
+};
+
+const StyledVotes = styled.div`
+  ul {
+    display: grid;
+    gap: 0 5px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  }
+`;
+
 const StatusLogItem: FC<{
   game: Game;
   myAgent: AgentInfo;
@@ -164,25 +209,25 @@ const StatusLogItem: FC<{
 }> = props => {
   const { game, myAgent, entry } = props;
 
-  const counts = agentRoles
-    .map(role => {
-      const count = game.agents.filter(
-        a =>
-          a.role === role &&
-          entry.agents.find(a2 => a2.agentId === a.agentId)?.life === 'alive'
-      ).length;
-      return [role, count] as [AgentRole, number];
-    })
-    .filter(([role, count]) => count > 0);
-  const totalAlive = entry.agents.filter(a => a.life === 'alive').length;
-
-  const countsText = counts
-    .map(([role, count]) => `${count}人の${roleTextMap[role]}`)
-    .join('、');
-
   const content = (() => {
+    console.log(entry.event);
     switch (entry.event) {
-      case 'periodStart':
+      case 'periodStart': {
+        const counts = agentRoles
+          .map(role => {
+            const count = game.agents.filter(
+              a =>
+                a.role === role &&
+                entry.agents.find(a2 => a2.agentId === a.agentId)?.life ===
+                  'alive'
+            ).length;
+            return [role, count] as [AgentRole, number];
+          })
+          .filter(([role, count]) => count > 0);
+        const totalAlive = entry.agents.filter(a => a.life === 'alive').length;
+        const countsText = counts
+          .map(([role, count]) => `${count}人の${roleTextMap[role]}`)
+          .join('、');
         if (entry.day === 0) {
           return (
             <>
@@ -192,19 +237,31 @@ const StatusLogItem: FC<{
             </>
           );
         } else {
-          return `${entry.day} 日目の${
-            entry.period === 'day' ? '昼' : '夜'
-          }が始まった。現在 ${totalAlive} 人生き残っている。`;
+          const icon = entry.period === 'day' ? 'wb_twilight' : 'nightlight';
+          return (
+            <>
+              <Icon icon={icon} /> {entry.day} 日目の
+              {entry.period === 'day' ? '昼' : '夜'}が始まった。現在
+              {totalAlive} 人生き残っている。
+            </>
+          );
         }
+      }
       case 'voteStart': {
         const type = entry.period === 'day' ? '追放' : '襲撃';
         if (entry.period === 'night' && myAgent.role !== 'werewolf')
           return null;
         if (entry.votePhase === 1)
           return `村の誰を${type}するかの投票が始まった。`;
-        else
+        else {
+          const voteEntries = lastVoteEntries(
+            extractLogOfPeriod(game, { day: entry.day, period: entry.period }),
+            entry.period === 'day' ? 'vote' : 'attackVote'
+          );
           return (
             <>
+              <VoteDetails game={game} voteEntries={voteEntries} />
+              <hr />
               {type}の投票は決着しなかったため、{entry.votePhase}{' '}
               回目の投票が始まった。
               <br />
@@ -212,6 +269,15 @@ const StatusLogItem: FC<{
               回のみで、次も決着が付かない場合は最多得票者からランダムで犠牲者が選ばれる。
             </>
           );
+        }
+      }
+      case 'voteSettle': {
+        const voteEntries = lastVoteEntries(
+          extractLogOfPeriod(game, { day: entry.day, period: entry.period }),
+          entry.period === 'day' ? 'vote' : 'attackVote'
+        );
+        if (voteEntries.length === 0) return null;
+        return <VoteDetails game={game} voteEntries={voteEntries} />;
       }
       default:
         return null;
@@ -340,11 +406,13 @@ const KillLogItem: FC<{
       <>今回の人狼による襲撃では誰も死ななかった。</>
     ) : entry.type === 'execute' ? (
       <>
-        <strong>{agent!.name}</strong> は村人達によって追放された。
+        <Icon icon="new_releases" /> <strong>{agent!.name}</strong>{' '}
+        は村人達によって追放された。
       </>
     ) : (
       <>
-        <strong>{agent!.name}</strong> は人狼によって襲撃された。
+        <Icon icon="new_releases" /> <strong>{agent!.name}</strong>{' '}
+        は人狼によって襲撃された。
       </>
     );
   return <li className={entry.type}>{message}</li>;
@@ -445,7 +513,7 @@ const StyledGameLog = styled.ul`
   padding-right: 5px;
   overflow-y: scroll;
   scroll-behavior: smooth;
-  li {
+  > li {
     border: 1px solid #eeeeee;
     .speaker {
       font-weight: bold;
@@ -504,6 +572,7 @@ const StyledGameLog = styled.ul`
     }
     &.attack,
     &.execute {
+      padding: 0 5px;
       color: red;
       font-weight: bold;
       background: #ffdddd;

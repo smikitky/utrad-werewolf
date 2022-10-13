@@ -136,6 +136,18 @@ export const extractLogOfPeriod = (
   });
 };
 
+export const lastVoteEntries = (
+  periodLog: LogEntry[],
+  voteType: 'vote' | 'attackVote'
+): BaseVoteLogEntry[] => {
+  const periodVoteLog = periodLog.filter(
+    l => l.type === voteType
+  ) as BaseVoteLogEntry[];
+  if (periodVoteLog.length === 0) return []; // No vote happened
+  const finalVotePhase = Math.max(0, ...periodVoteLog.map(l => l.votePhase));
+  return periodVoteLog.filter(l => l.votePhase === finalVotePhase);
+};
+
 /**
  * Check the agent who gained the most votes.
  * @param entries - Log entries from one vote phase
