@@ -3,6 +3,7 @@ import {
   FC,
   KeyboardEventHandler,
   MouseEventHandler,
+  ReactElement,
   useEffect,
   useRef,
   useState
@@ -26,7 +27,12 @@ import {
   GuardLogEntry,
   ResultLogEntry,
   StatusLogEntry,
-  team
+  team,
+  LogEntry,
+  GuardResultLogEntry,
+  AttackVoteLogEntry,
+  VoteLogEntry,
+  GamePeriod
 } from './game-data.js';
 import {
   Action,
@@ -154,9 +160,10 @@ const StyledPlayers = styled.ul`
 
 const VoteDetails: FC<{
   game: Game;
+  period: GamePeriod;
   voteEntries: BaseVoteLogEntry[];
 }> = props => {
-  const { game, voteEntries } = props;
+  const { game, period, voteEntries } = props;
   const agentName = (agentId: AgentId) =>
     game.agents.find(a => a.agentId === agentId)?.name;
   const sorted = [...voteEntries].sort((a, b) => a.agent - b.agent);
@@ -164,7 +171,7 @@ const VoteDetails: FC<{
     <StyledVotes>
       <div>
         <Icon icon="how_to_vote" />
-        投票結果
+        {period === 'day' ? '追放' : '襲撃'}投票結果
       </div>
       <ul>
         {sorted.map((entry, i) => {
@@ -190,11 +197,13 @@ const StyledVotes = styled.div`
   }
 `;
 
-const StatusLogItem: FC<{
+type LogItem<T extends LogEntry> = (props: {
   game: Game;
   myAgent: AgentInfo;
-  entry: StatusLogEntry;
-}> = props => {
+  entry: T;
+}) => ReactElement<any, any> | null;
+
+const StatusLogItem: LogItem<StatusLogEntry> = props => {
   const { game, myAgent, entry } = props;
 
   const content = (() => {
@@ -228,7 +237,7 @@ const StatusLogItem: FC<{
           return (
             <>
               <Icon icon={icon} /> {entry.day} 日目の
-              {entry.period === 'day' ? '昼' : '夜'}が始まった。現在
+              {entry.period === 'day' ? '昼' : '夜'}が始まった。現在{' '}
               {totalAlive} 人生き残っている。
             </>
           );
@@ -247,7 +256,11 @@ const StatusLogItem: FC<{
           );
           return (
             <>
-              <VoteDetails game={game} voteEntries={voteEntries} />
+              <VoteDetails
+                period={entry.period}
+                game={game}
+                voteEntries={voteEntries}
+              />
               <hr />
               {type}の投票は決着しなかったため、{entry.votePhase}{' '}
               回目の投票が始まった。
@@ -259,12 +272,21 @@ const StatusLogItem: FC<{
         }
       }
       case 'voteSettle': {
+        const voteType = entry.period === 'day' ? 'vote' : 'attackVote';
+        if (entry.period === 'night' && myAgent.role !== 'werewolf')
+          return null;
         const voteEntries = lastVoteEntries(
           extractLogOfPeriod(game, { day: entry.day, period: entry.period }),
-          entry.period === 'day' ? 'vote' : 'attackVote'
+          voteType
         );
         if (voteEntries.length === 0) return null;
-        return <VoteDetails game={game} voteEntries={voteEntries} />;
+        return (
+          <VoteDetails
+            game={game}
+            period={entry.period}
+            voteEntries={voteEntries}
+          />
+        );
       }
       default:
         return null;
@@ -275,11 +297,7 @@ const StatusLogItem: FC<{
   return <li className={classNames('status', entry.event)}>{content}</li>;
 };
 
-const ChatLogItem: FC<{
-  game: Game;
-  myAgent: AgentInfo;
-  entry: ChatLogEntry;
-}> = props => {
+const ChatLogItem: LogItem<ChatLogEntry> = props => {
   const { game, myAgent, entry } = props;
   const invisible = myAgent.role !== 'werewolf' && entry.type === 'whisper';
   if (invisible) return null;
@@ -291,11 +309,7 @@ const ChatLogItem: FC<{
   );
 };
 
-const AbilityLogItem: FC<{
-  game: Game;
-  myAgent: AgentInfo;
-  entry: DivineLogEntry | GuardLogEntry;
-}> = props => {
+const AbilityLogItem: LogItem<DivineLogEntry | GuardLogEntry> = props => {
   const { game, myAgent, entry } = props;
   if (myAgent.agentId !== entry.agent) return null;
   const target = game.agents.find(a => a.agentId === entry.target)!;
@@ -315,11 +329,9 @@ const AbilityLogItem: FC<{
   );
 };
 
-const AbilityResultLogItem: FC<{
-  game: Game;
-  myAgent: AgentInfo;
-  entry: DivineResultLogEntry | MediumResultLogEntry;
-}> = props => {
+const AbilityResultLogItem: LogItem<
+  DivineResultLogEntry | GuardResultLogEntry
+> = props => {
   const { game, myAgent, entry } = props;
   if (myAgent.agentId !== entry.agent) return null;
   const target = game.agents.find(a => a.agentId === entry.target)!;
@@ -347,11 +359,7 @@ const AbilityResultLogItem: FC<{
   );
 };
 
-const OverItem: FC<{
-  game: Game;
-  myAgent: AgentInfo;
-  entry: OverLogEntry;
-}> = props => {
+const OverItem: LogItem<OverLogEntry> = props => {
   const { game, myAgent, entry } = props;
   const agent = game.agents.find(a => a.agentId === entry.agent)!;
   const invisible = myAgent.role !== 'werewolf' && entry.chatType === 'whisper';
@@ -363,11 +371,7 @@ const OverItem: FC<{
   );
 };
 
-const VoteLogItem: FC<{
-  game: Game;
-  myAgent: AgentInfo;
-  entry: BaseVoteLogEntry;
-}> = props => {
+const VoteLogItem: LogItem<VoteLogEntry | AttackVoteLogEntry> = props => {
   const { game, myAgent, entry } = props;
   const invisible = myAgent.role !== 'werewolf' && entry.type === 'attackVote';
   if (invisible) return null;
@@ -381,11 +385,7 @@ const VoteLogItem: FC<{
   );
 };
 
-const KillLogItem: FC<{
-  game: Game;
-  myAgent: AgentInfo;
-  entry: KillLogEntry;
-}> = props => {
+const KillLogItem: LogItem<KillLogEntry> = props => {
   const { game, myAgent, entry } = props;
   const agent = game.agents.find(a => a.agentId === entry.target);
   const message =
@@ -405,11 +405,7 @@ const KillLogItem: FC<{
   return <li className={entry.type}>{message}</li>;
 };
 
-const ResultLogItem: FC<{
-  game: Game;
-  myAgent: AgentInfo;
-  entry: ResultLogEntry;
-}> = props => {
+const ResultLogItem: LogItem<ResultLogEntry> = props => {
   const {
     game,
     myAgent,
@@ -455,20 +451,25 @@ const GameLog: FC<{ game: Game }> = props => {
   const { game } = props;
   const { log } = game;
   const divRef = useRef<HTMLUListElement>(null);
-  const entries = Object.values(log);
+  const lastLogRef = useRef<string>();
   const user = useLoginUser();
   if (user.status !== 'loggedIn') return null;
   const myAgent = game.agents.find(a => a.userId === user.uid)!;
+  const entries = Object.entries(log);
 
   useEffect(() => {
-    if (divRef.current) {
+    if (
+      entries[entries.length - 1]?.[0] !== lastLogRef.current &&
+      divRef.current
+    ) {
       divRef.current.scrollTop = divRef.current.scrollHeight;
+      lastLogRef.current = entries[entries.length - 1]?.[0];
     }
   });
 
   return (
     <StyledGameLog ref={divRef}>
-      {entries.map((entry, i) => {
+      {entries.map(([id, entry]) => {
         const itemMap: { [type in LogType]?: FC<any> } = {
           status: StatusLogItem,
           talk: ChatLogItem,
@@ -486,7 +487,7 @@ const GameLog: FC<{ game: Game }> = props => {
         };
         const Item = itemMap[entry.type] ?? (() => null);
         return (
-          <Item key={i} game={game} myAgent={myAgent} entry={entry as any} />
+          <Item key={id} game={game} myAgent={myAgent} entry={entry as any} />
         );
       })}
     </StyledGameLog>
