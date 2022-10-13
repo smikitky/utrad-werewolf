@@ -47,55 +47,39 @@ const RoleDisplay: FC<{ role: AgentRole }> = props => {
 };
 
 const Player: FC<{
-  agentId: AgentId;
-  name: string;
+  agent: AgentInfo;
   isMe: boolean;
-  isDead: boolean;
-  isWerewolf?: boolean;
-  revealRole?: AgentRole;
+  revealRole?: boolean;
   onClick?: MouseEventHandler;
   active?: boolean;
   disabled?: boolean;
 }> = props => {
-  const {
-    agentId,
-    name,
-    isMe,
-    isDead,
-    isWerewolf,
-    revealRole,
-    onClick,
-    active,
-    disabled
-  } = props;
-  const text = revealRole
-    ? roleTextMap[revealRole]
-    : [isMe ? 'あなた' : null, isWerewolf ? '人狼' : null]
-        .filter(Boolean)
-        .join('/');
+  const { agent, isMe, revealRole, onClick, active, disabled } = props;
   return (
     <StyledPlayerDiv
       className={classNames({
         me: isMe,
-        dead: isDead,
-        werewolf: isWerewolf,
+        dead: agent.life === 'dead',
         clickable: !!onClick,
         active,
         disabled
       })}
       onClick={onClick ?? (() => {})}
     >
-      <img src={`/agent${agentId}.jpg`} alt="" />
-      <div className="name">{name}</div>
-      <div className="indicator">{text}</div>
+      <img src={`/agent${agent.agentId}.jpg`} alt="" />
+      <div className="indicators">
+        <div>{agent.name}</div>
+        {isMe && <div>あなた</div>}
+        {revealRole && <div>{roleTextMap[agent.role]}</div>}
+      </div>
     </StyledPlayerDiv>
   );
 };
 
 const StyledPlayerDiv = styled.div`
+  display: flex;
   border: 2px solid gray;
   background: white;
-  width: 80px;
   &.me {
     border-color: blue;
     color: blue;
@@ -103,12 +87,13 @@ const StyledPlayerDiv = styled.div`
   &.dead {
     border-color: brown;
     color: red;
+    background: #cccccc;
     img {
       filter: grayscale(100%) brightness(0.3);
     }
   }
   img {
-    width: 100%;
+    width: 40px;
     aspect-ratio: 3/4;
   }
   &.clickable {
@@ -126,10 +111,14 @@ const StyledPlayerDiv = styled.div`
       opacity: 0.5;
     }
   }
-  > .name,
-  > .indicator {
+  .indicators {
+    flex: 1 1;
+    padding: 0 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
     font-size: 80%;
-    height: 1.5em;
+    line-height: 17px;
     text-align: center;
   }
 `;
@@ -144,11 +133,9 @@ const Players: FC<{ game: Game; myAgent: AgentInfo }> = props => {
         return (
           <li key={agent.agentId}>
             <Player
-              agentId={agent.agentId}
-              name={agent.name}
+              agent={agent}
               isMe={agent.agentId === myAgent.agentId}
-              isDead={agent.life === 'dead'}
-              isWerewolf={showWerewolf}
+              revealRole={agent.role === 'werewolf' && showWerewolf}
             />
           </li>
         );
@@ -195,10 +182,11 @@ const VoteDetails: FC<{
 };
 
 const StyledVotes = styled.div`
+  font-size: 80%;
   ul {
     display: grid;
     gap: 0 5px;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 `;
 
@@ -210,7 +198,6 @@ const StatusLogItem: FC<{
   const { game, myAgent, entry } = props;
 
   const content = (() => {
-    console.log(entry.event);
     switch (entry.event) {
       case 'periodStart': {
         const counts = agentRoles
@@ -450,11 +437,9 @@ const ResultLogItem: FC<{
         {game.agents.map(agent => (
           <Player
             key={agent.agentId}
-            agentId={agent.agentId}
-            name={agent.name}
-            isDead={agent.life === 'dead'}
+            agent={agent}
             isMe={agent.agentId === myAgent.agentId}
-            revealRole={agent.role}
+            revealRole={true}
           />
         ))}
       </div>
@@ -761,11 +746,8 @@ const ChooseAction: ActionComp = props => {
             return (
               <li key={agent.agentId}>
                 <Player
-                  agentId={agent.agentId}
-                  name={agent.name}
-                  isDead={agent.life === 'dead'}
+                  agent={agent}
                   isMe={agent.userId === myAgent.userId}
-                  isWerewolf={false}
                   onClick={() => canVote && setTarget(agent.agentId)}
                   active={canVote && target === agent.agentId}
                   disabled={!canVote}
@@ -790,9 +772,11 @@ const StyledChooseDiv = styled.div`
     display: flex;
     gap: 15px;
     align-items: center;
-    justify-content: center;
     > .choices {
+      flex: 1 1;
       display: flex;
+      flex-flow: row wrap;
+      justify-content: space-around;
       gap: 5px;
       button:disabled {
         opacity: 0.5;
