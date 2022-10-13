@@ -23,7 +23,7 @@ import {
   LogType,
   MediumResultLogEntry,
   OverLogEntry,
-  ProtectLogEntry,
+  GuardLogEntry,
   ResultLogEntry,
   StatusLogEntry,
   team
@@ -241,7 +241,7 @@ const ChatLogItem: FC<{
 const AbilityLogItem: FC<{
   game: Game;
   myAgent: AgentInfo;
-  entry: DivineLogEntry | ProtectLogEntry;
+  entry: DivineLogEntry | GuardLogEntry;
 }> = props => {
   const { game, myAgent, entry } = props;
   if (myAgent.agentId !== entry.agent) return null;
@@ -283,7 +283,7 @@ const AbilityResultLogItem: FC<{
         </>
       ) : (
         <>
-          あなたの霊媒師としての能力が発動した。昨日の昼に追放された{' '}
+          あなたの霊媒師としての能力が発動した。さきほど追放された{' '}
           <strong>
             {target.name} は{result}
           </strong>
@@ -421,7 +421,7 @@ const GameLog: FC<{ game: Game }> = props => {
           talk: ChatLogItem,
           whisper: ChatLogItem,
           divine: AbilityLogItem,
-          protect: AbilityLogItem,
+          guard: AbilityLogItem,
           divineResult: AbilityResultLogItem,
           mediumResult: AbilityResultLogItem,
           vote: VoteLogItem,
@@ -643,15 +643,31 @@ const ChooseAction: ActionComp = props => {
     action !== 'vote' &&
     action !== 'attackVote' &&
     action !== 'divine' &&
-    action !== 'protect'
+    action !== 'guard'
   )
     return null;
 
   const prompt = {
-    vote: '誰を追放するか投票してください',
-    attackVote: '誰を襲撃するか選択してください',
-    divine: '誰を占うか選択してください',
-    protect: '誰を襲撃から守るか選択してください'
+    vote: (
+      <>
+        誰を<strong>追放する</strong>か投票してください
+      </>
+    ),
+    attackVote: (
+      <>
+        誰を<strong>襲撃する</strong>か選択してください
+      </>
+    ),
+    divine: (
+      <>
+        誰を<strong>占う</strong>か選択してください
+      </>
+    ),
+    guard: (
+      <>
+        誰を<strong>襲撃から守る</strong>か選択してください
+      </>
+    )
   }[action];
   const api = useApi();
 
@@ -698,6 +714,9 @@ const ChooseAction: ActionComp = props => {
 };
 
 const StyledChooseDiv = styled.div`
+  > .prompt strong {
+    color: brown;
+  }
   > .panel {
     display: flex;
     gap: 15px;
@@ -748,7 +767,7 @@ const ActionPane: FC<{
     wait: WaitAction,
     finish: FinishAction,
     divine: ChooseAction,
-    protect: ChooseAction,
+    guard: ChooseAction,
     vote: ChooseAction,
     attackVote: ChooseAction,
     talk: ChatAction,

@@ -2,7 +2,15 @@ import classNames from 'classnames';
 import { FC, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { BaseVoteLogEntry, Game } from './game-data';
+import {
+  AgentId,
+  AgentInfo,
+  BaseVoteLogEntry,
+  DivineLogEntry,
+  Game,
+  GuardLogEntry,
+  OverLogEntry
+} from './game-data';
 import {
   Action,
   agentAction,
@@ -14,13 +22,42 @@ import useFirebaseSubscription from './utils/useFirebaseSubscription';
 
 const actionTextMap: Record<Action, string> = {
   attackVote: '襲撃投票中',
-  protect: '護衛先選択中',
+  guard: '護衛先選択中',
   divine: '占い先選択中',
   vote: '追放投票中',
   talk: '話し合い中（発話終了待ち）',
   whisper: '囁き中（発話終了待ち）',
   finish: 'ゲーム終了',
   wait: '他のユーザの行動待ち'
+};
+
+const lastAction = (game: Game, agent: AgentInfo) => {
+  if (agent.life === 'dead') return '(死亡)';
+  const periodLog = extractLogOfPeriod(game);
+  const targetName = (agentId: AgentId) =>
+    game.agents.find(a => a.agentId === agentId)!.name;
+  const voteEntry = periodLog.find(
+    l =>
+      (l.type === 'vote' || l.type === 'attackVote') &&
+      l.agent === agent.agentId &&
+      l.votePhase === game.status.votePhase
+  ) as BaseVoteLogEntry | undefined;
+  if (voteEntry)
+    return `${
+      voteEntry.type === 'vote' ? '追放投票先' : '襲撃投票先'
+    }: ${targetName(voteEntry.target)}`;
+  const abilityEntry = periodLog.find(
+    l =>
+      (l.type === 'divine' || l.type === 'guard') && l.agent === agent.agentId
+  ) as DivineLogEntry | GuardLogEntry | undefined;
+  if (abilityEntry)
+    return `${
+      abilityEntry.type === 'divine' ? '占い対象' : '護衛対象'
+    }: ${targetName(abilityEntry.target)}`;
+  const overEntry = periodLog.find(
+    l => l.type === 'over' && l.agent === agent.agentId
+  ) as OverLogEntry | undefined;
+  if (overEntry) return '(発話終了)';
 };
 
 const GodMode: FC = () => {
@@ -53,7 +90,7 @@ const GodMode: FC = () => {
         case 'vote':
         case 'attackVote':
         case 'divine':
-        case 'protect':
+        case 'guard':
           return { gameId, target: Number(param) };
         default:
           return { gameId };
@@ -128,15 +165,6 @@ const GodMode: FC = () => {
         <tbody>
           {game.agents.map(agent => {
             const action = agentAction(game, agent);
-            const voteTarget = extractLogOfPeriod(game).find(
-              l =>
-                (l.type === 'vote' || l.type === 'attackVote') &&
-                l.agent === agent.agentId &&
-                l.votePhase === game.status.votePhase
-            ) as BaseVoteLogEntry | undefined;
-            const voteTargetAgent = game.agents.find(
-              a => a.agentId === voteTarget?.target
-            );
             return (
               <tr
                 key={agent.agentId}
@@ -149,7 +177,7 @@ const GodMode: FC = () => {
                 <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
                 <td className={classNames('action', action)}>
                   {actionTextMap[action]}
-                  {voteTargetAgent && <> 投票先: {voteTargetAgent.name}</>}
+                  {action === 'wait' && <> {lastAction(game, agent)}</>}
                 </td>
                 <td>{agent.userId}</td>
               </tr>
@@ -184,7 +212,7 @@ const GodMode: FC = () => {
           <option value="vote">vote</option>
           <option value="attackVote">attackVote</option>
           <option value="divine">divine</option>
-          <option value="protect">protect</option>
+          <option value="guard">guard</option>
         </select>
         <input
           type="text"

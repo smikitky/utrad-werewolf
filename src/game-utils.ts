@@ -17,8 +17,8 @@ export const roleTextMap: { [key in AgentRole]: string } = {
   werewolf: '人狼',
   seer: '占い師',
   possessed: '裏切り者',
-  medium: '霊能者',
-  hunter: '狩人'
+  medium: '霊媒師',
+  bodyguard: '狩人'
 };
 
 export const teamTextMap: { [key in Team]: string } = {
@@ -44,7 +44,7 @@ export const isValidAgentCount = (counts: AgentCount) => {
 export type Action =
   | 'wait'
   | 'divine'
-  | 'protect'
+  | 'guard'
   | 'vote'
   | 'attackVote'
   | 'talk'
@@ -90,12 +90,12 @@ export const agentAction = (game: Game, agent: AgentInfo): Action => {
         case 'medium':
           console.warn('Medium is not implemented yet');
           return 'wait';
-        case 'hunter':
+        case 'bodyguard':
           return periodLog.some(
-            l => l.type === 'protect' && l.agent === agent.agentId
+            l => l.type === 'guard' && l.agent === agent.agentId
           ) || day === 0
             ? 'wait'
-            : 'protect';
+            : 'guard';
         case 'werewolf':
           if (typeof votePhase === 'number') {
             return periodLog.some(

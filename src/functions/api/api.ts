@@ -17,7 +17,7 @@ import {
   GameStatus,
   LogEntry,
   OverLogEntry,
-  ProtectLogEntry,
+  GuardLogEntry,
   StatusLogEntry,
   StatusLogEvent,
   UserEntries,
@@ -125,7 +125,7 @@ type GameRequestType =
   | 'vote'
   | 'attackVote'
   | 'divine'
-  | 'protect';
+  | 'guard';
 
 type GameRequestData = {
   type: GameRequestType;
@@ -487,17 +487,17 @@ const handleVote = makeGameHandler(
   }
 );
 
-const handleDivineProtect = makeGameHandler(
+const handleDivineGuard = makeGameHandler(
   ({ requestType, game, myAgent, payload }) => {
     const { day, period } = game.status;
-    const type = requestType as 'divine' | 'protect';
+    const type = requestType as 'divine' | 'guard';
     const target = payload.target as AgentId;
 
     if (type === 'divine' && myAgent.role !== 'seer')
       throw jsonResponse(400, 'You are not a seer');
-    if (type === 'protect' && myAgent.role !== 'hunter')
-      throw jsonResponse(400, 'You are not a hunter');
-    if (game.status.period !== 'night' || (type === 'protect' && day === 0))
+    if (type === 'guard' && myAgent.role !== 'bodyguard')
+      throw jsonResponse(400, 'You are not a bodyguard');
+    if (game.status.period !== 'night' || (type === 'guard' && day === 0))
       throw jsonResponse(400, `This action is not allowed in this period`);
     const targetAgent = game.agents.find(a => a.agentId === target);
     if (!targetAgent) throw jsonResponse(400, 'Invalid target');
@@ -510,7 +510,7 @@ const handleDivineProtect = makeGameHandler(
     if (periodLog.some(l => l.type === type && l.agent === myAgent.agentId))
       throw jsonResponse(400, 'You have already selected your target');
 
-    return pushLog<DivineLogEntry | ProtectLogEntry>(game, {
+    return pushLog<DivineLogEntry | GuardLogEntry>(game, {
       type,
       agent: myAgent.agentId,
       target
@@ -532,8 +532,8 @@ export const handler: Handler = async (event, context) => {
       over: handleOver,
       vote: handleVote,
       attackVote: handleVote,
-      divine: handleDivineProtect,
-      protect: handleDivineProtect
+      divine: handleDivineGuard,
+      guard: handleDivineGuard
     };
     if (!handlers[type]) throw jsonResponse(400, 'Invalid request type');
     return await handlers[type]({ requestType: type, uid, payload });

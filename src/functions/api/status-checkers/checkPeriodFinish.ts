@@ -5,7 +5,7 @@ const checkPeriodFinish: StatusChecker = game => {
   const { day, period, votePhase } = game.status;
   const alivePeople = game.agents.filter(a => a.life === 'alive');
   const seers = alivePeople.filter(a => a.role === 'seer');
-  const hunters = alivePeople.filter(a => a.role === 'hunter');
+  const bodyguards = alivePeople.filter(a => a.role === 'bodyguard');
 
   if (Object.keys(game.log).length === 0) {
     return {
@@ -26,17 +26,17 @@ const checkPeriodFinish: StatusChecker = game => {
       ) ||
         alivePeople.length <= 1));
 
-  const huntersCheck =
+  const bodyguardsCheck =
     period === 'day' ||
     day === 0 ||
     (period === 'night' &&
-      (hunters.every(s =>
-        periodLog.some(l => l.type === 'protect' && l.agent === s.agentId)
+      (bodyguards.every(s =>
+        periodLog.some(l => l.type === 'guard' && l.agent === s.agentId)
       ) ||
         alivePeople.length <= 1));
 
   const canFinishThisPeriod =
-    votePhase === 'settled' && seersCheck && huntersCheck;
+    votePhase === 'settled' && seersCheck && bodyguardsCheck;
   if (canFinishThisPeriod) {
     return { event: 'periodStart', nextStatus: nextPeriod(game.status) };
   }

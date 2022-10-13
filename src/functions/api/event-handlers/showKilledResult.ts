@@ -28,15 +28,15 @@ const showKilledResult: StatusEventHandler = (game, pushLog) => {
     mostVotes(periodVoteLog.filter(l => l.votePhase === finalVotePhase))
   );
 
-  const protectedByHunter =
+  const guarded =
     period === 'night' &&
-    periodLog.some(l => l.type === 'protect' && l.target === killTarget);
+    periodLog.some(l => l.type === 'guard' && l.target === killTarget);
 
   game = pushLog<AttackLogEntry | ExecuteLogEntry>(game, {
     type: period === 'day' ? 'execute' : 'attack',
-    target: protectedByHunter ? 'NOBODY' : killTarget
+    target: guarded ? 'NOBODY' : killTarget
   });
-  if (!protectedByHunter)
+  if (!guarded)
     game = produce(game, draft => {
       draft.agents.find(a => a.agentId === killTarget)!.life = 'dead';
     });

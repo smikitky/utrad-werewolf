@@ -25,7 +25,7 @@ export const agentRoles = [
   'seer',
   'possessed',
   'medium',
-  'hunter'
+  'bodyguard'
 ] as const;
 
 export type AgentRole = typeof agentRoles[number];
@@ -41,7 +41,7 @@ export const team = (role: AgentRole): Team => {
     case 'villager':
     case 'seer':
     case 'medium':
-    case 'hunter':
+    case 'bodyguard':
       return 'villagers';
     case 'possessed':
     case 'werewolf':
@@ -72,8 +72,8 @@ export type LogType =
   | 'divine' // by seer
   | 'divineResult'
   | 'mediumResult' // by medium
-  | 'protect' // by hunter
-  | 'protectResult'
+  | 'guard' // by bodyguard
+  | 'guardResult'
   | 'execute' // by daytime vote
   | 'attack' // by werewolves
   | 'result';
@@ -155,13 +155,13 @@ export interface MediumResultLogEntry extends ActionLogEntry {
   target: AgentId;
 }
 
-export interface ProtectLogEntry extends ActionLogEntry {
-  type: 'protect';
+export interface GuardLogEntry extends ActionLogEntry {
+  type: 'guard';
   target: AgentId;
 }
 
-export interface ProtectResultLogEntry extends ActionLogEntry {
-  type: 'protectResult';
+export interface GuardResultLogEntry extends ActionLogEntry {
+  type: 'guardResult';
   target: AgentId;
 }
 
@@ -207,8 +207,8 @@ export type LogEntry =
   | DivineLogEntry
   | DivineResultLogEntry
   | MediumResultLogEntry
-  | ProtectLogEntry
-  | ProtectResultLogEntry
+  | GuardLogEntry
+  | GuardResultLogEntry
   | VoteLogEntry
   | AttackVoteLogEntry
   | ExecuteLogEntry
@@ -282,5 +282,5 @@ export const defaultAgentCount: AgentCount = {
   seer: 1,
   possessed: 1,
   medium: 0,
-  hunter: 0
+  bodyguard: 0
 };
