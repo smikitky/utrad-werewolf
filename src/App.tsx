@@ -64,6 +64,8 @@ const Layout: FC = props => {
             <>
               <b>{user.data.name}</b> ({user.uid.slice(0, 5)})
             </>
+          ) : user.status === 'indeterminate' ? (
+            '...'
           ) : (
             'logged out'
           )}
