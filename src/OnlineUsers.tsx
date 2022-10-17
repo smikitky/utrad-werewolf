@@ -28,17 +28,19 @@ const OnlineUsers: FC<{
           })}
           onClick={() => onUserClick && onUserClick(uid, user)}
         >
-          <Icon
-            icon={
-              !user.onlineStatus
-                ? 'no_accounts'
-                : user.ready
-                ? 'check_circle'
-                : 'hourglass_empty'
-            }
-          />
-          {user.name}
-          {user.currentGameId && <span> (In game)</span>}
+          <span className="status">
+            <Icon
+              icon={
+                !user.onlineStatus
+                  ? 'no_accounts'
+                  : user.ready
+                  ? 'check_circle'
+                  : 'hourglass_empty'
+              }
+            />
+          </span>
+          <span className="name">{user.name}</span>
+          {user.currentGameId && <Icon icon="play_arrow" />}
         </li>
       ))}
     </StyledList>
@@ -59,16 +61,19 @@ const StyledList = styled.ul`
     background-color: silver;
     padding: 0 10px;
     user-select: none;
+    .name {
+      flex: 1;
+    }
     &.online {
       background-color: #aaffaa;
     }
     &.in-game {
       background-color: #ffffaa;
     }
-    &.ready .material-icons {
+    &.ready .status .material-icons {
       color: green;
     }
-    &:not(.ready) .material-icons {
+    &:not(.ready) .status .material-icons {
       color: brown;
     }
     &.clickable {
