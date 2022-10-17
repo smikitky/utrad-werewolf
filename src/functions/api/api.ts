@@ -272,8 +272,8 @@ const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
   if (!game) return jsonResponse(404, 'Game not found');
 
   const userIds = game.agents.map(a => a.userId);
-  if (!userIds.includes(uid))
-    return jsonResponse(403, 'You are not a player of this game');
+  // if (!userIds.includes(uid))
+  //   return jsonResponse(403, 'You are not a player of this game');
 
   await gameRef.update({ finishedAt: now(), wasAborted: true });
   releaseUsers(userIds);

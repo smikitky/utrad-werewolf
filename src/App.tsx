@@ -130,6 +130,7 @@ const App: FC = () => {
   }, []);
 
   const user = useMemo<LoginUser>(() => {
+    console.log('USER', { uid, loginType, userProfile });
     return uid && loginType && userProfile.data?.createdAt
       ? {
           status: 'loggedIn',
