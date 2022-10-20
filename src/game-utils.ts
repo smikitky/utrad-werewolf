@@ -126,7 +126,7 @@ export const extractLogOfPeriod = (
   const targetDay = status ? status.day : game.status.day;
   const targetPeriod = status ? status.period : game.status.period;
   let logDay = 0;
-  let logPeriod = 'nightTime';
+  let logPeriod = 'night';
   return Object.values(game.log).filter(l => {
     if (l.type === 'status') {
       logDay = l.day;
@@ -136,16 +136,18 @@ export const extractLogOfPeriod = (
   });
 };
 
-export const lastVoteEntries = (
+export const voteEntries = (
   periodLog: LogEntry[],
-  voteType: 'vote' | 'attackVote'
+  voteType: 'vote' | 'attackVote',
+  targetVotePhase: number | 'last'
 ): BaseVoteLogEntry[] => {
   const periodVoteLog = periodLog.filter(
     l => l.type === voteType
   ) as BaseVoteLogEntry[];
   if (periodVoteLog.length === 0) return []; // No vote happened
-  const finalVotePhase = Math.max(0, ...periodVoteLog.map(l => l.votePhase));
-  return periodVoteLog.filter(l => l.votePhase === finalVotePhase);
+  if (targetVotePhase === 'last')
+    targetVotePhase = Math.max(0, ...periodVoteLog.map(l => l.votePhase));
+  return periodVoteLog.filter(l => l.votePhase === targetVotePhase);
 };
 
 /**

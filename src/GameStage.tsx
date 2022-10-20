@@ -6,6 +6,7 @@ import {
   ReactElement,
   useEffect,
   useRef,
+  useMemo,
   useState
 } from 'react';
 import { useParams } from 'react-router-dom';
@@ -32,13 +33,14 @@ import {
   GuardResultLogEntry,
   AttackVoteLogEntry,
   VoteLogEntry,
-  GamePeriod
+  GamePeriod,
+  GameStatus
 } from './game-data.js';
 import {
   Action,
   agentAction,
   extractLogOfPeriod,
-  lastVoteEntries,
+  voteEntries,
   roleTextMap,
   teamTextMap
 } from './game-utils.js';
@@ -160,21 +162,31 @@ const StyledPlayers = styled.ul`
 
 const VoteDetails: FC<{
   game: Game;
-  period: GamePeriod;
-  voteEntries: BaseVoteLogEntry[];
+  targetStatus: Omit<GameStatus, 'votePhae'>;
+  targetVotePhase: number | 'last';
 }> = props => {
-  const { game, period, voteEntries } = props;
+  const { game, targetStatus, targetVotePhase } = props;
   const agentName = (agentId: AgentId) =>
     game.agents.find(a => a.agentId === agentId)?.name;
-  const sorted = [...voteEntries].sort((a, b) => a.agent - b.agent);
+
+  const entries = useMemo(() => {
+    return voteEntries(
+      extractLogOfPeriod(game, targetStatus),
+      targetStatus.period === 'day' ? 'vote' : 'attackVote',
+      targetVotePhase
+    ).sort((a, b) => a.agent - b.agent);
+  }, [game, targetStatus, targetVotePhase]);
+
+  if (entries.length === 0) return null;
+
   return (
     <StyledVotes>
       <div>
         <Icon icon="how_to_vote" />
-        {period === 'day' ? '追放' : '襲撃'}投票結果
+        {targetStatus.period === 'day' ? '追放' : '襲撃'}投票結果
       </div>
       <ul>
-        {sorted.map((entry, i) => {
+        {entries.map((entry, i) => {
           return (
             <li key={i}>
               {agentName(entry.agent)}
@@ -250,16 +262,12 @@ const StatusLogItem: LogItem<StatusLogEntry> = props => {
         if (entry.votePhase === 1)
           return `村の誰を${type}するかの投票が始まった。`;
         else {
-          const voteEntries = lastVoteEntries(
-            extractLogOfPeriod(game, { day: entry.day, period: entry.period }),
-            entry.period === 'day' ? 'vote' : 'attackVote'
-          );
           return (
             <>
               <VoteDetails
-                period={entry.period}
                 game={game}
-                voteEntries={voteEntries}
+                targetStatus={entry}
+                targetVotePhase={(entry.votePhase as number) - 1}
               />
               <hr />
               {type}の投票は決着しなかったため、{entry.votePhase}{' '}
@@ -272,19 +280,13 @@ const StatusLogItem: LogItem<StatusLogEntry> = props => {
         }
       }
       case 'voteSettle': {
-        const voteType = entry.period === 'day' ? 'vote' : 'attackVote';
         if (entry.period === 'night' && myAgent.role !== 'werewolf')
           return null;
-        const voteEntries = lastVoteEntries(
-          extractLogOfPeriod(game, { day: entry.day, period: entry.period }),
-          voteType
-        );
-        if (voteEntries.length === 0) return null;
         return (
           <VoteDetails
             game={game}
-            period={entry.period}
-            voteEntries={voteEntries}
+            targetStatus={entry}
+            targetVotePhase="last"
           />
         );
       }

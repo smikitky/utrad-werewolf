@@ -15,7 +15,7 @@ const checkVoteFinish: StatusChecker = game => {
     l => l.type === voteType && l.votePhase === votePhase
   ) as BaseVoteLogEntry[];
   const allVotesCast =
-    /* voters.length > 0 &&*/
+    /* voters.length > 0 && */
     voters.every(v => voteLog.some(l => l.agent === v.agentId));
   if (allVotesCast) {
     const voteResult = mostVotes(voteLog);

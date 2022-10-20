@@ -6,7 +6,7 @@ import {
 } from '../../../game-data';
 import {
   extractLogOfPeriod,
-  lastVoteEntries,
+  voteEntries,
   mostVotes,
   pickRandomFromArray
 } from '../../../game-utils';
@@ -20,7 +20,7 @@ const showKilledResult: StatusEventHandler = (game, pushLog) => {
   if (day === 0) return game;
   const voteType = period === 'day' ? 'vote' : 'attackVote';
   const periodLog = extractLogOfPeriod(game);
-  const lastVotes = lastVoteEntries(periodLog, voteType);
+  const lastVotes = voteEntries(periodLog, voteType);
   const killTarget = pickRandomFromArray(mostVotes(lastVotes));
 
   const guarded =
