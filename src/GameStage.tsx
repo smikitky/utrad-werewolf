@@ -113,7 +113,7 @@ const ChatAction: ActionComp = props => {
   const actionName = action === 'talk' ? '発言' : '囁き';
 
   const handleSend = async () => {
-    if (!content) return;
+    if (!content || busy) return;
     setBusy(true);
     try {
       const res = await api(action, { gameId, content });
