@@ -20,7 +20,7 @@ const showKilledResult: StatusEventHandler = (game, pushLog) => {
   if (day === 0) return game;
   const voteType = period === 'day' ? 'vote' : 'attackVote';
   const periodLog = extractLogOfPeriod(game);
-  const lastVotes = voteEntries(periodLog, voteType);
+  const lastVotes = voteEntries(periodLog, voteType, 'last');
   const killTarget = pickRandomFromArray(mostVotes(lastVotes));
 
   const guarded =
