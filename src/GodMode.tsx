@@ -17,6 +17,7 @@ import {
   extractLogOfPeriod,
   roleTextMap
 } from './game-utils';
+import GameLog from './game/GameLog';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 
@@ -60,12 +61,14 @@ const lastAction = (game: Game, agent: AgentInfo) => {
   if (overEntry) return '(発話終了)';
 };
 
+type ShowLogType = 'game' | 'debug' | 'off';
+
 const GodMode: FC = () => {
-  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState('');
   const [selectedAction, setSelectedAction] = useState('talk');
   const [param, setParam] = useState('');
   const [apiResponses, setApiResponses] = useState<any[]>([]);
-  const [showDebugLog, setShowDebugLog] = useState(false);
+  const [showLogType, setShowLogType] = useState<ShowLogType>('game');
 
   const gameId = useParams().gameId as string;
   const gameData = useFirebaseSubscription<Game>(`/games/${gameId}`);
@@ -73,15 +76,15 @@ const GodMode: FC = () => {
   const api = useApi();
 
   useEffect(() => {
-    if (!selectedUser && game?.agents[0]) {
-      setSelectedUser(game.agents[0].userId);
+    if (!selectedAgent && game?.agents[0]) {
+      setSelectedAgent(game.agents[0].userId);
     }
-  }, [selectedUser, game]);
+  }, [selectedAgent, game]);
 
   if (!game) return null;
 
   const actionClick = async () => {
-    if (!selectedUser) return;
+    if (!selectedAgent) return;
     const payload = (() => {
       switch (selectedAction) {
         case 'talk':
@@ -97,7 +100,7 @@ const GodMode: FC = () => {
       }
     })();
     const res = await api(selectedAction, payload, {
-      asUser: selectedUser,
+      asUser: selectedAgent,
       noError: true
     });
     const item = {
@@ -106,7 +109,7 @@ const GodMode: FC = () => {
       status: res.status,
       result: res.data
     };
-    setApiResponses([item, ...apiResponses]);
+    setApiResponses([...apiResponses, item]);
   };
 
   const handleClearLog = () => {
@@ -120,141 +123,166 @@ const GodMode: FC = () => {
 
   return (
     <StyledDiv>
-      <h1>
-        <Link to="/god">God Mode</Link>
-      </h1>
-      <div>ゲーム ID: {gameId}</div>
-      <h2>ゲーム状況</h2>
-      <ul>
-        {game.finishedAt ? (
-          <b>
-            ゲーム終了（
-            {game.wasAborted
-              ? '強制中断'
-              : game.winner === 'villagers'
-              ? '村人陣営の勝利'
-              : '人狼陣営の勝利'}
-            ）
-          </b>
-        ) : (
-          <>
-            日付：{game.status.day}、時間帯：{game.status.period}
-            、投票ラウンド：
-            {game.status.votePhase}
-          </>
-        )}
-      </ul>
-      <div>開始時刻：{new Date(game.startedAt as number).toLocaleString()}</div>
-      {game.finishedAt && (
-        <div>
-          終了時刻：{new Date(game.finishedAt as number).toLocaleString()}
+      <div className="status-pane">
+        <div className="status-main">
+          <div>
+            <b>ゲーム ID</b>: {gameId} (<b>開始</b>:{' '}
+            {new Date(game.startedAt as number).toLocaleString()})
+          </div>
+          {game.finishedAt ? (
+            <div>
+              ゲーム終了（
+              {game.wasAborted
+                ? '強制中断'
+                : game.winner === 'villagers'
+                ? '村人陣営の勝利'
+                : '人狼陣営の勝利'}
+              ）
+            </div>
+          ) : (
+            <div>
+              <b>日付</b>: {game.status.day}、<b>時間帯</b>:{' '}
+              {game.status.period}、<b>投票ラウンド</b>: {game.status.votePhase}
+            </div>
+          )}
+          {game.finishedAt && (
+            <div>
+              終了時刻：{new Date(game.finishedAt as number).toLocaleString()}
+            </div>
+          )}
         </div>
-      )}
-      <h2>プレーヤーの状況</h2>
-      <table className="players">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>名前</th>
-            <th>役割</th>
-            <th>生死</th>
-            <th>現在の行動</th>
-            <th>UID</th>
-          </tr>
-        </thead>
-        <tbody>
-          {game.agents.map(agent => {
-            const action = agentAction(game, agent);
-            return (
-              <tr
-                key={agent.agentId}
-                className={classNames({ dead: agent.life === 'dead' })}
-                onClick={() => setSelectedUser(agent.userId)}
-              >
-                <td>{agent.agentId}</td>
-                <td>{agent.name}</td>
-                <td>{roleTextMap[agent.role]}</td>
-                <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
-                <td className={classNames('action', action)}>
-                  {actionTextMap[action]}
-                  {action === 'wait' && <> {lastAction(game, agent)}</>}
-                </td>
-                <td>{agent.userId}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <h2>行動命令</h2>
-      <div className="action-pane">
-        <select
-          name="user"
-          value={selectedUser}
-          onChange={e => setSelectedUser(e.target.value)}
-        >
-          {game.agents.map(agent => {
-            return (
-              <option key={agent.userId} value={agent.userId}>
-                {agent.name} ({roleTextMap[agent.role]}, {agent.life}){' '}
-                {agent.userId}
-              </option>
-            );
-          })}
-        </select>
-        <select
-          name="action"
-          value={selectedAction}
-          onChange={e => setSelectedAction(e.target.value)}
-        >
-          <option value="talk">talk</option>
-          <option value="whisper">whisper</option>
-          <option value="over">over</option>
-          <option value="vote">vote</option>
-          <option value="attackVote">attackVote</option>
-          <option value="divine">divine</option>
-          <option value="guard">guard</option>
-        </select>
-        <input
-          type="text"
-          value={param}
-          onChange={e => setParam(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && actionClick()}
-        />
-        <button onClick={actionClick}>Go</button>
+        <div className="commands">
+          <button
+            onClick={handleAbortClick}
+            disabled={typeof game.finishedAt === 'number'}
+          >
+            強制中断
+          </button>
+          <Link to="/god">
+            <button>God Mode メニューに戻る</button>
+          </Link>
+        </div>
       </div>
-      <ul className="log">
-        {apiResponses.map((result, i) => (
-          <li key={i} className={result.status === 200 ? 'ok' : 'error'}>
-            {JSON.stringify(result)}
-          </li>
-        ))}
-      </ul>
-      <div>
-        <button onClick={handleClearLog} disabled={apiResponses.length === 0}>
-          ログ消去
-        </button>
+      <div className="log-pane">
+        <div className="game-log-pane">
+          <select
+            name="logtype"
+            value={showLogType}
+            onChange={e => setShowLogType(e.target.value as ShowLogType)}
+          >
+            <option value="game">ゲームログ</option>
+            <option value="debug">デバッグ生ログ</option>
+          </select>
+          {showLogType === 'game' ? (
+            <GameLog game={game} myAgent="god" />
+          ) : showLogType === 'debug' ? (
+            <pre className="debug-log">{JSON.stringify(game, null, 2)}</pre>
+          ) : (
+            <div>(Log turned off)</div>
+          )}
+        </div>
+        <div className="api-log-pane">
+          <ul className="api-log">
+            {apiResponses.map((result, i) => (
+              <li key={i} className={result.status === 200 ? 'ok' : 'error'}>
+                {JSON.stringify(result)}
+              </li>
+            ))}
+          </ul>
+          <div>
+            <button
+              onClick={handleClearLog}
+              disabled={apiResponses.length === 0}
+            >
+              ログ消去
+            </button>
+          </div>
+        </div>
       </div>
-      <h2>ゲーム強制中断</h2>
-      <button
-        onClick={handleAbortClick}
-        disabled={typeof game.finishedAt === 'number'}
-      >
-        強制中断
-      </button>
-      <h2>ゲーム生ログ</h2>
-      <button onClick={() => setShowDebugLog(!showDebugLog)}>
-        {showDebugLog ? '隠す' : '表示'}
-      </button>
-      {showDebugLog && (
-        <pre className="debug-log">{JSON.stringify(game, null, 2)}</pre>
-      )}
+      <div className="foot">
+        <table className="players">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>名前</th>
+              <th>役割</th>
+              <th>生死</th>
+              <th>現在の行動</th>
+              <th>UID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {game.agents.map(agent => {
+              const action = agentAction(game, agent);
+              return (
+                <tr
+                  key={agent.agentId}
+                  className={classNames({
+                    dead: agent.life === 'dead',
+                    active: agent.userId === selectedAgent
+                  })}
+                  onClick={() => setSelectedAgent(agent.userId)}
+                >
+                  <td>{agent.agentId}</td>
+                  <td>{agent.name}</td>
+                  <td>{roleTextMap[agent.role]}</td>
+                  <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
+                  <td className={classNames('action', action)}>
+                    {actionTextMap[action]}
+                    {action === 'wait' && <> {lastAction(game, agent)}</>}
+                  </td>
+                  <td>{agent.userId}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div className="action-pane">
+          <select
+            name="user"
+            value={selectedAgent}
+            onChange={e => setSelectedAgent(e.target.value)}
+          >
+            {game.agents.map(agent => {
+              return (
+                <option key={agent.userId} value={agent.userId}>
+                  {agent.name} ({roleTextMap[agent.role]}, {agent.life})
+                </option>
+              );
+            })}
+          </select>
+          <select
+            name="action"
+            value={selectedAction}
+            onChange={e => setSelectedAction(e.target.value)}
+          >
+            <option value="talk">talk</option>
+            <option value="whisper">whisper</option>
+            <option value="over">over</option>
+            <option value="vote">vote</option>
+            <option value="attackVote">attackVote</option>
+            <option value="divine">divine</option>
+            <option value="guard">guard</option>
+          </select>
+          <input
+            type="text"
+            value={param}
+            onChange={e => setParam(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && actionClick()}
+          />
+          <button onClick={actionClick}>Go</button>
+        </div>
+      </div>
     </StyledDiv>
   );
 };
 
 const StyledDiv = styled.div`
   position: relative;
-  padding: 10px;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 5px;
   table.players {
     border-collapse: collapse;
     tr {
@@ -263,13 +291,15 @@ const StyledDiv = styled.div`
       &.dead {
         color: silver;
       }
+      &.active {
+        background-color: #ffff00;
+      }
     }
-    tbody > tr:hover {
+    tbody {
       cursor: pointer;
-      background-color: #eeeeee;
     }
     td {
-      padding: 3px 10px;
+      padding: 0 10px;
       &.action {
         &:not(.wait):not(.finish) {
           color: brown;
@@ -281,7 +311,32 @@ const StyledDiv = styled.div`
       }
     }
   }
-  ul.log {
+  .status-pane {
+    background: #eeeeee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+  }
+  .log-pane {
+    min-height: 0;
+    display: flex;
+    gap: 10px;
+  }
+  .game-log-pane {
+    flex: 0 0 60%;
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .api-log-pane {
+    overflow-y: auto;
+    border-left: 1px solid silver;
+    padding-left: 10px;
+  }
+  ul.api-log {
+    font-size: 10px;
     li {
       &.ok {
         color: green;
@@ -291,23 +346,22 @@ const StyledDiv = styled.div`
       }
     }
   }
+  .foot {
+    padding: 5px;
+  }
   .action-pane {
     display: flex;
     flex-flow: row wrap;
     padding: 10px;
     margin-bottom: 10px;
-    background: #dddddd;
     > button {
       margin-left: 10px;
     }
   }
   .debug-log {
-    border: 1px solid silver;
+    margin: 0;
     background: white;
-    overflow: scroll;
-    width: 100%;
-    max-height: 800px;
-    resize: vertical;
+    overflow-y: scroll;
   }
 `;
 

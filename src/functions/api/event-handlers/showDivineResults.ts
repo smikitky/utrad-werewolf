@@ -10,7 +10,9 @@ const showDivineResults: StatusEventHandler = (game, pushLog) => {
   if (period !== 'day') return game;
   const lastNightLog = extractLogOfPeriod(game, prevPeriod(game.status));
   const divineLog = lastNightLog.filter(
-    l => l.type === 'divine'
+    l =>
+      l.type === 'divine' &&
+      game.agents.find(a => a.agentId === l.agent)!.life === 'alive'
   ) as DivineLogEntry[];
   return divineLog.reduce(
     (game, entry) =>

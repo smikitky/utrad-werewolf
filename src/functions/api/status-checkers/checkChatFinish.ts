@@ -20,8 +20,14 @@ const checkChatFinish: StatusChecker = game => {
     if (day === 0) {
       // The first night is special; the werewolves don't vote.
       return { event: 'voteSettle', nextStatus: { votePhase: 'settled' } };
-    } else {
+    } else if (voters.length > 0) {
       return { event: 'voteStart', nextStatus: { votePhase: 1 } };
+    } else {
+      // All voters have been killed; skip the vote phase
+      return {
+        event: 'periodStart',
+        nextStatus: { day: day + 1, period: 'day', votePhase: 'chat' }
+      };
     }
   }
   return null;
