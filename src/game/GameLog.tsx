@@ -51,10 +51,10 @@ const VoteDetails: FC<{
 
   if (entries.length === 0)
     return (
-      <>
+      <StyledVotes>
         <Icon icon="how_to_vote" />
         投票なし
-      </>
+      </StyledVotes>
     );
 
   return (
