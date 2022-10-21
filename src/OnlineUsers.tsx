@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import { UserEntry } from './game-data';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import classNames from 'classnames';
@@ -13,11 +13,28 @@ const OnlineUsers: FC<{
     [uid: string]: UserEntry;
   }>('/users');
 
+  const sorted = useMemo(() => {
+    if (!users.data) return [];
+    return Object.entries(users.data).sort(([aUid, aUser], [bUid, bUser]) => {
+      const ao = aUser.onlineStatus ? 1 : 0;
+      const bo = bUser.onlineStatus ? 1 : 0;
+      if (ao !== bo) return bo - ao;
+
+      const ar = aUser.ready ? 1 : 0;
+      const br = bUser.ready ? 1 : 0;
+      if (ar !== br) return br - ar;
+
+      if (aUser.name < bUser.name) return -1;
+      if (aUser.name > bUser.name) return 1;
+      return 0;
+    });
+  }, [users.data]);
+
   if (!users.data) return null;
 
   return (
     <StyledList>
-      {Object.entries(users.data).map(([uid, user]) => (
+      {sorted.map(([uid, user]) => (
         <li
           key={uid}
           className={classNames({
