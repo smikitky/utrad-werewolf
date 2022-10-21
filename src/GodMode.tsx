@@ -9,7 +9,8 @@ import {
   DivineLogEntry,
   Game,
   GuardLogEntry,
-  OverLogEntry
+  OverLogEntry,
+  UserEntries
 } from './game-data';
 import {
   Action,
@@ -72,6 +73,7 @@ const GodMode: FC = () => {
 
   const gameId = useParams().gameId as string;
   const gameData = useFirebaseSubscription<Game>(`/games/${gameId}`);
+  const userData = useFirebaseSubscription<UserEntries>(`/users`);
   const game = gameData.data;
   const api = useApi();
 
@@ -208,7 +210,7 @@ const GodMode: FC = () => {
               <th>役割</th>
               <th>生死</th>
               <th>現在の行動</th>
-              <th>UID</th>
+              <th>ユーザー</th>
             </tr>
           </thead>
           <tbody>
@@ -231,7 +233,10 @@ const GodMode: FC = () => {
                     {actionTextMap[action]}
                     {action === 'wait' && <> {lastAction(game, agent)}</>}
                   </td>
-                  <td>{agent.userId}</td>
+                  <td>
+                    {userData.data?.[agent.userId].name}{' '}
+                    <small>{agent.userId}</small>
+                  </td>
                 </tr>
               );
             })}
@@ -362,6 +367,9 @@ const StyledDiv = styled.div`
     margin: 0;
     background: white;
     overflow-y: scroll;
+  }
+  small {
+    color: silver;
   }
 `;
 
