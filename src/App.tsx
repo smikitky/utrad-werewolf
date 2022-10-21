@@ -1,11 +1,4 @@
-import {
-  getRedirectResult,
-  linkWithRedirect,
-  onAuthStateChanged,
-  signInAnonymously,
-  signInWithRedirect,
-  signOut
-} from 'firebase/auth';
+import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
 import * as db from 'firebase/database';
 import {
   createContext,
@@ -26,12 +19,10 @@ import {
 } from 'react-router-dom';
 import styled from 'styled-components';
 import { UserEntry } from './game-data.js';
-import { auth, database, googleAuthProvider } from './utils/firebase.js';
+import { auth, database } from './utils/firebase.js';
 import { ApiCaller, ApiContext } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
 import {
-  LoginManager,
-  LoginManagerContext,
   LoginType,
   LoginUser,
   LoginUserContext,
@@ -41,6 +32,7 @@ import {
 import GameStage from './GameStage.js';
 import GodMenu from './GodMenu.js';
 import GodMode from './GodMode.js';
+import LoginScreen from './LoginScreen.js';
 import Menu from './Menu.js';
 
 const MessagesContext = createContext<{
@@ -91,6 +83,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { path: '/', element: <Menu /> },
+      { path: 'login', element: <LoginScreen /> },
       { path: 'game/:gameId', element: <GameStage /> },
       { path: 'god', element: <GodMenu /> },
       { path: 'god/:gameId', element: <GodMode /> }
@@ -110,26 +103,6 @@ const App: FC = () => {
   const userProfile = useFirebaseSubscription<UserEntry | null>(
     uid ? `/users/${uid}` : undefined
   );
-
-  const loginManager = useMemo<LoginManager>(() => {
-    return {
-      login: async (method: LoginType) => {
-        if (method === 'anonymous') {
-          await signInAnonymously(auth);
-        } else {
-          await signInWithRedirect(auth, googleAuthProvider);
-        }
-      },
-      link: async () => {
-        const user = auth.currentUser;
-        if (!user) throw new Error('Not singed in');
-        await linkWithRedirect(user, googleAuthProvider);
-      },
-      logout: async () => {
-        await signOut(auth);
-      }
-    };
-  }, []);
 
   const user = useMemo<LoginUser>(() => {
     // console.log('USER', { uid, loginType, userProfile });
@@ -235,18 +208,16 @@ const App: FC = () => {
   }, []);
 
   return (
-    <LoginManagerContext.Provider value={loginManager}>
-      <LoginUserContext.Provider value={user}>
-        <ApiContext.Provider value={apiCaller}>
-          <MessagesContext.Provider value={messageList}>
-            <StyledDiv>
-              {linkErrorCode && <div>Error {linkErrorCode}</div>}
-              <RouterProvider router={router} />
-            </StyledDiv>
-          </MessagesContext.Provider>
-        </ApiContext.Provider>
-      </LoginUserContext.Provider>
-    </LoginManagerContext.Provider>
+    <LoginUserContext.Provider value={user}>
+      <ApiContext.Provider value={apiCaller}>
+        <MessagesContext.Provider value={messageList}>
+          <StyledDiv>
+            {linkErrorCode && <div>Error {linkErrorCode}</div>}
+            <RouterProvider router={router} />
+          </StyledDiv>
+        </MessagesContext.Provider>
+      </ApiContext.Provider>
+    </LoginUserContext.Provider>
   );
 };
 

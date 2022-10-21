@@ -1,3 +1,4 @@
+import { signOut } from 'firebase/auth';
 import * as db from 'firebase/database';
 import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -6,12 +7,11 @@ import AgentCountEditor from './AgentCountEditor.js';
 import { AgentCount, defaultAgentCount } from './game-data.js';
 import { agentTotalCount } from './game-utils.js';
 import OnlineUsers from './OnlineUsers.js';
-import { database } from './utils/firebase.js';
+import { database, auth } from './utils/firebase.js';
 import { useApi } from './utils/useApi.js';
-import { useLoginManager, useLoginUser } from './utils/user.js';
+import { useLoginUser } from './utils/user.js';
 
 const Menu: FC = () => {
-  const loginManager = useLoginManager();
   const loginUser = useLoginUser();
   const api = useApi();
   const navigate = useNavigate();
@@ -19,12 +19,8 @@ const Menu: FC = () => {
   const [customMode, setCustomMode] = useState(false);
   const [agentCount, setAgentCount] = useState<AgentCount>(defaultAgentCount);
 
-  const handleLoginClick = async () => {
-    await loginManager.login('google');
-  };
-
   const handleLogoutClick = async () => {
-    await loginManager.logout();
+    await signOut(auth);
   };
 
   const handleStartNewGame = async () => {
@@ -49,6 +45,9 @@ const Menu: FC = () => {
     // Navigate to the game screen if the user is (already) in a game
     if (loginUser.status === 'loggedIn' && loginUser.data.currentGameId) {
       navigate(`/game/${loginUser.data.currentGameId}`);
+    }
+    if (loginUser.status === 'loggedOut') {
+      navigate('/login');
     }
   }, [loginUser]);
 
@@ -75,12 +74,6 @@ const Menu: FC = () => {
           disabled={loginUser.status !== 'loggedIn'}
         >
           プロフィールを編集
-        </button>
-        <button
-          onClick={handleLoginClick}
-          disabled={loginUser.status !== 'loggedOut'}
-        >
-          Googleアカウントでログイン
         </button>
         <button
           onClick={handleLogoutClick}

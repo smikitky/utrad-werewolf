@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 import { UserEntry } from '../game-data.js';
 
-export type LoginType = 'anonymous' | 'google';
+export type LoginType = 'anonymous' | 'google' | 'emailLink';
 
 export type LoggedInUser = {
   status: 'loggedIn';
@@ -16,18 +16,8 @@ export type LoginUser =
   | { status: 'loggedOut' }
   | LoggedInUser;
 
-export interface LoginManager {
-  login: (method: LoginType) => Promise<void>;
-  link: () => Promise<void>;
-  logout: () => Promise<void>;
-}
-
 export const LoginUserContext = createContext<LoginUser>({
   status: 'indeterminate'
 });
 
-export const LoginManagerContext = createContext<LoginManager>({} as any);
-
 export const useLoginUser = () => useContext(LoginUserContext);
-
-export const useLoginManager = () => useContext(LoginManagerContext);
