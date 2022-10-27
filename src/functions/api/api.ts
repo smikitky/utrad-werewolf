@@ -21,7 +21,8 @@ import {
   StatusLogEntry,
   StatusLogEvent,
   UserEntries,
-  VoteLogEntry
+  VoteLogEntry,
+  Team
 } from '../../game-data.js';
 import {
   extractLogOfPeriod,
@@ -172,7 +173,7 @@ const makeGameHandler = (handler: GameHandler): ModeHandler => {
     if (!game) return jsonResponse(404, 'Game not found');
 
     let error: any = null;
-    let releasePlayers: string[] | null = null;
+    let finishData: Game | null = null;
     const res = await gameRef.transaction((game: Game) => {
       try {
         if (!game) return null; // https://stackoverflow.com/q/16359496
@@ -185,14 +186,14 @@ const makeGameHandler = (handler: GameHandler): ModeHandler => {
         if (myAgent.life === 'dead')
           throw jsonResponse(400, 'You are already dead');
         const g = movePhase(handler({ requestType, game, myAgent, payload }));
-        if (g.finishedAt) releasePlayers = g.agents.map(a => a.userId);
+        if (g.finishedAt) finishData = g;
         return g;
       } catch (err) {
         error = err;
         return; // abort the transaction
       }
     });
-    if (releasePlayers) releaseUsers(releasePlayers);
+    if (finishData as Game | null) await finalizeGame(gameId, finishData!);
     if (error) throw error;
     if (res.committed) return jsonResponse(200, 'OK');
     return jsonResponse(500, 'Failed to update game');
@@ -201,6 +202,24 @@ const makeGameHandler = (handler: GameHandler): ModeHandler => {
 
 const agentStatus = (agents: AgentInfo[]): AgentStatus[] => {
   return agents.map(a => ({ agentId: a.agentId, life: a.life }));
+};
+
+const finalizeGame = async (gameId: string, game: Game): Promise<void> => {
+  await releaseUsers(game!.agents.map(a => a.userId));
+
+  const winner = game.winner;
+  if (!winner) throw new Error('Game is not finished');
+  await db
+    .ref('userHistory')
+    .update(
+      Object.fromEntries(
+        game.agents.map(a => [
+          `${a.userId}/${gameId}`,
+          { finishedAt: now(), winner, role: a.role }
+        ])
+      )
+    );
+  await db.ref(`globalHistory/${gameId}`).set({ finishedAt: now(), winner });
 };
 
 const releaseUsers = async (userIds: string[]): Promise<void> => {
@@ -259,7 +278,7 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
   };
   const game = movePhase(initialGame);
   await gameRef.set(game);
-  if (game.finishedAt) await releaseUsers([uid, ...pickedUsers]);
+  if (game.finishedAt) await finalizeGame(gameId, game);
 
   return jsonResponse(200, { gameId });
 };
@@ -274,8 +293,23 @@ const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
   const userIds = game.agents.map(a => a.userId);
   // if (!userIds.includes(uid))
   //   return jsonResponse(403, 'You are not a player of this game');
-
   await gameRef.update({ finishedAt: now(), wasAborted: true });
+
+  await db
+    .ref('userHistory')
+    .update(
+      Object.fromEntries(
+        game.agents.map(a => [
+          `${a.userId}/${gameId}`,
+          { finishedAt: now(), wasAborted: true, role: a.role }
+        ])
+      )
+    );
+  await db.ref(`globalHistory/${gameId}`).set({
+    finishedAt: now(),
+    wasAborted: true
+  });
+
   releaseUsers(userIds);
 
   return jsonResponse(200, 'OK');

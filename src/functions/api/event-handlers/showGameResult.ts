@@ -1,5 +1,5 @@
 import produce from 'immer';
-import { ResultLogEntry, team } from '../../../game-data';
+import { ResultLogEntry, Team } from '../../../game-data';
 import { now } from '../utils';
 import StatusEventHandler from './SatusEventHandler';
 
@@ -18,14 +18,16 @@ const showGameResult: StatusEventHandler = (game, pushLog) => {
   ).length;
   const gameEnd = aliveWerewolves === 0 || aliveWerewolves >= aliveVillagers;
   if (!gameEnd) return game;
+  const winner: Team = aliveWerewolves === 0 ? 'villagers' : 'werewolves';
   const tmp = pushLog<ResultLogEntry>(game, {
     type: 'result',
     survivingVillagers: aliveVillagers,
     survivingWerewolves: aliveWerewolves,
-    winner: aliveWerewolves === 0 ? 'villagers' : 'werewolves'
+    winner
   });
   return produce(tmp, draft => {
     draft.finishedAt = now();
+    draft.winner = winner;
   });
 };
 

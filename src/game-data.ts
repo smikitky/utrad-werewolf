@@ -270,9 +270,30 @@ export interface UserEntries {
   [uid: string]: UserEntry;
 }
 
+export interface UserGameHistory {
+  [userId: string]: {
+    [gameId: string]: {
+      finishedAt: TimeStamp;
+      wasAborted?: boolean;
+      role: AgentRole;
+      winner?: Team;
+    };
+  };
+}
+
+export interface GlobalGameHistory {
+  [gameId: string]: {
+    finishedAt: TimeStamp;
+    wasAborted?: boolean;
+    winner?: Team;
+  };
+}
+
 export interface Database {
   users: UserEntries;
   games: GameEntries;
+  userHistory: UserGameHistory;
+  globalHistory: GlobalGameHistory;
 }
 
 export type AgentCount = Record<AgentRole, number>;
