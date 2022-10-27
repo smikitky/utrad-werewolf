@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { UserEntries, UserEntry } from './game-data';
+import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
 import OnlineUsers from './OnlineUsers';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
@@ -10,11 +10,12 @@ import * as db from 'firebase/database';
 
 const GodMenu: FC = () => {
   const [newUid, setNewUid] = useState('');
-  const [gameId, setGameId] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const users = useFirebaseSubscription<UserEntries>('/users');
   const api = useApi();
   const navigate = useNavigate();
+  const globalGameHistory =
+    useFirebaseSubscription<GlobalGameHistory>('/globalHistory');
 
   if (!users.data) return null;
 
@@ -22,10 +23,6 @@ const GodMenu: FC = () => {
     const res = await api('addUser', { newUid });
     const item = res;
     setResults([item, ...results]);
-  };
-
-  const handleGoToGame = () => {
-    navigate(`/god/${gameId}`);
   };
 
   const handleUserClick = async (uid: string, user: UserEntry) => {
@@ -41,25 +38,28 @@ const GodMenu: FC = () => {
     <StyledDiv>
       <h1>God Mode Menu</h1>
       <OnlineUsers onUserClick={handleUserClick} />
-      <h2>See Game</h2>
+      <h2>Add NPC User</h2>
       <div>
         <input
           type="text"
-          value={gameId}
-          onChange={e => setGameId(e.target.value)}
-        />
-        <button onClick={handleGoToGame}>Go</button>
-      </div>
-      <h2>Add User</h2>
-      <p>Users added here will be always online.</p>
-      <div>
-        <input
-          type="text"
+          placeholder="uid"
           value={newUid}
           onChange={e => setNewUid(e.target.value)}
         />
         <button onClick={addUserClick}>Add</button>
       </div>
+      <h2>All Game History</h2>
+      <ul>
+        {globalGameHistory.data &&
+          Object.entries(globalGameHistory.data).map(([gameId, game]) => (
+            <li key={gameId}>
+              <Link to={`/god/${gameId}`}>
+                {new Date(game.finishedAt as number).toLocaleString()} {gameId}{' '}
+                (Winner: {game.winner})
+              </Link>
+            </li>
+          ))}
+      </ul>
     </StyledDiv>
   );
 };

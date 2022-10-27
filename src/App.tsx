@@ -34,6 +34,7 @@ import GodMenu from './GodMenu.js';
 import GodMode from './GodMode.js';
 import LoginScreen from './LoginScreen.js';
 import Menu from './Menu.js';
+import Profile from './Profile.js';
 
 const MessagesContext = createContext<{
   list: (ReactNode | string)[];
@@ -53,9 +54,9 @@ const Layout: FC = props => {
         <div>
           User:{' '}
           {user.status === 'loggedIn' ? (
-            <>
+            <Link to={`/profile/${user.uid}`}>
               <b>{user.data.name}</b> ({user.uid.slice(0, 5)})
-            </>
+            </Link>
           ) : user.status === 'indeterminate' ? (
             '...'
           ) : (
@@ -85,6 +86,7 @@ const router = createBrowserRouter([
       { path: '/', element: <Menu /> },
       { path: 'login', element: <LoginScreen /> },
       { path: 'game/:gameId', element: <GameStage /> },
+      { path: 'profile/:uid', element: <Profile /> },
       { path: 'god', element: <GodMenu /> },
       { path: 'god/:gameId', element: <GodMode /> }
     ]

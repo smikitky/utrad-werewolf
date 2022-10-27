@@ -36,9 +36,7 @@ const Menu: FC = () => {
 
   const handleProfileClick = async () => {
     if (loginUser.status !== 'loggedIn') return;
-    const name = prompt('ユーザ名を入力してください', loginUser.data.name);
-    if (name === null) return;
-    await api('setProfile', { name });
+    navigate(`/profile/${loginUser.uid}`);
   };
 
   useEffect(() => {
