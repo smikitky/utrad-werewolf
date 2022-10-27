@@ -7,6 +7,7 @@ import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { database } from './utils/firebase.js';
 import * as db from 'firebase/database';
+import { teamTextMap } from './game-utils';
 
 const GodMenu: FC = () => {
   const [newUid, setNewUid] = useState('');
@@ -37,35 +38,53 @@ const GodMenu: FC = () => {
   return (
     <StyledDiv>
       <h1>God Mode Menu</h1>
-      <OnlineUsers onUserClick={handleUserClick} />
-      <h2>Add NPC User</h2>
-      <div>
-        <input
-          type="text"
-          placeholder="uid"
-          value={newUid}
-          onChange={e => setNewUid(e.target.value)}
-        />
-        <button onClick={addUserClick}>Add</button>
-      </div>
-      <h2>All Game History</h2>
-      <ul>
-        {globalGameHistory.data &&
-          Object.entries(globalGameHistory.data).map(([gameId, game]) => (
-            <li key={gameId}>
-              <Link to={`/god/${gameId}`}>
-                {new Date(game.finishedAt as number).toLocaleString()} {gameId}{' '}
-                (Winner: {game.winner})
-              </Link>
-            </li>
-          ))}
-      </ul>
+      <section>
+        <OnlineUsers onUserClick={handleUserClick} />
+        <h2>Add NPC User</h2>
+        <div>
+          <input
+            type="text"
+            placeholder="uid"
+            value={newUid}
+            onChange={e => setNewUid(e.target.value)}
+          />
+          <button onClick={addUserClick}>Add</button>
+        </div>
+        <h2>Recent Games</h2>
+        <ul className="recent">
+          {globalGameHistory.data &&
+            Object.entries(globalGameHistory.data)
+              .slice(-15)
+              .map(([gameId, game]) => (
+                <li key={gameId}>
+                  <Link to={`/god/${gameId}`}>
+                    {new Date(game.finishedAt as number).toLocaleString()}{' '}
+                    (Winner: {teamTextMap[game.winner!]}){' '}
+                    <span className="game-id">{gameId}</span>
+                  </Link>
+                </li>
+              ))}
+        </ul>
+      </section>
     </StyledDiv>
   );
 };
 
 const StyledDiv = styled.div`
-  padding: 10px;
+  section {
+    padding: 10px;
+  }
+  .recent {
+    list-style: disc;
+    padding-left: 20px;
+    a {
+      text-decoration: none;
+      .game-id {
+        color: gray;
+        font-size: 80%;
+      }
+    }
+  }
 `;
 
 export default GodMenu;

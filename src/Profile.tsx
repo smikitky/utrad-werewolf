@@ -8,11 +8,7 @@ import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
 
 const formatDate = (timestamp: number) => {
-  const date = new Date(timestamp);
-  return (
-    `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ` +
-    `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-  );
+  return new Date(timestamp).toLocaleString();
 };
 
 const Profile: FC = () => {
@@ -37,7 +33,7 @@ const Profile: FC = () => {
   return (
     <StyledDiv>
       <h1>プロフィール</h1>
-      <main>
+      <section>
         <h2>ユーザ情報</h2>
         <dl>
           <dt>ユーザ UID</dt>
@@ -63,20 +59,22 @@ const Profile: FC = () => {
                 <span className="date">
                   {formatDate(entry.finishedAt as number)}
                 </span>
-                <span className="role">{roleTextMap[entry.role]}</span>
-                <span className="result">{teamTextMap[entry.winner!]}勝利</span>
+                <span className="role">あなた：{roleTextMap[entry.role]}</span>
+                <span className="result">
+                  勝利：{teamTextMap[entry.winner!]}
+                </span>
                 <span className="game-id">{gameId}</span>
               </Link>
             </li>
           ))}
         </ul>
-      </main>
+      </section>
     </StyledDiv>
   );
 };
 
 const StyledDiv = styled.div`
-  main {
+  section {
     padding: 10px;
   }
   dl {
@@ -98,6 +96,10 @@ const StyledDiv = styled.div`
       text-decoration: none;
       display: flex;
       gap: 10px;
+    }
+    .game-id {
+      color: gray;
+      font-size: 80%;
     }
   }
 `;
