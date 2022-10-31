@@ -66,11 +66,12 @@ const LoginScreen: FC = () => {
   return (
     <StyledDiv>
       <h1>UTRAD Werewolf</h1>
-      <nav>
+      <section>
         <button onClick={handleGoogleLoginClick} disabled={busy}>
           Google アカウントでログイン
         </button>
-        <hr />
+      </section>
+      <section>
         <input
           placeholder="メールアドレス"
           type="email"
@@ -85,18 +86,22 @@ const LoginScreen: FC = () => {
             メールを送信しました。メールに記載されたリンクをクリックしてください。
           </p>
         )}
-      </nav>
+      </section>
     </StyledDiv>
   );
 };
 
 const StyledDiv = styled.div`
-  nav {
-    max-width: 500px;
-    margin: 0 auto;
+  section {
+    width: 350px;
+    max-width: 100%;
+    margin: 15px auto;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    background: #eeeeff;
+    border-radius: 5px;
+    padding: 15px;
   }
 `;
 
