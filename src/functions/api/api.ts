@@ -97,7 +97,9 @@ const checkAuth = async (event: HandlerEvent): Promise<string> => {
 
   // Check god mode
   if (event.headers['x-godmode-uid-override']) {
-    console.log('God mode request detected.');
+    // console.log('God mode request detected.');
+    const canBeGod = await db.ref(`/users/${decodedToken.uid}/canBeGod`).get();
+    if (canBeGod.val() !== true) throw jsonResponse(403, 'Forbidden');
     return event.headers['x-godmode-uid-override'];
   }
 

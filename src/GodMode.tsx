@@ -21,6 +21,7 @@ import {
 import GameLog from './game/GameLog';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
+import { useLoginUser } from './utils/user';
 
 const actionTextMap: Record<Action, string> = {
   attackVote: '襲撃投票中',
@@ -71,6 +72,7 @@ const GodMode: FC = () => {
   const [apiResponses, setApiResponses] = useState<any[]>([]);
   const [showLogType, setShowLogType] = useState<ShowLogType>('game');
 
+  const loginUser = useLoginUser();
   const gameId = useParams().gameId as string;
   const gameData = useFirebaseSubscription<Game>(`/games/${gameId}`);
   const userData = useFirebaseSubscription<UserEntries>(`/users`);
@@ -84,6 +86,9 @@ const GodMode: FC = () => {
   }, [selectedAgent, game]);
 
   if (!game) return null;
+
+  if (loginUser.status !== 'loggedIn') return null;
+  if (!loginUser.data.canBeGod) return <div>あなたは神にはなれません</div>;
 
   const actionClick = async () => {
     if (!selectedAgent) return;

@@ -1,13 +1,14 @@
+import * as db from 'firebase/database';
 import { FC, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
+import { teamTextMap } from './game-utils';
 import OnlineUsers from './OnlineUsers';
+import { database } from './utils/firebase.js';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
-import { database } from './utils/firebase.js';
-import * as db from 'firebase/database';
-import { teamTextMap } from './game-utils';
+import { useLoginUser } from './utils/user';
 
 const GodMenu: FC = () => {
   const [newUid, setNewUid] = useState('');
@@ -17,8 +18,11 @@ const GodMenu: FC = () => {
   const navigate = useNavigate();
   const globalGameHistory =
     useFirebaseSubscription<GlobalGameHistory>('/globalHistory');
+  const loginUser = useLoginUser();
 
   if (!users.data) return null;
+  if (loginUser.status !== 'loggedIn') return null;
+  if (!loginUser.data.canBeGod) return <div>あなたは神にはなれません</div>;
 
   const addUserClick = async () => {
     const res = await api('addUser', { newUid });

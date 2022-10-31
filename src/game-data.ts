@@ -263,6 +263,7 @@ export interface UserEntry {
   name: string;
   onlineStatus?: boolean;
   ready: boolean;
+  canBeGod?: boolean;
   currentGameId?: string;
 }
 
