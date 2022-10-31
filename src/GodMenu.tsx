@@ -34,8 +34,8 @@ const GodMenu: FC = () => {
     if (user.currentGameId) {
       navigate(`/god/${user.currentGameId}`);
     } else {
-      const ref = db.ref(database, 'users/' + uid);
-      await db.update(ref, { ready: !user.ready });
+      const ref = db.ref(database, `users/${uid}/ready`);
+      await db.set(ref, !user.ready);
     }
   };
 
