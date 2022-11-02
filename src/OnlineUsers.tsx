@@ -44,6 +44,7 @@ const OnlineUsers: FC<{
             clickable: !!onUserClick
           })}
           onClick={() => onUserClick && onUserClick(uid, user)}
+          title={uid}
         >
           <span className="status">
             <Icon
