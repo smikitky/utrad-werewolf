@@ -61,7 +61,8 @@ const Profile: FC = () => {
                 </span>
                 <span className="role">あなた：{roleTextMap[entry.role]}</span>
                 <span className="result">
-                  勝利：{teamTextMap[entry.winner!]}
+                  勝利：
+                  {entry.wasAborted ? '(中断)' : teamTextMap[entry.winner!]}
                 </span>
                 <span className="game-id">{gameId}</span>
               </Link>

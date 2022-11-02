@@ -63,7 +63,8 @@ const GodMenu: FC = () => {
                 <li key={gameId}>
                   <Link to={`/god/${gameId}`}>
                     {new Date(game.finishedAt as number).toLocaleString()}{' '}
-                    (Winner: {teamTextMap[game.winner!]}){' '}
+                    (Winner:{' '}
+                    {game.wasAborted ? '(中断)' : teamTextMap[game.winner!]}){' '}
                     <span className="game-id">{gameId}</span>
                   </Link>
                 </li>
