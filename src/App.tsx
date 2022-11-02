@@ -163,7 +163,7 @@ const App: FC = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
-      console.log('AUTH STATE CHANGED', user);
+      // console.log('AUTH STATE CHANGED', user);
       setUid(user ? user.uid : null);
       setLoginType(
         user ? (user.isAnonymous ? 'anonymous' : 'google') : undefined
