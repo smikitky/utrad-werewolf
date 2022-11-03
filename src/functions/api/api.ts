@@ -340,7 +340,7 @@ const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
   await userRef.update({
     createdAt: user?.createdAt ?? now(),
     ready: user?.ready ?? true,
-    name: (payload.name as string) ?? user.name ?? 'new user'
+    name: (payload?.name as string) ?? user.name ?? 'new user'
   });
   return jsonResponse(200, 'OK');
 };
