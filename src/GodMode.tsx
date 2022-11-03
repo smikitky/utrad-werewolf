@@ -63,7 +63,7 @@ const lastAction = (game: Game, agent: AgentInfo) => {
   if (overEntry) return '(発話終了)';
 };
 
-type ShowLogType = 'game' | 'debug' | 'off';
+type ShowLogType = 'game' | 'debug' | 'off' | AgentId;
 
 const GodMode: FC = () => {
   const [selectedAgent, setSelectedAgent] = useState('');
@@ -128,6 +128,17 @@ const GodMode: FC = () => {
     await api('abortGame', { gameId });
   };
 
+  const handleLogTypeSelect: React.ChangeEventHandler<
+    HTMLSelectElement
+  > = e => {
+    const val = e.target.value;
+    if (/\d+/.test(val)) {
+      setShowLogType(Number(val) as AgentId);
+    } else {
+      setShowLogType(e.target.value as ShowLogType);
+    }
+  };
+
   return (
     <StyledDiv>
       <div className="status-pane">
@@ -174,14 +185,26 @@ const GodMode: FC = () => {
         <div className="game-log-pane">
           <select
             name="logtype"
-            value={showLogType}
-            onChange={e => setShowLogType(e.target.value as ShowLogType)}
+            value={String(showLogType)}
+            onChange={handleLogTypeSelect}
           >
-            <option value="game">ゲームログ</option>
+            <option value="game">完全ログ</option>
+            {game.agents.map(a => (
+              <option key={a.agentId} value={a.agentId}>
+                {a.name} のログ
+              </option>
+            ))}
             <option value="debug">デバッグ生ログ</option>
           </select>
-          {showLogType === 'game' ? (
-            <GameLog game={game} myAgent="god" />
+          {showLogType === 'game' || typeof showLogType === 'number' ? (
+            <GameLog
+              game={game}
+              myAgent={
+                showLogType === 'game'
+                  ? 'god'
+                  : game.agents.find(a => a.agentId === showLogType)!
+              }
+            />
           ) : showLogType === 'debug' ? (
             <pre className="debug-log">{JSON.stringify(game, null, 2)}</pre>
           ) : (
