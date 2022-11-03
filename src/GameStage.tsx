@@ -49,8 +49,13 @@ const StyledPlayers = styled.ul`
   gap: 10px;
 `;
 
-const Status: FC<{ game: Game; myAgent: AgentInfo }> = props => {
-  const { game, myAgent } = props;
+const Status: FC<{
+  game: Game;
+  myAgent: AgentInfo;
+  revealAll: boolean;
+  onRevealAll: () => void;
+}> = props => {
+  const { game, myAgent, revealAll, onRevealAll } = props;
 
   return (
     <StyledStatus
@@ -58,7 +63,12 @@ const Status: FC<{ game: Game; myAgent: AgentInfo }> = props => {
     >
       <div className="status">
         {game.finishedAt ? (
-          <big>ゲーム{game.wasAborted ? '中断' : '終了'}</big>
+          <>
+            <big>ゲーム{game.wasAborted ? '中断' : '終了'}</big>
+            <button onClick={onRevealAll} disabled={revealAll}>
+              完全ログを見る
+            </button>
+          </>
         ) : (
           <>
             <div className="day">
@@ -358,7 +368,7 @@ const StyledActionPane = styled.div`
 const GameStage: FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const { data: game } = useFirebaseSubscription<Game>(`/games/${gameId}`);
-  const [showDebugLog, setShowDebugLog] = useState(false);
+  const [revealAll, setRevealAll] = useState(false);
 
   const api = useApi();
   const loginUser = useLoginUser();
@@ -371,8 +381,13 @@ const GameStage: FC = () => {
 
   return (
     <StyledGameStage>
-      <Status game={game} myAgent={myAgent} />
-      <GameLog game={game} myAgent={myAgent} />
+      <Status
+        game={game}
+        myAgent={myAgent}
+        revealAll={revealAll}
+        onRevealAll={() => setRevealAll(true)}
+      />
+      <GameLog game={game} myAgent={revealAll ? 'god' : myAgent} />
       <ActionPane gameId={gameId!} game={game} myAgent={myAgent} />
     </StyledGameStage>
   );
