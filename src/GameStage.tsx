@@ -3,7 +3,12 @@ import { FC, KeyboardEventHandler, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { AgentId, AgentInfo, AgentRole, Game } from './game-data.js';
-import { Action, agentAction, roleTextMap } from './game-utils.js';
+import {
+  Action,
+  agentAction,
+  extractLogOfPeriod,
+  roleTextMap
+} from './game-utils.js';
 import GameLog from './game/GameLog.js';
 import Player from './game/Player.js';
 import { useApi } from './utils/useApi.js';
@@ -137,9 +142,17 @@ const ChatAction: ActionComp = props => {
     }
   };
 
+  const remaining =
+    10 -
+    extractLogOfPeriod(game).filter(
+      l => l.type === action && l.agent === myAgent.agentId
+    ).length;
+
   return (
     <StyledChatAction>
-      <span className="title">{actionName}</span>
+      <span className="title">
+        {actionName} <small>(残{remaining}/10)</small>
+      </span>
       <input
         type="text"
         value={content}
