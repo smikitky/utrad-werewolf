@@ -195,7 +195,17 @@ const ChatLogItem: LogItem<ChatLogEntry> = props => {
   const agent = game.agents.find(a => a.agentId === entry.agent)!;
   return (
     <li className={entry.type}>
-      <span className="speaker">{agent.name}</span> {entry.content}
+      <span className="speaker">
+        {agent.name}
+        {myAgent === 'god' && (
+          <span className="speaker-role">
+            {agent.role === 'werewolf'
+              ? '狼'
+              : roleTextMap[agent.role].charAt(0)}
+          </span>
+        )}
+      </span>{' '}
+      {entry.content}
     </li>
   );
 };
@@ -410,6 +420,13 @@ const StyledGameLog = styled.ul`
     .speaker {
       font-weight: bold;
       margin-right: 15px;
+    }
+    .speaker-role {
+      font-size: 80%;
+      color: white;
+      background: navy;
+      border-radius: 10px;
+      padding: 0 2px;
     }
     &.talk {
       background: #ffffee;
