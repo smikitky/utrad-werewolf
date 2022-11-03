@@ -113,7 +113,7 @@ const App: FC = () => {
 
   const user = useMemo<LoginUser>(() => {
     // console.log('USER', { uid, loginType, userProfile });
-    return uid && loginType && userProfile.data?.createdAt
+    return uid && loginType && userProfile.data
       ? {
           status: 'loggedIn',
           uid,
@@ -179,12 +179,8 @@ const App: FC = () => {
   }, []);
 
   useEffect(() => {
-    if (uid && userProfile?.data === null) {
-      userProfile.update({
-        createdAt: new Date().getTime(),
-        name: 'new user',
-        ready: true
-      });
+    if (uid && !userProfile?.data?.createdAt) {
+      apiCaller('setProfile', {});
     }
   }, [uid, userProfile]);
 

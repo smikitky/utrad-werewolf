@@ -338,8 +338,8 @@ const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
   const userRef = db.ref('users').child(uid);
   const user = (await userRef.once('value')).val() as Partial<UserEntry>;
   await userRef.update({
-    createdAt: user.createdAt ?? now(),
-    ready: user.ready ?? true,
+    createdAt: user?.createdAt ?? now(),
+    ready: user?.ready ?? true,
     name: (payload.name as string) ?? user.name ?? 'new user'
   });
   return jsonResponse(200, 'OK');

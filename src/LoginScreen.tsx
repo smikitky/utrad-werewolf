@@ -40,12 +40,7 @@ const LoginScreen: FC = () => {
   }, []);
 
   useEffect(() => {
-    (async () => {
-      if (loginUser.status === 'loggedIn') {
-        await api('setProfile', {});
-        navigate('/');
-      }
-    })();
+    if (loginUser.status === 'loggedIn') navigate('/');
   }, [loginUser.status]);
 
   const handleGoogleLoginClick = async () => {
