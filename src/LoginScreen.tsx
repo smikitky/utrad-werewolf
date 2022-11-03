@@ -8,12 +8,14 @@ import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { auth, googleAuthProvider } from './utils/firebase.js';
+import { useApi } from './utils/useApi.js';
 import { useLoginUser } from './utils/user';
 
 const LoginScreen: FC = () => {
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState('');
   const [mailSent, setMailSent] = useState(false);
+  const api = useApi();
   const loginUser = useLoginUser();
   const navigate = useNavigate();
 
@@ -38,9 +40,12 @@ const LoginScreen: FC = () => {
   }, []);
 
   useEffect(() => {
-    if (loginUser.status === 'loggedIn') {
-      navigate('/');
-    }
+    (async () => {
+      if (loginUser.status === 'loggedIn') {
+        await api('setProfile', {});
+        navigate('/');
+      }
+    })();
   }, [loginUser.status]);
 
   const handleGoogleLoginClick = async () => {

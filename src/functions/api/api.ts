@@ -22,7 +22,8 @@ import {
   StatusLogEvent,
   UserEntries,
   VoteLogEntry,
-  Team
+  Team,
+  UserEntry
 } from '../../game-data.js';
 import {
   extractLogOfPeriod,
@@ -332,11 +333,15 @@ const handleAddUser: ModeHandler = async ({ uid, payload }) => {
 };
 
 const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
-  const name = payload.name as string;
-  if (!name) return jsonResponse(400, 'Name is required');
+  const name = (payload.name as string) ?? 'new user';
   if (name.length > 20) return jsonResponse(400, 'Name is too long');
   const userRef = db.ref('users').child(uid);
-  await userRef.update({ name });
+  const user = (await userRef.once('value')).val() as Partial<UserEntry>;
+  await userRef.update({
+    createdAt: user.createdAt ?? now(),
+    ready: user.ready ?? true,
+    name: (payload.name as string) ?? user.name ?? 'new user'
+  });
   return jsonResponse(200, 'OK');
 };
 

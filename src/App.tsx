@@ -49,7 +49,12 @@ const Layout: FC = props => {
     <>
       <header>
         <div>
-          <Link to="/">UTRAD Werewolf</Link>
+          <Link to="/">トップページ</Link>
+        </div>
+        <div>
+          {user.status === 'loggedIn' && user.data.canBeGod === true && (
+            <Link to="/god">God Mode</Link>
+          )}
         </div>
         <div>
           User:{' '}
