@@ -57,18 +57,16 @@ const GodMenu: FC = () => {
         <h2>Recent Games</h2>
         <ul className="recent">
           {globalGameHistory.data &&
-            Object.entries(globalGameHistory.data)
-              .slice(-15)
-              .map(([gameId, game]) => (
-                <li key={gameId}>
-                  <Link to={`/god/${gameId}`}>
-                    {new Date(game.finishedAt as number).toLocaleString()}{' '}
-                    (Winner:{' '}
-                    {game.wasAborted ? '(中断)' : teamTextMap[game.winner!]}){' '}
-                    <span className="game-id">{gameId}</span>
-                  </Link>
-                </li>
-              ))}
+            Object.entries(globalGameHistory.data).map(([gameId, game]) => (
+              <li key={gameId}>
+                <Link to={`/god/${gameId}`}>
+                  {new Date(game.finishedAt as number).toLocaleString()}{' '}
+                  (Winner:{' '}
+                  {game.wasAborted ? '(中断)' : teamTextMap[game.winner!]}){' '}
+                  <span className="game-id">{gameId}</span>
+                </Link>
+              </li>
+            ))}
         </ul>
       </section>
     </StyledDiv>
@@ -82,6 +80,8 @@ const StyledDiv = styled.div`
   .recent {
     list-style: disc;
     padding-left: 20px;
+    max-height: 10em;
+    overflow-y: auto;
     a {
       text-decoration: none;
       .game-id {
