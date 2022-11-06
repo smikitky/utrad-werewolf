@@ -115,6 +115,8 @@ type ActionComp = FC<{
   game: Game;
   myAgent: AgentInfo;
   action: Action;
+  revealAll: boolean;
+  onRevealAll: () => void;
 }>;
 
 const ChatAction: ActionComp = props => {
@@ -293,18 +295,32 @@ const StyledChooseDiv = styled.div`
 `;
 
 const FinishAction: ActionComp = props => {
-  const { game } = props;
+  const { game, onRevealAll, revealAll } = props;
   return (
-    <div>このゲームは{game.wasAborted ? '中断されました' : '終了しました'}</div>
+    <div>
+      このゲームは{game.wasAborted ? '中断されました' : '終了しました'}
+      <div>
+        <button onClick={onRevealAll} disabled={revealAll}>
+          完全ログを表示する
+        </button>
+      </div>
+    </div>
   );
 };
 
 const WaitAction: ActionComp = props => {
-  const { myAgent } = props;
+  const { myAgent, revealAll, onRevealAll } = props;
   if (myAgent.life === 'alive') {
     return <div>他のプレーヤーの行動をお待ちください</div>;
   } else {
-    return <div>あなたは死亡してしまった</div>;
+    return (
+      <div>
+        あなたは死亡してしまった。
+        <button disabled={revealAll} onClick={onRevealAll}>
+          残りを完全ログで観戦
+        </button>
+      </div>
+    );
   }
 };
 
@@ -312,8 +328,10 @@ const ActionPane: FC<{
   gameId: string;
   game: Game;
   myAgent: AgentInfo;
+  revealAll: boolean;
+  onRevealAll: () => void;
 }> = props => {
-  const { gameId, game, myAgent } = props;
+  const { gameId, game, myAgent, revealAll, onRevealAll } = props;
   const action = agentAction(game, myAgent);
 
   const actionMap: {
@@ -339,6 +357,8 @@ const ActionPane: FC<{
           game={game}
           myAgent={myAgent}
           action={action}
+          revealAll={revealAll}
+          onRevealAll={onRevealAll}
         />
       </div>
     </StyledActionPane>
@@ -379,16 +399,24 @@ const GameStage: FC = () => {
 
   const myAgent = game.agents.find(a => a.userId === loginUser.uid)!;
 
+  const handleRevealAll = () => setRevealAll(true);
+
   return (
     <StyledGameStage>
       <Status
         game={game}
         myAgent={myAgent}
         revealAll={revealAll}
-        onRevealAll={() => setRevealAll(true)}
+        onRevealAll={handleRevealAll}
       />
       <GameLog game={game} myAgent={revealAll ? 'god' : myAgent} />
-      <ActionPane gameId={gameId!} game={game} myAgent={myAgent} />
+      <ActionPane
+        gameId={gameId!}
+        game={game}
+        myAgent={myAgent}
+        revealAll={revealAll}
+        onRevealAll={handleRevealAll}
+      />
     </StyledGameStage>
   );
 };
