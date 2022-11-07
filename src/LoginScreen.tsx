@@ -2,7 +2,7 @@ import {
   isSignInWithEmailLink,
   sendSignInLinkToEmail,
   signInWithEmailLink,
-  signInWithRedirect
+  signInWithPopup
 } from 'firebase/auth';
 import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -45,7 +45,7 @@ const LoginScreen: FC = () => {
 
   const handleGoogleLoginClick = async () => {
     setBusy(true);
-    await signInWithRedirect(auth, googleAuthProvider);
+    await signInWithPopup(auth, googleAuthProvider);
   };
 
   const handleEmailLoginClick = async () => {
