@@ -21,8 +21,12 @@ const RoleDisplay: FC<{ role: AgentRole }> = props => {
   return <>{roleTextMap[role]}</>;
 };
 
-const Players: FC<{ game: Game; myAgent: AgentInfo }> = props => {
-  const { game, myAgent } = props;
+const Players: FC<{
+  game: Game;
+  myAgent: AgentInfo;
+  revealAll: boolean;
+}> = props => {
+  const { game, myAgent, revealAll } = props;
   const iAmWerewolf = myAgent.role === 'werewolf';
   return (
     <StyledPlayers>
@@ -33,7 +37,9 @@ const Players: FC<{ game: Game; myAgent: AgentInfo }> = props => {
             <Player
               agent={agent}
               isMe={agent.agentId === myAgent.agentId}
-              revealRole={agent.role === 'werewolf' && showWerewolf}
+              revealRole={
+                revealAll || (agent.role === 'werewolf' && showWerewolf)
+              }
             />
           </li>
         );
@@ -47,7 +53,7 @@ const StyledPlayers = styled.ul`
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
-  gap: 10px;
+  gap: 5px;
 `;
 
 const Status: FC<{
@@ -88,7 +94,7 @@ const Status: FC<{
           </>
         )}
       </div>
-      <Players game={game} myAgent={myAgent} />
+      <Players game={game} myAgent={myAgent} revealAll={revealAll} />
     </StyledStatus>
   );
 };

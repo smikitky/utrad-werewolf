@@ -35,6 +35,7 @@ const Player: FC<{
 };
 
 const StyledPlayerDiv = styled.div`
+  width: 110px;
   display: flex;
   border: 2px solid gray;
   background: white;
@@ -71,7 +72,7 @@ const StyledPlayerDiv = styled.div`
   }
   .indicators {
     flex: 1 1;
-    padding: 0 5px;
+    padding: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
