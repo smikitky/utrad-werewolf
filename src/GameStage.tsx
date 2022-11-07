@@ -109,6 +109,7 @@ const StyledStatus = styled.div`
   .status {
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 15px;
   }
   big {
@@ -305,12 +306,10 @@ const FinishAction: ActionComp = props => {
   const { game, onRevealAll, revealAll } = props;
   return (
     <div>
-      このゲームは{game.wasAborted ? '中断されました' : '終了しました'}
-      <div>
-        <button onClick={onRevealAll} disabled={revealAll}>
-          完全ログを表示する
-        </button>
-      </div>
+      このゲームは{game.wasAborted ? '中断されました' : '終了しました'}。
+      <button onClick={onRevealAll} disabled={revealAll}>
+        完全ログを表示する
+      </button>
     </div>
   );
 };

@@ -53,7 +53,7 @@ const OnlineUsers: FC<{
                   ? 'no_accounts'
                   : user.ready
                   ? 'check_circle'
-                  : 'hourglass_empty'
+                  : 'pause_circle'
               }
             />
           </span>

@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { FC, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   AgentId,
@@ -19,6 +19,8 @@ import {
   roleTextMap
 } from './game-utils';
 import GameLog from './game/GameLog';
+import Icon from './Icon';
+import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
@@ -71,6 +73,7 @@ const GodMode: FC = () => {
   const [param, setParam] = useState('');
   const [apiResponses, setApiResponses] = useState<any[]>([]);
   const [showLogType, setShowLogType] = useState<ShowLogType>('game');
+  const [apiLogOpen, setApiLogOpen] = useState<boolean>(false);
 
   const loginUser = useLoginUser();
   const gameId = useParams().gameId as string;
@@ -116,6 +119,7 @@ const GodMode: FC = () => {
       status: res.status,
       result: res.data
     };
+    if (res.status !== 200) setApiLogOpen(true);
     setApiResponses([...apiResponses, item]);
   };
 
@@ -145,7 +149,7 @@ const GodMode: FC = () => {
         <div className="status-main">
           <div>
             <b>ゲーム ID</b>: {gameId} (<b>開始</b>:{' '}
-            {new Date(game.startedAt as number).toLocaleString()})
+            {formatDate(game.startedAt as number)})
           </div>
           {game.finishedAt ? (
             <div>
@@ -164,9 +168,7 @@ const GodMode: FC = () => {
             </div>
           )}
           {game.finishedAt && (
-            <div>
-              終了時刻：{new Date(game.finishedAt as number).toLocaleString()}
-            </div>
+            <div>終了時刻：{formatDate(game.finishedAt as number)}</div>
           )}
         </div>
         <div className="commands">
@@ -208,65 +210,82 @@ const GodMode: FC = () => {
             <div>(Log turned off)</div>
           )}
         </div>
-        <div className="api-log-pane">
-          <ul className="api-log">
-            {apiResponses.map((result, i) => (
-              <li key={i} className={result.status === 200 ? 'ok' : 'error'}>
-                {JSON.stringify(result)}
-              </li>
-            ))}
-          </ul>
-          <div>
-            <button
-              onClick={handleClearLog}
-              disabled={apiResponses.length === 0}
-            >
-              ログ消去
+        <div className={classNames('api-log-pane', { open: apiLogOpen })}>
+          {apiLogOpen ? (
+            <>
+              <div>
+                <button
+                  onClick={handleClearLog}
+                  disabled={apiResponses.length === 0}
+                >
+                  <Icon icon="playlist_remove" />
+                </button>
+                <button onClick={() => setApiLogOpen(false)}>
+                  <Icon icon="arrow_right" />
+                </button>
+              </div>
+              <ul className="api-log">
+                {apiResponses.map((result, i) => (
+                  <li
+                    key={i}
+                    className={result.status === 200 ? 'ok' : 'error'}
+                  >
+                    {JSON.stringify(result)}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <button onClick={() => setApiLogOpen(true)}>
+              <Icon icon="arrow_left" />
             </button>
-          </div>
+          )}
         </div>
       </div>
-      <div className="foot">
-        <table className="players">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>名前</th>
-              <th>役割</th>
-              <th>生死</th>
-              <th>現在の行動</th>
-              <th>ユーザー</th>
-            </tr>
-          </thead>
-          <tbody>
-            {game.agents.map(agent => {
-              const action = agentAction(game, agent);
-              return (
-                <tr
-                  key={agent.agentId}
-                  className={classNames({
-                    dead: agent.life === 'dead',
-                    active: agent.userId === selectedAgent
-                  })}
-                  onClick={() => setSelectedAgent(agent.userId)}
-                >
-                  <td>{agent.agentId}</td>
-                  <td>{agent.name}</td>
-                  <td>{roleTextMap[agent.role]}</td>
-                  <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
-                  <td className={classNames('action', action)}>
-                    {actionTextMap[action]}
-                    {action === 'wait' && <> {lastAction(game, agent)}</>}
-                  </td>
-                  <td>
-                    {userData.data?.[agent.userId].name}{' '}
-                    <small>{agent.userId}</small>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <details className="foot" open>
+        <summary>詳細</summary>
+        <div className="table-wrapper">
+          <table className="players">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>名前</th>
+                <th>役割</th>
+                <th>生死</th>
+                <th>現在の行動</th>
+                <th>ユーザー</th>
+              </tr>
+            </thead>
+            <tbody>
+              {game.agents.map(agent => {
+                const action = agentAction(game, agent);
+                return (
+                  <tr
+                    key={agent.agentId}
+                    className={classNames({
+                      dead: agent.life === 'dead',
+                      active: agent.userId === selectedAgent
+                    })}
+                    onClick={() => setSelectedAgent(agent.userId)}
+                  >
+                    <td>{agent.agentId}</td>
+                    <td>{agent.name}</td>
+                    <td>{roleTextMap[agent.role]}</td>
+                    <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
+                    <td className={classNames('action', action)}>
+                      {actionTextMap[action]}
+                      {action === 'wait' && <> {lastAction(game, agent)}</>}
+                    </td>
+                    <td>
+                      {userData.data?.[agent.userId].name}{' '}
+                      <small>{agent.userId.slice(0, 5)}</small>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
         <div className="action-pane">
           <select
             name="user"
@@ -276,7 +295,7 @@ const GodMode: FC = () => {
             {game.agents.map(agent => {
               return (
                 <option key={agent.userId} value={agent.userId}>
-                  {agent.name} ({roleTextMap[agent.role]}, {agent.life})
+                  {agent.name} ({roleTextMap[agent.role]})
                 </option>
               );
             })}
@@ -302,7 +321,7 @@ const GodMode: FC = () => {
           />
           <button onClick={actionClick}>Go</button>
         </div>
-      </div>
+      </details>
     </StyledDiv>
   );
 };
@@ -313,7 +332,13 @@ const StyledDiv = styled.div`
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 5px;
+  .table-wrapper {
+    overflow-x: auto;
+  }
   table.players {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
     border-collapse: collapse;
     tr {
       border-top: 1px solid silver;
@@ -355,7 +380,7 @@ const StyledDiv = styled.div`
   }
   .game-log-pane {
     // left
-    flex: 0 0 60%;
+    flex: 1 1 60%;
     display: flex;
     gap: 5px;
     flex-direction: column;
@@ -364,6 +389,10 @@ const StyledDiv = styled.div`
   }
   .api-log-pane {
     // right
+    flex-basis: 50px;
+    &.open {
+      flex-basis: 40%;
+    }
     overflow-y: auto;
     border-left: 1px solid silver;
     padding-left: 5px;
@@ -380,13 +409,25 @@ const StyledDiv = styled.div`
     }
   }
   .foot {
-    padding: 5px;
+    padding: 5px 0;
+    min-width: 0;
+    summary {
+      cursor: pointer;
+      background: #555555;
+      font-weight: bold;
+      color: white;
+      padding: 5px 10px;
+    }
   }
   .action-pane {
     display: flex;
     flex-flow: row wrap;
     padding: 10px;
+    gap: 5px 0;
     margin-bottom: 10px;
+    > input {
+      flex-grow: 1;
+    }
     > button {
       margin-left: 10px;
     }

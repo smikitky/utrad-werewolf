@@ -112,14 +112,16 @@ const StatusLogItem: LogItem<StatusLogEntry> = props => {
           .filter(([role, count]) => count > 0);
         const totalAlive = entry.agents.filter(a => a.life === 'alive').length;
         const countsText = counts
-          .map(([role, count]) => `${count}人の${roleTextMap[role]}`)
+          .map(([role, count]) => `${count} 人の${roleTextMap[role]}`)
           .join('、');
         if (entry.day === 0) {
           return (
             <>
               この村には <strong>{countsText}</strong> がいるらしい。
               <br />
-              村人による人狼対策会議が始まった。今日は、追放の投票および襲撃は行われない。
+              村人による人狼対策会議が始まった。
+              <br />
+              今日は、追放の投票および襲撃は行われない。
             </>
           );
         } else {
@@ -360,7 +362,17 @@ const ResultLogItem: LogItem<ResultLogEntry> = props => {
       {myAgent !== 'god' && (
         <div className="your-result">
           あなたが味方した陣営（{teamTextMap[team(myAgent.role)]}）
-          {winner === team(myAgent.role) ? 'の勝利' : 'の敗北'}。
+          {winner === team(myAgent.role) ? (
+            <>
+              の勝利。
+              <Icon icon="military_tech" />
+            </>
+          ) : (
+            <>
+              の敗北。
+              <Icon icon="mood_bad" />
+            </>
+          )}
         </div>
       )}
     </li>
@@ -462,6 +474,7 @@ const StyledGameLog = styled.ul`
       background: #ffddaa;
       text-align: center;
       border-radius: 10px;
+      margin-top: 25px;
       padding: 5px;
       > .winner {
         font-size: 120%;

@@ -68,7 +68,7 @@ const Layout: FC = props => {
           <Icon icon="person" />{' '}
           {user.status === 'loggedIn' ? (
             <Link to={`/profile/${user.uid}`}>
-              <b>{user.data.name}</b> ({user.uid.slice(0, 5)})
+              <b>{user.data.name}</b>
             </Link>
           ) : user.status === 'indeterminate' ? (
             '...'
@@ -244,6 +244,7 @@ const StyledDiv = styled.div`
   header {
     padding: 0 0.5em;
     display: flex;
+    flex-flow: row wrap;
     justify-content: space-between;
     background: #eeeeee;
     border-bottom: 1px solid gray;

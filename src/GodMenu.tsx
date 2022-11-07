@@ -10,6 +10,7 @@ import { database } from './utils/firebase.js';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
+import formatDate from './utils/formatDate';
 
 const GodMenu: FC = () => {
   const [newUid, setNewUid] = useState('');
@@ -56,7 +57,7 @@ const GodMenu: FC = () => {
           />
           <button onClick={addUserClick}>Add</button>
         </div>
-        <h2>ゲーム一覧</h2>
+        <h2>全ゲーム一覧</h2>
         <ul className="recent">
           {globalGameHistory.data &&
             Object.entries(globalGameHistory.data)
@@ -67,9 +68,12 @@ const GodMenu: FC = () => {
               .map(([gameId, game]) => (
                 <li key={gameId}>
                   <Link to={`/god/${gameId}`}>
-                    {new Date(game.finishedAt as number).toLocaleString()}{' '}
-                    (Winner:{' '}
-                    {game.wasAborted ? '(中断)' : teamTextMap[game.winner!]}){' '}
+                    {formatDate(game.finishedAt as number)}{' '}
+                    {game.wasAborted ? (
+                      '(中断)'
+                    ) : (
+                      <>{teamTextMap[game.winner!]}勝利</>
+                    )}{' '}
                     <span className="game-id">{gameId}</span>
                   </Link>
                 </li>

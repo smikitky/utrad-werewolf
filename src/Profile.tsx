@@ -4,13 +4,10 @@ import styled from 'styled-components';
 import { team, UserEntry, UserGameHistory } from './game-data';
 import { roleTextMap, teamTextMap } from './game-utils';
 import Icon from './Icon';
+import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
-
-const formatDate = (timestamp: number) => {
-  return new Date(timestamp).toLocaleString();
-};
 
 const Profile: FC = () => {
   const uid = useParams().uid as string;
@@ -75,19 +72,18 @@ const Profile: FC = () => {
         <h2>プレイ履歴{userHistory.data && <> ({history.length}件)</>}</h2>
         <ul>
           {history.map(([gameId, entry]) => (
-            <li>
+            <li key={gameId}>
               <Link to={`/game/${gameId}`}>
                 <span className="date">
                   {formatDate(entry.finishedAt as number)}
-                </span>
-                <span className="role">あなた：{roleTextMap[entry.role]}</span>
+                </span>{' '}
+                <span className="role">{roleTextMap[entry.role]}</span>{' '}
                 <span className="result">
-                  勝利：
                   {entry.wasAborted ? (
                     '(中断)'
                   ) : (
                     <>
-                      {teamTextMap[entry.winner!]}
+                      {teamTextMap[entry.winner!]}勝利
                       {entry.winner === team(entry.role) ? (
                         <Icon icon="military_tech" />
                       ) : (
@@ -95,7 +91,7 @@ const Profile: FC = () => {
                       )}
                     </>
                   )}
-                </span>
+                </span>{' '}
                 <span className="game-id">{gameId}</span>
               </Link>
             </li>
@@ -129,8 +125,14 @@ const StyledDiv = styled.div`
     margin-left: 20px;
     a {
       text-decoration: none;
-      display: flex;
-      gap: 10px;
+    }
+    .role {
+      font-size: 90%;
+      display: inline-block;
+      width: 70px;
+      text-align: center;
+      background: #eeddff;
+      border-radius: 10px;
     }
     .game-id {
       color: gray;
