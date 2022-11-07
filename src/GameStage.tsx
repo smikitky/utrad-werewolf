@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import { FC, KeyboardEventHandler, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import Alert from './Alert .js';
 import { AgentId, AgentInfo, AgentRole, Game } from './game-data.js';
 import {
   Action,
@@ -395,9 +396,14 @@ const GameStage: FC = () => {
 
   if (loginUser.status !== 'loggedIn') return null;
 
-  if (!game) return <div>Not Found</div>;
+  if (game === null) return <Alert>該当ゲームデータは存在しません</Alert>;
+  if (!game) return null;
 
-  const myAgent = game.agents.find(a => a.userId === loginUser.uid)!;
+  const myAgent = game.agents.find(a => a.userId === loginUser.uid);
+
+  if (!myAgent) {
+    return <Alert>あなたはこのゲームに参加していません</Alert>;
+  }
 
   const handleRevealAll = () => setRevealAll(true);
 

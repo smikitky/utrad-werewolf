@@ -204,8 +204,8 @@ const ChatLogItem: LogItem<ChatLogEntry> = props => {
               : roleTextMap[agent.role].charAt(0)}
           </span>
         )}
-      </span>{' '}
-      {entry.content}
+      </span>
+      <span className="content">{entry.content}</span>
     </li>
   );
 };
@@ -428,6 +428,13 @@ const StyledGameLog = styled.ul`
       border-radius: 10px;
       padding: 0 2px;
     }
+    &.talk,
+    &.whisper {
+      display: flex;
+      .speaker {
+        flex: 0 0 105px;
+      }
+    }
     &.talk {
       background: #ffffee;
     }
@@ -461,6 +468,7 @@ const StyledGameLog = styled.ul`
       }
       > .players {
         display: flex;
+        flex-wrap: wrap;
         gap: 5px;
         justify-content: center;
       }

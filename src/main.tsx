@@ -21,7 +21,34 @@ const GlobalStyle = createGlobalStyle`
   }
 
   h1 {
-    background-color: silver;
+    margin: 10px 0px;
+    padding: 5px;
+    font-size: 120%;
+    position: relative;
+    &::after {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      content: '';
+      background-image: repeating-linear-gradient(-45deg, #000, #000 1px, transparent 2px, transparent 5px);
+      background-size: 7px 7px;
+    }
+  }
+
+  h2 {
+    display: flex;
+    align-items: center;
+    margin: 10px auto;
+    font-size: 110%;
+    gap: 10px;
+    &::after {
+      content: '';
+      flex: 1;
+      height: 0px;
+      border-bottom: 2px solid silver;
+    }
   }
 
   .material-icons {

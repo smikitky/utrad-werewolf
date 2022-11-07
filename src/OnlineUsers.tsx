@@ -67,17 +67,16 @@ const OnlineUsers: FC<{
 
 const StyledList = styled.ul`
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 5px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   list-style: none;
   li {
-    height: 2em;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     border-radius: 4px;
     background-color: silver;
-    padding: 0 10px;
+    padding: 0 5px;
     user-select: none;
     .name {
       flex: 1;

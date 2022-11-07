@@ -242,10 +242,10 @@ const StyledDiv = styled.div`
   flex-direction: column;
   background: white;
   header {
-    padding: 0.5em;
+    padding: 0 0.5em;
     display: flex;
     justify-content: space-between;
-    background: silver;
+    background: #eeeeee;
     border-bottom: 1px solid gray;
     a {
       font-weight: bold;

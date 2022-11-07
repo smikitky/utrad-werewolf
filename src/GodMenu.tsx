@@ -2,6 +2,7 @@ import * as db from 'firebase/database';
 import { FC, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import Alert from './Alert ';
 import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
 import { teamTextMap } from './game-utils';
 import OnlineUsers from './OnlineUsers';
@@ -22,7 +23,7 @@ const GodMenu: FC = () => {
 
   if (!users.data) return null;
   if (loginUser.status !== 'loggedIn') return null;
-  if (!loginUser.data.canBeGod) return <div>あなたは神にはなれません</div>;
+  if (!loginUser.data.canBeGod) return <Alert>あなたは神にはなれません</Alert>;
 
   const addUserClick = async () => {
     const res = await api('addUser', { newUid });
@@ -43,8 +44,9 @@ const GodMenu: FC = () => {
     <StyledDiv>
       <h1>God Mode Menu</h1>
       <section>
+        <h2>ユーザー</h2>
         <OnlineUsers onUserClick={handleUserClick} />
-        <h2>Add NPC User</h2>
+        <h2>NPCアカウントを追加</h2>
         <div>
           <input
             type="text"
@@ -54,19 +56,24 @@ const GodMenu: FC = () => {
           />
           <button onClick={addUserClick}>Add</button>
         </div>
-        <h2>Recent Games</h2>
+        <h2>ゲーム一覧</h2>
         <ul className="recent">
           {globalGameHistory.data &&
-            Object.entries(globalGameHistory.data).map(([gameId, game]) => (
-              <li key={gameId}>
-                <Link to={`/god/${gameId}`}>
-                  {new Date(game.finishedAt as number).toLocaleString()}{' '}
-                  (Winner:{' '}
-                  {game.wasAborted ? '(中断)' : teamTextMap[game.winner!]}){' '}
-                  <span className="game-id">{gameId}</span>
-                </Link>
-              </li>
-            ))}
+            Object.entries(globalGameHistory.data)
+              .sort(
+                (a, b) =>
+                  (b[1].finishedAt as number) - (a[1].finishedAt as number)
+              )
+              .map(([gameId, game]) => (
+                <li key={gameId}>
+                  <Link to={`/god/${gameId}`}>
+                    {new Date(game.finishedAt as number).toLocaleString()}{' '}
+                    (Winner:{' '}
+                    {game.wasAborted ? '(中断)' : teamTextMap[game.winner!]}){' '}
+                    <span className="game-id">{gameId}</span>
+                  </Link>
+                </li>
+              ))}
         </ul>
       </section>
     </StyledDiv>

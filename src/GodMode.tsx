@@ -176,9 +176,6 @@ const GodMode: FC = () => {
           >
             強制中断
           </button>
-          <Link to="/god">
-            <button>God Mode メニューに戻る</button>
-          </Link>
         </div>
       </div>
       <div className="log-pane">
@@ -345,7 +342,7 @@ const StyledDiv = styled.div`
     }
   }
   .status-pane {
-    background: #eeeeee;
+    background: #eeeef5;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -354,7 +351,7 @@ const StyledDiv = styled.div`
   .log-pane {
     min-height: 0;
     display: flex;
-    gap: 10px;
+    gap: 5px;
   }
   .game-log-pane {
     flex: 0 0 60%;
@@ -362,11 +359,12 @@ const StyledDiv = styled.div`
     gap: 5px;
     flex-direction: column;
     min-height: 0;
+    padding-left: 5px;
   }
   .api-log-pane {
     overflow-y: auto;
     border-left: 1px solid silver;
-    padding-left: 10px;
+    padding-left: 5px;
   }
   ul.api-log {
     font-size: 10px;

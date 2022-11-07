@@ -51,8 +51,6 @@ const Menu: FC = () => {
 
   return (
     <StyledDiv>
-      <h2>登録ユーザー</h2>
-      <OnlineUsers />
       <h2>メニュー</h2>
       <nav>
         <button
@@ -101,6 +99,8 @@ const Menu: FC = () => {
           </>
         )}
       </div>
+      <h2>登録ユーザー</h2>
+      <OnlineUsers />
     </StyledDiv>
   );
 };
