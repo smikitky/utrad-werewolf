@@ -35,6 +35,7 @@ import GodMode from './GodMode.js';
 import LoginScreen from './LoginScreen.js';
 import Menu from './Menu.js';
 import Profile from './Profile.js';
+import Icon from './Icon.js';
 
 const MessagesContext = createContext<{
   list: (ReactNode | string)[];
@@ -49,15 +50,22 @@ const Layout: FC = props => {
     <>
       <header>
         <div>
-          <Link to="/">トップページ</Link>
+          <Link to="/">
+            <Icon icon="home" />
+            トップへ
+          </Link>
         </div>
         <div>
           {user.status === 'loggedIn' && user.data.canBeGod === true && (
-            <Link to="/god">God Mode</Link>
+            <>
+              <Link to="/god">
+                <Icon icon="policy" />
+                神になる
+              </Link>{' '}
+              |{' '}
+            </>
           )}
-        </div>
-        <div>
-          User:{' '}
+          <Icon icon="person" />{' '}
           {user.status === 'loggedIn' ? (
             <Link to={`/profile/${user.uid}`}>
               <b>{user.data.name}</b> ({user.uid.slice(0, 5)})
