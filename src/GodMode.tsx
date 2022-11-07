@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import { FC, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import Alert from './Alert ';
 import {
   AgentId,
   AgentInfo,
@@ -88,10 +89,11 @@ const GodMode: FC = () => {
     }
   }, [selectedAgent, game]);
 
-  if (!game) return null;
-
   if (loginUser.status !== 'loggedIn') return null;
-  if (!loginUser.data.canBeGod) return <div>あなたは神にはなれません</div>;
+  if (!loginUser.data.canBeGod) return <Alert>あなたは神にはなれません</Alert>;
+
+  if (game === null) return <Alert>該当ゲームデータは存在しません</Alert>;
+  if (!game) return null;
 
   const actionClick = async () => {
     if (!selectedAgent) return;
