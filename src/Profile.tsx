@@ -1,8 +1,9 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { UserEntry, UserGameHistory } from './game-data';
+import { team, UserEntry, UserGameHistory } from './game-data';
 import { roleTextMap, teamTextMap } from './game-utils';
+import Icon from './Icon';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
@@ -19,15 +20,20 @@ const Profile: FC = () => {
   const userHistory = useFirebaseSubscription<UserGameHistory['a']>(
     `/userHistory/${uid}/`
   );
+  const [editName, setEditName] = useState<string | null>(null);
 
   if (user.data === undefined) return null;
   const history = Object.entries(userHistory.data ?? {});
 
   const handleNameChange = async () => {
     if (loginUser.status !== 'loggedIn') return;
-    const name = prompt('ユーザ名を入力してください', loginUser.data.name);
-    if (name === null) return;
-    await api('setProfile', { name });
+    setEditName(loginUser.data.name);
+  };
+
+  const commitNameChange = async () => {
+    if (loginUser.status !== 'loggedIn') return;
+    await api('setProfile', { name: editName });
+    setEditName(null);
   };
 
   return (
@@ -40,11 +46,26 @@ const Profile: FC = () => {
           <dd>{uid}</dd>
           <dt>ユーザ名</dt>
           <dd>
-            {user.data.name}
-            {loginUser.status === 'loggedIn' && loginUser.uid === uid && (
+            {editName === null ? (
               <>
-                {' '}
-                <button onClick={handleNameChange}>ユーザ名変更</button>
+                {user.data.name}
+                {loginUser.status === 'loggedIn' && loginUser.uid === uid && (
+                  <>
+                    {' '}
+                    <button onClick={handleNameChange}>ユーザ名変更</button>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  autoFocus
+                />
+                <button onClick={commitNameChange}>決定</button>
+                <button onClick={() => setEditName(null)}>キャンセル</button>
               </>
             )}
           </dd>
@@ -62,7 +83,18 @@ const Profile: FC = () => {
                 <span className="role">あなた：{roleTextMap[entry.role]}</span>
                 <span className="result">
                   勝利：
-                  {entry.wasAborted ? '(中断)' : teamTextMap[entry.winner!]}
+                  {entry.wasAborted ? (
+                    '(中断)'
+                  ) : (
+                    <>
+                      {teamTextMap[entry.winner!]}
+                      {entry.winner === team(entry.role) ? (
+                        <Icon icon="military_tech" />
+                      ) : (
+                        <Icon icon="mood_bad" />
+                      )}
+                    </>
+                  )}
                 </span>
                 <span className="game-id">{gameId}</span>
               </Link>
@@ -88,6 +120,8 @@ const StyledDiv = styled.div`
     dd {
       margin: 0;
       padding: 0;
+      display: flex;
+      gap: 2px;
     }
   }
   ul li {

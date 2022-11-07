@@ -354,6 +354,7 @@ const StyledDiv = styled.div`
     gap: 5px;
   }
   .game-log-pane {
+    // left
     flex: 0 0 60%;
     display: flex;
     gap: 5px;
@@ -362,6 +363,7 @@ const StyledDiv = styled.div`
     padding-left: 5px;
   }
   .api-log-pane {
+    // right
     overflow-y: auto;
     border-left: 1px solid silver;
     padding-left: 5px;
@@ -393,6 +395,7 @@ const StyledDiv = styled.div`
     margin: 0;
     background: white;
     overflow-y: scroll;
+    white-space: pre-wrap;
   }
   small {
     color: silver;

@@ -195,8 +195,8 @@ const ChatLogItem: LogItem<ChatLogEntry> = props => {
   const agent = game.agents.find(a => a.agentId === entry.agent)!;
   return (
     <li className={entry.type}>
-      <span className="speaker">
-        {agent.name}
+      <span className="speaker">{agent.name}</span>
+      <span className="content">
         {myAgent === 'god' && (
           <span className="speaker-role">
             {agent.role === 'werewolf'
@@ -204,8 +204,8 @@ const ChatLogItem: LogItem<ChatLogEntry> = props => {
               : roleTextMap[agent.role].charAt(0)}
           </span>
         )}
+        {entry.content}
       </span>
-      <span className="content">{entry.content}</span>
     </li>
   );
 };
@@ -419,7 +419,6 @@ const StyledGameLog = styled.ul`
     border: 1px solid #eeeeee;
     .speaker {
       font-weight: bold;
-      margin-right: 15px;
     }
     .speaker-role {
       font-size: 80%;
@@ -427,12 +426,14 @@ const StyledGameLog = styled.ul`
       background: navy;
       border-radius: 10px;
       padding: 0 2px;
+      margin-right: 5px;
     }
     &.talk,
     &.whisper {
       display: flex;
+      align-items: top;
       .speaker {
-        flex: 0 0 105px;
+        flex: 0 0 95px;
       }
     }
     &.talk {
