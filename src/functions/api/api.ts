@@ -122,6 +122,7 @@ type GameRequestType =
   | 'matchNewGame'
   | 'addUser'
   | 'setProfile'
+  | 'editUser'
   | 'abortGame'
   | 'talk'
   | 'whisper'
@@ -342,6 +343,21 @@ const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
     ready: user?.ready ?? true,
     name: (payload?.name as string) ?? user.name ?? 'new user'
   });
+  return jsonResponse(200, 'OK');
+};
+
+const handleEditUser: ModeHandler = async ({ uid, payload }) => {
+  const {
+    target,
+    updates: { canBeGod }
+  } = payload as { target: string; updates: { canBeGod: boolean } };
+  if (typeof target !== 'string' || typeof canBeGod !== 'boolean')
+    return jsonResponse(400, 'Invalid payload');
+  const user = (await db.ref('users').child(uid).get()).val();
+  if (!user.canBeGod) return jsonResponse(403, 'You are not a god');
+  if (uid === target && !canBeGod)
+    return jsonResponse(400, 'You cannot remove your god status');
+  await db.ref('users').child(target).update({ canBeGod });
   return jsonResponse(200, 'OK');
 };
 
@@ -567,6 +583,7 @@ export const handler: Handler = async (event, context) => {
       matchNewGame: handleMatchNewGame,
       addUser: handleAddUser,
       setProfile: handleSetProfile,
+      editUser: handleEditUser,
       abortGame: handleAbortGame,
       talk: handleChat,
       whisper: handleChat,

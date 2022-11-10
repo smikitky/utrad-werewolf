@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import AgentCountEditor from './AgentCountEditor.js';
 import { AgentCount, defaultAgentCount } from './game-data.js';
 import { agentTotalCount } from './game-utils.js';
-import OnlineUsers from './OnlineUsers.js';
+import UserList from './UserList.js';
 import { database, auth } from './utils/firebase.js';
 import { useApi } from './utils/useApi.js';
 import { useLoginUser } from './utils/user.js';
@@ -99,8 +99,8 @@ const Menu: FC = () => {
           </>
         )}
       </div>
-      <h2>登録ユーザー</h2>
-      <OnlineUsers />
+      <h2>オンラインのユーザー</h2>
+      <UserList onlineOnly={true} />
     </StyledDiv>
   );
 };

@@ -5,12 +5,12 @@ import styled from 'styled-components';
 import Alert from './Alert ';
 import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
 import { teamTextMap } from './game-utils';
-import OnlineUsers from './OnlineUsers';
+import UserList, { UserListCommand } from './UserList';
 import { database } from './utils/firebase.js';
+import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
-import formatDate from './utils/formatDate';
 
 const GodMenu: FC = () => {
   const [newUid, setNewUid] = useState('');
@@ -32,12 +32,29 @@ const GodMenu: FC = () => {
     setResults([item, ...results]);
   };
 
-  const handleUserClick = async (uid: string, user: UserEntry) => {
-    if (user.currentGameId) {
-      navigate(`/god/${user.currentGameId}`);
-    } else {
-      const ref = db.ref(database, `users/${uid}/ready`);
-      await db.set(ref, !user.ready);
+  const handleUserCommand = async (
+    uid: string,
+    user: UserEntry,
+    command: UserListCommand
+  ) => {
+    switch (command) {
+      case 'goToGame':
+        if (user.currentGameId) navigate(`/game/${user.currentGameId}`);
+        break;
+      case 'toggleReady': {
+        const ref = db.ref(database, `users/${uid}/ready`);
+        await db.set(ref, !user.ready);
+        break;
+      }
+      case 'toggleGod':
+        await api('editUser', {
+          target: uid,
+          updates: { canBeGod: !user.canBeGod }
+        });
+        break;
+      case 'profile':
+        navigate(`/profile/${uid}`);
+        break;
     }
   };
 
@@ -46,7 +63,11 @@ const GodMenu: FC = () => {
       <h1>God Mode Menu</h1>
       <section>
         <h2>ユーザー</h2>
-        <OnlineUsers onUserClick={handleUserClick} />
+        <UserList
+          onUserCommand={handleUserCommand}
+          onlineOnly={false}
+          showAdminMenu={true}
+        />
         <h2>NPCアカウントを追加</h2>
         <div>
           <input
