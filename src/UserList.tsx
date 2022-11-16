@@ -12,6 +12,7 @@ import classNames from 'classnames';
 import styled from 'styled-components';
 import Icon from './Icon';
 import { useLoginUser } from './utils/user';
+import { Link } from 'react-router-dom';
 
 export type UserListCommand =
   | 'goToGame'
@@ -149,14 +150,18 @@ const UserList: FC<{
         >
           <ul onClick={handleMenuSelect}>
             {selectedUser.currentGameId && (
-              <li data-command="goToGame">ゲームへ</li>
+              <li data-command="goToGame">
+                <Link to={`/god/${selectedUser.currentGameId}`}>ゲームへ</Link>
+              </li>
             )}
             {selectedUser.onlineStatus && !selectedUser.currentGameId && (
               <li data-command="toggleReady">
                 {selectedUser.ready ? '一時待機中にする' : '準備OKにする'}
               </li>
             )}
-            <li data-command="profile">プロフィールを見る</li>
+            <li data-command="profile">
+              <Link to={`/profile/${menu.target}`}>プロフィール</Link>
+            </li>
             {menu.target !== loginUser.uid && (
               <li data-command="toggleGod">
                 {selectedUser.canBeGod
@@ -226,6 +231,11 @@ const StyledDiv = styled.div`
         cursor: pointer;
         &:hover {
           background-color: #eeeeee;
+        }
+        a {
+          display: block;
+          color: inherit;
+          text-decoration: none;
         }
       }
     }

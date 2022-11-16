@@ -38,9 +38,6 @@ const GodMenu: FC = () => {
     command: UserListCommand
   ) => {
     switch (command) {
-      case 'goToGame':
-        if (user.currentGameId) navigate(`/god/${user.currentGameId}`);
-        break;
       case 'toggleReady': {
         const ref = db.ref(database, `users/${uid}/ready`);
         await db.set(ref, !user.ready);
@@ -51,9 +48,6 @@ const GodMenu: FC = () => {
           target: uid,
           updates: { canBeGod: !user.canBeGod }
         });
-        break;
-      case 'profile':
-        navigate(`/profile/${uid}`);
         break;
     }
   };

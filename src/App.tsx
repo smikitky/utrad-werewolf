@@ -65,15 +65,14 @@ const Layout: FC = props => {
               |{' '}
             </>
           )}
-          <Icon icon="person" />{' '}
           {user.status === 'loggedIn' ? (
             <Link to={`/profile/${user.uid}`}>
-              <b>{user.data.name}</b>
+              <Icon icon="person" /> <b>{user.data.name}</b>
             </Link>
           ) : user.status === 'indeterminate' ? (
             '...'
           ) : (
-            'logged out'
+            'Logged out'
           )}
         </div>
       </header>
