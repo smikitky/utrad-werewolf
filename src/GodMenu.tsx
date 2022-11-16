@@ -39,7 +39,7 @@ const GodMenu: FC = () => {
   ) => {
     switch (command) {
       case 'goToGame':
-        if (user.currentGameId) navigate(`/game/${user.currentGameId}`);
+        if (user.currentGameId) navigate(`/god/${user.currentGameId}`);
         break;
       case 'toggleReady': {
         const ref = db.ref(database, `users/${uid}/ready`);
