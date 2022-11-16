@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { team, UserEntry, UserGameHistory } from './game-data';
@@ -19,8 +19,15 @@ const Profile: FC = () => {
   );
   const [editName, setEditName] = useState<string | null>(null);
 
+  const history = useMemo(
+    () =>
+      Object.entries(userHistory.data ?? {}).sort(
+        (a, b) => (b[1].finishedAt as number) - (a[1].finishedAt as number)
+      ),
+    [userHistory.data]
+  );
+
   if (user.data === undefined) return null;
-  const history = Object.entries(userHistory.data ?? {});
 
   const handleNameChange = async () => {
     if (loginUser.status !== 'loggedIn') return;

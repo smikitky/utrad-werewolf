@@ -62,7 +62,7 @@ const GodMenu: FC = () => {
     <StyledDiv>
       <h1>God Mode Menu</h1>
       <section>
-        <h2>ユーザー</h2>
+        <h2>全ユーザー</h2>
         <UserList
           onUserCommand={handleUserCommand}
           onlineOnly={false}

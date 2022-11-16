@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { FC, KeyboardEventHandler, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Alert from './Alert .js';
 import { AgentId, AgentInfo, AgentRole, Game } from './game-data.js';
@@ -407,7 +407,20 @@ const GameStage: FC = () => {
   const myAgent = game.agents.find(a => a.userId === loginUser.uid);
 
   if (!myAgent) {
-    return <Alert>あなたはこのゲームに参加していません</Alert>;
+    return (
+      <Alert>
+        <div>
+          あなたはこのゲームに参加していません
+          {loginUser.data.canBeGod && (
+            <div>
+              <Link to={`/god/${gameId}`}>
+                <button>God Mode で見る</button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </Alert>
+    );
   }
 
   const handleRevealAll = () => setRevealAll(true);
