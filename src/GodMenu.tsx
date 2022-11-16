@@ -11,6 +11,7 @@ import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
+import useTitle from './utils/useTitle';
 
 const GodMenu: FC = () => {
   const [newUid, setNewUid] = useState('');
@@ -21,6 +22,8 @@ const GodMenu: FC = () => {
   const globalGameHistory =
     useFirebaseSubscription<GlobalGameHistory>('/globalHistory');
   const loginUser = useLoginUser();
+
+  useTitle('God Mode メニュー');
 
   if (!users.data) return null;
   if (loginUser.status !== 'loggedIn') return null;

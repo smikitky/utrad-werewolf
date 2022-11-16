@@ -25,6 +25,7 @@ import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
+import useTitle from './utils/useTitle';
 
 const actionTextMap: Record<Action, string> = {
   attackVote: '襲撃投票中',
@@ -82,6 +83,19 @@ const GodMode: FC = () => {
   const userData = useFirebaseSubscription<UserEntries>(`/users`);
   const game = gameData.data;
   const api = useApi();
+
+  useTitle(
+    !game
+      ? '??'
+      : '人狼: ' +
+          (game.finishedAt
+            ? '終了'
+            : `${game.status.day}日目${
+                game.status.period === 'day' ? '昼' : '夜'
+              }${game.status.votePhase > 0 ? '投票中 ' : ' '} ${
+                game?.agents.filter(a => a.life === 'alive').length
+              }人生存`)
+  );
 
   useEffect(() => {
     if (!selectedAgent && game?.agents[0]) {

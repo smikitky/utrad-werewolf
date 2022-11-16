@@ -8,6 +8,7 @@ import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import { useLoginUser } from './utils/user';
+import useTitle from './utils/useTitle';
 
 const Profile: FC = () => {
   const uid = useParams().uid as string;
@@ -26,6 +27,8 @@ const Profile: FC = () => {
       ),
     [userHistory.data]
   );
+
+  useTitle('プロフィール');
 
   if (user.data === undefined) return null;
 
