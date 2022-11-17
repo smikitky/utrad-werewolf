@@ -80,15 +80,20 @@ const assignRoles = (userIds: string[], roles: AgentRole[]): AgentInfo[] => {
 };
 
 const parseInput = (event: HandlerEvent) => {
-  if (event.headers['content-type']?.startsWith('application/json')) {
+  if (event.httpMethod !== 'POST')
+    throw jsonResponse(405, 'Method not allowed');
+  if (!event.headers['content-type']?.startsWith('application/json'))
+    throw jsonResponse(400, 'Invalid content-type');
+  try {
     return JSON.parse(
       Buffer.from(
         event.body!,
         event.isBase64Encoded ? 'base64' : 'utf8'
       ).toString('utf8')
     );
+  } catch (err) {
+    throw jsonResponse(400, 'JSON parse error');
   }
-  throw new Error('Invalid input');
 };
 
 const checkAuth = async (event: HandlerEvent): Promise<string> => {
