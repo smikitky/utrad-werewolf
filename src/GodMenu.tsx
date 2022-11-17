@@ -98,9 +98,7 @@ const GodMenu: FC = () => {
 };
 
 const StyledDiv = styled.div`
-  section {
-    padding: 10px;
-  }
+  padding: 10px;
   .recent {
     list-style: disc;
     padding-left: 20px;

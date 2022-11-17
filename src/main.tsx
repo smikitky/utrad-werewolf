@@ -8,6 +8,7 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     background: #eeeeee;
+    font-family: sans-serif;
   }
 
   * {
@@ -21,19 +22,27 @@ const GlobalStyle = createGlobalStyle`
   }
 
   h1 {
-    margin: 10px 0px;
-    padding: 5px;
-    font-size: 120%;
+    margin: 10px 0px 20px;
+    font-size: 130%;
+    padding-bottom: 3px;
     position: relative;
-    &::after {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 5px;
+    &::before {
       content: '';
-      background-image: repeating-linear-gradient(-45deg, #000, #000 1px, transparent 2px, transparent 5px);
-      background-size: 7px 7px;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 50%;
+      height: 7px;
+      background: linear-gradient(to right, #001284 50%, #ffffff);
+    }
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background: #555555;
     }
   }
 

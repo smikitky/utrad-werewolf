@@ -57,7 +57,6 @@ const Profile: Page = ({ loginUser }) => {
                 {user.data.name}
                 {loginUser.status === 'loggedIn' && loginUser.uid === uid && (
                   <>
-                    {' '}
                     <button onClick={handleNameChange}>ユーザ名変更</button>
                   </>
                 )}
@@ -112,9 +111,7 @@ const Profile: Page = ({ loginUser }) => {
 };
 
 const StyledDiv = styled.div`
-  section {
-    padding: 10px;
-  }
+  padding: 10px;
   dl {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -126,7 +123,7 @@ const StyledDiv = styled.div`
       margin: 0;
       padding: 0;
       display: flex;
-      gap: 2px;
+      gap: 8px;
     }
   }
   ul li {

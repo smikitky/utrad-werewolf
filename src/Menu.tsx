@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import AgentCountEditor from './AgentCountEditor.js';
 import { AgentCount, defaultAgentCount } from './game-data.js';
 import { agentTotalCount } from './game-utils.js';
+import Icon from './Icon.js';
 import UserList from './UserList.js';
 import { auth, database } from './utils/firebase.js';
 import { useApi } from './utils/useApi.js';
@@ -46,14 +47,42 @@ const Menu: Page = ({ loginUser }) => {
 
   return (
     <StyledDiv>
-      <h2>メニュー</h2>
+      <h1>UTRAD Werewolf</h1>
       <nav>
-        <button onClick={handleStartNewGame} disabled={!loginUser.data.ready}>
-          新規ゲームを始める
+        <button
+          onClick={handleStartNewGame}
+          disabled={!loginUser.data.ready}
+          className="start"
+        >
+          <Icon icon="play_arrow" />
+          <big>
+            {agentTotalCount(customMode ? agentCount : defaultAgentCount)}
+          </big>
+          人で新規ゲーム
         </button>
-        <button onClick={handleReadyClick}>準備状態の切り替え</button>
-        <button onClick={handleProfileClick}>プロフィールを編集</button>
-        <button onClick={handleLogoutClick}>ログアウト</button>
+        <div className="sub">
+          <button onClick={handleReadyClick}>
+            {loginUser.data.ready ? (
+              <>
+                <Icon icon="pause" />
+                一時的に不参加
+              </>
+            ) : (
+              <>
+                <Icon icon="play_circle" />
+                準備OK!
+              </>
+            )}{' '}
+          </button>
+          <button onClick={handleProfileClick}>
+            <Icon icon="person" />
+            プロフィール
+          </button>
+          <button onClick={handleLogoutClick}>
+            <Icon icon="logout" />
+            ログアウト
+          </button>
+        </div>
       </nav>
       <div className="custom">
         <label>
@@ -88,8 +117,14 @@ const StyledDiv = styled.div`
     display: grid;
     gap: 10px;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    button {
-      padding: 15px 0;
+    .start {
+      min-height: 50px;
+      font-size: 120%;
+    }
+    .sub {
+      display: flex;
+      flex-flow: column;
+      gap: 10px;
     }
   }
   .custom {
