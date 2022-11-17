@@ -85,7 +85,7 @@ const GodMenu: FC = () => {
             .map(([gameId, game]) => (
               <li key={gameId}>
                 <Link to={`/god/${gameId}`}>
-                  {formatDate(game.finishedAt as number)}{' '}
+                  {formatDate(game.finishedAt as number)} {game.numAgents}名{' '}
                   {game.wasAborted ? (
                     '(中断)'
                   ) : (

@@ -85,6 +85,7 @@ const Profile: Page = ({ loginUser }) => {
                 <span className="date">
                   {formatDate(entry.finishedAt as number)}
                 </span>{' '}
+                <span className="num-agents">{entry.numAgents}名</span>{' '}
                 <span className="role">{roleTextMap[entry.role]}</span>{' '}
                 <span className="result">
                   {entry.wasAborted ? (

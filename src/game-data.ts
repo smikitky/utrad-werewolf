@@ -276,6 +276,7 @@ export interface UserGameHistory {
     [gameId: string]: {
       finishedAt: TimeStamp;
       wasAborted?: boolean;
+      numAgents: number;
       role: AgentRole;
       winner?: Team;
     };
@@ -286,6 +287,7 @@ export interface GlobalGameHistory {
   [gameId: string]: {
     finishedAt: TimeStamp;
     wasAborted?: boolean;
+    numAgents: number;
     winner?: Team;
   };
 }
