@@ -15,6 +15,7 @@ import Player from './game/Player.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
 import { useLoginUser } from './utils/user.js';
+import withLoginBoundary, { Page } from './withLoginBoundary.js';
 
 const RoleDisplay: FC<{ role: AgentRole }> = props => {
   const { role } = props;
@@ -391,15 +392,12 @@ const StyledActionPane = styled.div`
   }
 `;
 
-const GameStage: FC = () => {
+const GameStage: Page = ({ loginUser }) => {
   const { gameId } = useParams<{ gameId: string }>();
   const { data: game } = useFirebaseSubscription<Game>(`/games/${gameId}`);
   const [revealAll, setRevealAll] = useState(false);
 
   const api = useApi();
-  const loginUser = useLoginUser();
-
-  if (loginUser.status !== 'loggedIn') return null;
 
   if (game === null) return <Alert>該当ゲームデータは存在しません</Alert>;
   if (!game) return null;
@@ -452,4 +450,4 @@ const StyledGameStage = styled.div`
   grid-template-rows: auto 1fr auto auto;
 `;
 
-export default GameStage;
+export default withLoginBoundary()(GameStage);

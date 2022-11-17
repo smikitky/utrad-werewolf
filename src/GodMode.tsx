@@ -21,6 +21,7 @@ import {
 } from './game-utils';
 import GameLog from './game/GameLog';
 import Icon from './Icon';
+import withLoginBoundary, { Page } from './withLoginBoundary';
 import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
@@ -69,7 +70,7 @@ const lastAction = (game: Game, agent: AgentInfo) => {
 
 type ShowLogType = 'game' | 'debug' | 'off' | AgentId;
 
-const GodMode: FC = () => {
+const GodMode: Page = () => {
   const [selectedAgent, setSelectedAgent] = useState('');
   const [selectedAction, setSelectedAction] = useState('talk');
   const [param, setParam] = useState('');
@@ -77,7 +78,6 @@ const GodMode: FC = () => {
   const [showLogType, setShowLogType] = useState<ShowLogType>('game');
   const [apiLogOpen, setApiLogOpen] = useState<boolean>(false);
 
-  const loginUser = useLoginUser();
   const gameId = useParams().gameId as string;
   const gameData = useFirebaseSubscription<Game>(`/games/${gameId}`);
   const userData = useFirebaseSubscription<UserEntries>(`/users`);
@@ -102,9 +102,6 @@ const GodMode: FC = () => {
       setSelectedAgent(game.agents[0].userId);
     }
   }, [selectedAgent, game]);
-
-  if (loginUser.status !== 'loggedIn') return null;
-  if (!loginUser.data.canBeGod) return <Alert>あなたは神にはなれません</Alert>;
 
   if (game === null) return <Alert>該当ゲームデータは存在しません</Alert>;
   if (!game) return null;
@@ -459,4 +456,4 @@ const StyledDiv = styled.div`
   }
 `;
 
-export default GodMode;
+export default withLoginBoundary({ mustBeGod: true })(GodMode);

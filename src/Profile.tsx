@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { team, UserEntry, UserGameHistory } from './game-data';
@@ -7,13 +7,12 @@ import Icon from './Icon';
 import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
-import { useLoginUser } from './utils/user';
 import useTitle from './utils/useTitle';
+import withLoginBoundary, { Page } from './withLoginBoundary';
 
-const Profile: FC = () => {
+const Profile: Page = ({ loginUser }) => {
   const uid = useParams().uid as string;
   const user = useFirebaseSubscription<UserEntry>(`/users/${uid}`);
-  const loginUser = useLoginUser();
   const api = useApi();
   const userHistory = useFirebaseSubscription<UserGameHistory['a']>(
     `/userHistory/${uid}/`
@@ -151,4 +150,4 @@ const StyledDiv = styled.div`
   }
 `;
 
-export default Profile;
+export default withLoginBoundary()(Profile);

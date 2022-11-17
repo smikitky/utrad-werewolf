@@ -1,18 +1,17 @@
 import { signOut } from 'firebase/auth';
 import * as db from 'firebase/database';
-import { FC, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import AgentCountEditor from './AgentCountEditor.js';
 import { AgentCount, defaultAgentCount } from './game-data.js';
 import { agentTotalCount } from './game-utils.js';
 import UserList from './UserList.js';
-import { database, auth } from './utils/firebase.js';
+import { auth, database } from './utils/firebase.js';
 import { useApi } from './utils/useApi.js';
-import { useLoginUser } from './utils/user.js';
+import withLoginBoundary, { Page } from './withLoginBoundary.js';
 
-const Menu: FC = () => {
-  const loginUser = useLoginUser();
+const Menu: Page = ({ loginUser }) => {
   const api = useApi();
   const navigate = useNavigate();
 
@@ -35,17 +34,13 @@ const Menu: FC = () => {
   };
 
   const handleProfileClick = async () => {
-    if (loginUser.status !== 'loggedIn') return;
     navigate(`/profile/${loginUser.uid}`);
   };
 
   useEffect(() => {
     // Navigate to the game screen if the user is (already) in a game
-    if (loginUser.status === 'loggedIn' && loginUser.data.currentGameId) {
+    if (loginUser.data.currentGameId) {
       navigate(`/game/${loginUser.data.currentGameId}`);
-    }
-    if (loginUser.status === 'loggedOut') {
-      navigate('/login');
     }
   }, [loginUser]);
 
@@ -53,30 +48,12 @@ const Menu: FC = () => {
     <StyledDiv>
       <h2>メニュー</h2>
       <nav>
-        <button
-          onClick={handleStartNewGame}
-          disabled={loginUser.status !== 'loggedIn' || !loginUser.data.ready}
-        >
+        <button onClick={handleStartNewGame} disabled={!loginUser.data.ready}>
           新規ゲームを始める
         </button>
-        <button
-          onClick={handleReadyClick}
-          disabled={loginUser.status !== 'loggedIn'}
-        >
-          準備状態の切り替え
-        </button>
-        <button
-          onClick={handleProfileClick}
-          disabled={loginUser.status !== 'loggedIn'}
-        >
-          プロフィールを編集
-        </button>
-        <button
-          onClick={handleLogoutClick}
-          disabled={loginUser.status !== 'loggedIn'}
-        >
-          ログアウト
-        </button>
+        <button onClick={handleReadyClick}>準備状態の切り替え</button>
+        <button onClick={handleProfileClick}>プロフィールを編集</button>
+        <button onClick={handleLogoutClick}>ログアウト</button>
       </nav>
       <div className="custom">
         <label>
@@ -126,4 +103,4 @@ const StyledDiv = styled.div`
   }
 `;
 
-export default Menu;
+export default withLoginBoundary({ redirect: true })(Menu);
