@@ -1,5 +1,5 @@
 import * as db from 'firebase/database';
-import { FC, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
@@ -17,8 +17,27 @@ const GodMenu: FC = () => {
   const [results, setResults] = useState<any[]>([]);
   const users = useFirebaseSubscription<UserEntries>('/users');
   const api = useApi();
-  const globalGameHistory =
-    useFirebaseSubscription<GlobalGameHistory>('/globalHistory');
+  const [gameLog, setGameLog] = useState<GlobalGameHistory | Error>();
+  const [showFullLog, setShowFullLog] = useState(false);
+
+  const logRef = useMemo(
+    () =>
+      db.query(
+        db.ref(database, 'globalHistory'),
+        db.orderByChild('finishedAt'),
+        ...(showFullLog ? [] : [db.limitToLast(20)])
+      ),
+    [showFullLog]
+  );
+
+  useEffect(() => {
+    const unsubscribe = db.onValue(
+      logRef,
+      snapshot => setGameLog(snapshot.val()),
+      err => setGameLog(err)
+    );
+    return unsubscribe;
+  }, [logRef]);
 
   useTitle('God Mode メニュー');
 
@@ -74,10 +93,20 @@ const GodMenu: FC = () => {
         />
         <button onClick={addUserClick}>Add</button>
       </div>
-      <h2>全ゲーム一覧</h2>
+      <h2>
+        {showFullLog ? (
+          '全ゲーム一覧'
+        ) : (
+          <>
+            最近のゲーム{' '}
+            <button onClick={() => setShowFullLog(true)}>全件表示</button>
+          </>
+        )}
+      </h2>
       <ul className="recent">
-        {globalGameHistory.data &&
-          Object.entries(globalGameHistory.data)
+        {gameLog &&
+          !(gameLog instanceof Error) &&
+          Object.entries(gameLog)
             .sort(
               (a, b) =>
                 (b[1].finishedAt as number) - (a[1].finishedAt as number)
