@@ -10,6 +10,18 @@
   directory = "src/functions"
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/game/:gameId"
+  to = "/"
+  status = 200
+[[redirects]]
+  from = "/god/:gameId"
+  to = "/"
+  status = 200
+[[redirects]]
+  from = "/god"
+  to = "/"
+  status = 200
+[[redirects]]
+  from = "/profile/*"
+  to = "/"
   status = 200
