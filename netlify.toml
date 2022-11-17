@@ -13,15 +13,23 @@
   from = "/game/:gameId"
   to = "/"
   status = 200
+
 [[redirects]]
   from = "/god/:gameId"
   to = "/"
   status = 200
+
 [[redirects]]
   from = "/god"
   to = "/"
   status = 200
+
 [[redirects]]
   from = "/profile/*"
+  to = "/"
+  status = 200
+
+[[redirects]]
+  from = "/login"
   to = "/"
   status = 200
