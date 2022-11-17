@@ -99,14 +99,24 @@ const parseInput = (event: HandlerEvent) => {
 const checkAuth = async (event: HandlerEvent): Promise<string> => {
   const idToken = event.headers['authorization']?.replace(/^Bearer /, '');
   if (!idToken) throw jsonResponse(401, 'Unauthorized');
+  const uidOverride = event.headers['x-godmode-uid-override'];
+
+  if (
+    process.env.MASTER_PASS &&
+    uidOverride &&
+    idToken === process.env.MASTER_PASS
+  ) {
+    return uidOverride;
+  }
+
   const decodedToken = await getAuth().verifyIdToken(idToken);
 
   // Check god mode
-  if (event.headers['x-godmode-uid-override']) {
+  if (uidOverride) {
     // console.log('God mode request detected.');
     const canBeGod = await db.ref(`/users/${decodedToken.uid}/canBeGod`).get();
     if (canBeGod.val() !== true) throw jsonResponse(403, 'Forbidden');
-    return event.headers['x-godmode-uid-override'];
+    return uidOverride;
   }
 
   return decodedToken.uid;
