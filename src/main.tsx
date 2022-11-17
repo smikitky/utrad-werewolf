@@ -47,6 +47,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   h2 {
+    width: 100%;
     display: flex;
     align-items: center;
     margin: 10px auto;

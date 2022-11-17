@@ -41,6 +41,11 @@ const GodMenu: FC = () => {
         await db.set(ref, !user.ready);
         break;
       }
+      case 'toggleOnline': {
+        const ref = db.ref(database, `users/${uid}/onlineStatus`);
+        await db.set(ref, !user.onlineStatus);
+        break;
+      }
       case 'toggleGod':
         await api('editUser', {
           target: uid,
@@ -53,57 +58,59 @@ const GodMenu: FC = () => {
   return (
     <StyledDiv>
       <h1>God Mode Menu</h1>
-      <section>
-        <h2>全ユーザー</h2>
-        <UserList
-          onUserCommand={handleUserCommand}
-          onlineOnly={false}
-          showAdminMenu={true}
+      <h2>全ユーザー</h2>
+      <UserList
+        onUserCommand={handleUserCommand}
+        onlineOnly={false}
+        showAdminMenu={true}
+      />
+      <h2>NPCアカウントを追加</h2>
+      <div>
+        <input
+          type="text"
+          placeholder="uid"
+          value={newUid}
+          onChange={e => setNewUid(e.target.value)}
         />
-        <h2>NPCアカウントを追加</h2>
-        <div>
-          <input
-            type="text"
-            placeholder="uid"
-            value={newUid}
-            onChange={e => setNewUid(e.target.value)}
-          />
-          <button onClick={addUserClick}>Add</button>
-        </div>
-        <h2>全ゲーム一覧</h2>
-        <ul className="recent">
-          {globalGameHistory.data &&
-            Object.entries(globalGameHistory.data)
-              .sort(
-                (a, b) =>
-                  (b[1].finishedAt as number) - (a[1].finishedAt as number)
-              )
-              .map(([gameId, game]) => (
-                <li key={gameId}>
-                  <Link to={`/god/${gameId}`}>
-                    {formatDate(game.finishedAt as number)}{' '}
-                    {game.wasAborted ? (
-                      '(中断)'
-                    ) : (
-                      <>{teamTextMap[game.winner!]}勝利</>
-                    )}{' '}
-                    <span className="game-id">{gameId}</span>
-                  </Link>
-                </li>
-              ))}
-        </ul>
-      </section>
+        <button onClick={addUserClick}>Add</button>
+      </div>
+      <h2>全ゲーム一覧</h2>
+      <ul className="recent">
+        {globalGameHistory.data &&
+          Object.entries(globalGameHistory.data)
+            .sort(
+              (a, b) =>
+                (b[1].finishedAt as number) - (a[1].finishedAt as number)
+            )
+            .map(([gameId, game]) => (
+              <li key={gameId}>
+                <Link to={`/god/${gameId}`}>
+                  {formatDate(game.finishedAt as number)}{' '}
+                  {game.wasAborted ? (
+                    '(中断)'
+                  ) : (
+                    <>{teamTextMap[game.winner!]}勝利</>
+                  )}{' '}
+                  <span className="game-id">{gameId}</span>
+                </Link>
+              </li>
+            ))}
+      </ul>
     </StyledDiv>
   );
 };
 
 const StyledDiv = styled.div`
   padding: 10px;
+  height: 100%;
+  display: flex;
+  flex-flow: column;
   .recent {
+    flex: 1 1 auto;
+    min-height: 20em;
+    overflow-y: auto;
     list-style: disc;
     padding-left: 20px;
-    max-height: 10em;
-    overflow-y: auto;
     a {
       text-decoration: none;
       .game-id {

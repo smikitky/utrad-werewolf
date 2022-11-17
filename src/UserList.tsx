@@ -14,11 +14,7 @@ import Icon from './Icon';
 import { useLoginUser } from './utils/user';
 import { Link } from 'react-router-dom';
 
-export type UserListCommand =
-  | 'goToGame'
-  | 'toggleReady'
-  | 'profile'
-  | 'toggleGod';
+export type UserListCommand = 'toggleReady' | 'toggleOnline' | 'toggleGod';
 
 const UserList: FC<{
   onlineOnly?: boolean;
@@ -161,6 +157,11 @@ const UserList: FC<{
             )}
             <li data-command="profile">
               <Link to={`/profile/${menu.target}`}>プロフィール</Link>
+            </li>
+            <li data-command="toggleOnline">
+              {selectedUser.onlineStatus
+                ? '強制オフライン化'
+                : '強制オンライン化'}
             </li>
             {menu.target !== loginUser.uid && (
               <li data-command="toggleGod">
