@@ -228,17 +228,20 @@ const finalizeGame = async (gameId: string, game: Game): Promise<void> => {
 
   const winner = game.winner;
   if (!winner) throw new Error('Game is not finished');
+  const numAgents = game.agents.length;
   await db
     .ref('userHistory')
     .update(
       Object.fromEntries(
         game.agents.map(a => [
           `${a.userId}/${gameId}`,
-          { finishedAt: now(), winner, role: a.role }
+          { finishedAt: now(), numAgents, winner, role: a.role }
         ])
       )
     );
-  await db.ref(`globalHistory/${gameId}`).set({ finishedAt: now(), winner });
+  await db
+    .ref(`globalHistory/${gameId}`)
+    .set({ finishedAt: now(), numAgents, winner });
 };
 
 const releaseUsers = async (userIds: string[]): Promise<void> => {
@@ -313,6 +316,7 @@ const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
   // if (!userIds.includes(uid))
   //   return jsonResponse(403, 'You are not a player of this game');
   await gameRef.update({ finishedAt: now(), wasAborted: true });
+  const numAgents = game.agents.length;
 
   await db
     .ref('userHistory')
@@ -320,13 +324,14 @@ const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
       Object.fromEntries(
         game.agents.map(a => [
           `${a.userId}/${gameId}`,
-          { finishedAt: now(), wasAborted: true, role: a.role }
+          { finishedAt: now(), wasAborted: true, numAgents, role: a.role }
         ])
       )
     );
   await db.ref(`globalHistory/${gameId}`).set({
     finishedAt: now(),
-    wasAborted: true
+    wasAborted: true,
+    numAgents
   });
 
   releaseUsers(userIds);
