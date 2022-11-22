@@ -68,7 +68,7 @@ const lastAction = (game: Game, agent: AgentInfo) => {
   if (overEntry) return '(発話終了)';
 };
 
-type ShowLogType = 'game' | 'debug' | 'off' | AgentId;
+type ShowLogType = 'game' | 'debug' | 'api' | 'off' | AgentId;
 
 const GodMode: Page = () => {
   const [selectedAgent, setSelectedAgent] = useState('');
@@ -76,7 +76,6 @@ const GodMode: Page = () => {
   const [param, setParam] = useState('');
   const [apiResponses, setApiResponses] = useState<any[]>([]);
   const [showLogType, setShowLogType] = useState<ShowLogType>('game');
-  const [apiLogOpen, setApiLogOpen] = useState<boolean>(false);
 
   const gameId = useParams().gameId as string;
   const gameData = useFirebaseSubscription<Game>(`/games/${gameId}`);
@@ -132,8 +131,8 @@ const GodMode: Page = () => {
       status: res.status,
       result: res.data
     };
-    if (res.status !== 200) setApiLogOpen(true);
-    setApiResponses([...apiResponses, item]);
+    if (res.status !== 200) setShowLogType('api');
+    setApiResponses(arr => [item, ...arr]);
   };
 
   const handleClearLog = () => {
@@ -194,66 +193,50 @@ const GodMode: Page = () => {
         </div>
       </div>
       <div className="log-pane">
-        <div className="game-log-pane">
-          <select
-            name="logtype"
-            value={String(showLogType)}
-            onChange={handleLogTypeSelect}
-          >
-            <option value="game">完全ログ</option>
-            {game.agents.map(a => (
-              <option key={a.agentId} value={a.agentId}>
-                {a.name} のログ
-              </option>
-            ))}
-            <option value="debug">デバッグ生ログ</option>
-          </select>
-          {showLogType === 'game' || typeof showLogType === 'number' ? (
-            <GameLog
-              game={game}
-              myAgent={
-                showLogType === 'game'
-                  ? 'god'
-                  : game.agents.find(a => a.agentId === showLogType)!
-              }
-            />
-          ) : showLogType === 'debug' ? (
-            <pre className="debug-log">{JSON.stringify(game, null, 2)}</pre>
-          ) : (
-            <div>(Log turned off)</div>
-          )}
-        </div>
-        <div className={classNames('api-log-pane', { open: apiLogOpen })}>
-          {apiLogOpen ? (
-            <>
-              <div>
-                <button
-                  onClick={handleClearLog}
-                  disabled={apiResponses.length === 0}
-                >
-                  <Icon icon="playlist_remove" />
-                </button>
-                <button onClick={() => setApiLogOpen(false)}>
-                  <Icon icon="arrow_right" />
-                </button>
-              </div>
-              <ul className="api-log">
-                {apiResponses.map((result, i) => (
-                  <li
-                    key={i}
-                    className={result.status === 200 ? 'ok' : 'error'}
-                  >
-                    {JSON.stringify(result)}
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <button onClick={() => setApiLogOpen(true)}>
-              <Icon icon="arrow_left" />
+        <select
+          name="logtype"
+          value={String(showLogType)}
+          onChange={handleLogTypeSelect}
+        >
+          <option value="game">完全ログ</option>
+          {game.agents.map(a => (
+            <option key={a.agentId} value={a.agentId}>
+              {a.name} ({roleTextMap[a.role]}) のログ
+            </option>
+          ))}
+          <option value="debug">デバッグ生ログ</option>
+          <option value="api">APIレスポンスログ</option>
+        </select>
+        {showLogType === 'game' || typeof showLogType === 'number' ? (
+          <GameLog
+            game={game}
+            myAgent={
+              showLogType === 'game'
+                ? 'god'
+                : game.agents.find(a => a.agentId === showLogType)!
+            }
+          />
+        ) : showLogType === 'debug' ? (
+          <pre className="debug-log">{JSON.stringify(game, null, 2)}</pre>
+        ) : showLogType === 'api' ? (
+          <div className="api-log-pane">
+            <button
+              onClick={handleClearLog}
+              disabled={apiResponses.length === 0}
+            >
+              <Icon icon="playlist_remove" />
             </button>
-          )}
-        </div>
+            <ul className="api-log">
+              {apiResponses.map((result, i) => (
+                <li key={i} className={result.status === 200 ? 'ok' : 'error'}>
+                  {JSON.stringify(result)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div>(Log turned off)</div>
+        )}
       </div>
       <details className="foot" open>
         <summary>詳細</summary>
@@ -387,12 +370,6 @@ const StyledDiv = styled.div`
     padding: 5px;
   }
   .log-pane {
-    min-height: 0;
-    display: flex;
-    gap: 5px;
-  }
-  .game-log-pane {
-    // left
     flex: 1 1 60%;
     display: flex;
     gap: 5px;
@@ -400,18 +377,7 @@ const StyledDiv = styled.div`
     min-height: 0;
     padding-left: 5px;
   }
-  .api-log-pane {
-    // right
-    flex-basis: 50px;
-    &.open {
-      flex-basis: 40%;
-    }
-    overflow-y: auto;
-    border-left: 1px solid silver;
-    padding-left: 5px;
-  }
   ul.api-log {
-    font-size: 10px;
     li {
       &.ok {
         color: green;
@@ -419,6 +385,7 @@ const StyledDiv = styled.div`
       &.error {
         color: red;
       }
+      border-bottom: 1px solid silver;
     }
   }
   .foot {
@@ -450,6 +417,9 @@ const StyledDiv = styled.div`
     background: white;
     overflow-y: scroll;
     white-space: pre-wrap;
+  }
+  .api-log-pane {
+    overflow-y: auto;
   }
   small {
     color: silver;
