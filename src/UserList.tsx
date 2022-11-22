@@ -182,9 +182,10 @@ const StyledDiv = styled.div`
   > ul {
     display: grid;
     gap: 5px;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     list-style: none;
     li {
+      height: 25px;
       display: flex;
       align-items: center;
       gap: 4px;
@@ -194,6 +195,7 @@ const StyledDiv = styled.div`
       user-select: none;
       .name {
         flex: 1;
+        height: 25px;
       }
       .god-indicator {
         color: #915e00;
@@ -202,13 +204,16 @@ const StyledDiv = styled.div`
         background-color: #aaffaa;
       }
       &.in-game {
-        background-color: #ffffaa;
+        background-color: #fff56b;
       }
       &.online.ready .status .material-icons {
         color: green;
       }
-      &.online:not(.ready) .status .material-icons {
-        color: brown;
+      &.online:not(.ready) {
+        background-color: #9db694;
+        .status .material-icons {
+          color: brown;
+        }
       }
       &.active {
         filter: brightness(1.2);
