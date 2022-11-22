@@ -1,9 +1,10 @@
 import * as db from 'firebase/database';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, MouseEventHandler, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
 import { teamTextMap } from './game-utils';
+import Icon from './Icon';
 import UserList, { UserListCommand } from './UserList';
 import { database } from './utils/firebase.js';
 import formatDate from './utils/formatDate';
@@ -74,6 +75,21 @@ const GodMenu: FC = () => {
     }
   };
 
+  const handleDownloadLog: MouseEventHandler = async ev => {
+    const gameId = (ev.currentTarget as HTMLAnchorElement).dataset.gameid;
+    if (!gameId) return;
+    const ref = db.ref(database, `/games/${gameId}`);
+    const data = (await db.get(ref)).val();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${gameId}.json`;
+    a.click();
+  };
+
   return (
     <StyledDiv>
       <h1>God Mode Menu</h1>
@@ -120,8 +136,17 @@ const GodMenu: FC = () => {
                   ) : (
                     <>{teamTextMap[game.winner!]}勝利</>
                   )}{' '}
-                  <span className="game-id">{gameId}</span>
                 </Link>
+                <button
+                  className="download"
+                  data-gameid={gameId}
+                  onClick={handleDownloadLog}
+                >
+                  <Icon icon="download" />
+                </button>
+                <span className="game-id" role="button">
+                  {gameId}
+                </span>
               </li>
             ))}
       </ul>
@@ -142,10 +167,17 @@ const StyledDiv = styled.div`
     padding-left: 20px;
     a {
       text-decoration: none;
-      .game-id {
-        color: gray;
-        font-size: 80%;
-      }
+    }
+    .game-id {
+      color: gray;
+      font-size: 80%;
+    }
+    .download {
+      color: green;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
     }
   }
 `;
