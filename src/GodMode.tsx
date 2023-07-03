@@ -1,8 +1,10 @@
 import classNames from 'classnames';
-import { FC, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Alert from './Alert ';
+import Icon from './Icon';
+import RoleDisplay from './RoleDisplay';
 import {
   AgentId,
   AgentInfo,
@@ -13,20 +15,14 @@ import {
   OverLogEntry,
   UserEntries
 } from './game-data';
-import {
-  Action,
-  agentAction,
-  extractLogOfPeriod,
-  roleTextMap
-} from './game-utils';
+import { Action, agentAction, extractLogOfPeriod } from './game-utils';
 import GameLog from './game/GameLog';
-import Icon from './Icon';
-import withLoginBoundary, { Page } from './withLoginBoundary';
 import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
-import { useLoginUser } from './utils/user';
+import useLang from './utils/useLang';
 import useTitle from './utils/useTitle';
+import withLoginBoundary, { Page } from './withLoginBoundary';
 
 const actionTextMap: Record<Action, string> = {
   attackVote: '襲撃投票中',
@@ -82,6 +78,7 @@ const GodMode: Page = () => {
   const userData = useFirebaseSubscription<UserEntries>(`/users`);
   const game = gameData.data;
   const api = useApi();
+  const lang = useLang();
 
   useTitle(
     !game
@@ -91,9 +88,12 @@ const GodMode: Page = () => {
             ? '終了'
             : `${game.status.day}日目${
                 game.status.period === 'day' ? '昼' : '夜'
-              }${game.status.votePhase > 0 ? '投票中 ' : ' '} ${
-                game?.agents.filter(a => a.life === 'alive').length
-              }人生存`)
+              }${
+                typeof game.status.votePhase === 'number' &&
+                game.status.votePhase > 0
+                  ? '投票中 '
+                  : ' '
+              } ${game?.agents.filter(a => a.life === 'alive').length}人生存`)
   );
 
   useEffect(() => {
@@ -201,7 +201,7 @@ const GodMode: Page = () => {
           <option value="game">完全ログ</option>
           {game.agents.map(a => (
             <option key={a.agentId} value={a.agentId}>
-              {a.name} ({roleTextMap[a.role]}) のログ
+              {a.name} (<RoleDisplay role={a.role} />) のログ
             </option>
           ))}
           <option value="debug">デバッグ生ログ</option>
@@ -266,7 +266,9 @@ const GodMode: Page = () => {
                   >
                     <td>{agent.agentId}</td>
                     <td>{agent.name}</td>
-                    <td>{roleTextMap[agent.role]}</td>
+                    <td>
+                      <RoleDisplay role={agent.role} />
+                    </td>
                     <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
                     <td className={classNames('action', action)}>
                       {actionTextMap[action]}
@@ -291,7 +293,7 @@ const GodMode: Page = () => {
             {game.agents.map(agent => {
               return (
                 <option key={agent.userId} value={agent.userId}>
-                  {agent.name} ({roleTextMap[agent.role]})
+                  {agent.name} (<RoleDisplay role={agent.role} />)
                 </option>
               );
             })}

@@ -1,8 +1,9 @@
 import classNames from 'classnames';
 import { FC } from 'react';
 import styled from 'styled-components';
+import RoleDisplay from './RoleDisplay';
 import { AgentCount, AgentRole, agentRoles } from './game-data';
-import { agentTotalCount, isValidAgentCount, roleTextMap } from './game-utils';
+import { agentTotalCount, isValidAgentCount } from './game-utils';
 
 const AgentCountEditor: FC<{
   value: AgentCount;
@@ -28,7 +29,9 @@ const AgentCountEditor: FC<{
     <StyledDiv>
       {agentRoles.map(role => (
         <div key={role} className={classNames('cell', role)}>
-          <div className="role">{roleTextMap[role]}</div>
+          <div className="role">
+            <RoleDisplay role={role} />
+          </div>
           <div className="count">{value[role]}</div>
           <div className="buttons">
             <button

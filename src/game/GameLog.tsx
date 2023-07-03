@@ -1,11 +1,13 @@
 import classNames from 'classnames';
 import { FC, ReactElement, useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
+import Icon from '../Icon.js';
+import { makeLangResource } from '../LangResource.js';
+import { TeamDisplay } from '../RoleDisplay.js';
 import {
   AgentId,
   AgentInfo,
   AgentRole,
-  agentRoles,
   AttackVoteLogEntry,
   ChatLogEntry,
   DivineLogEntry,
@@ -20,18 +22,13 @@ import {
   OverLogEntry,
   ResultLogEntry,
   StatusLogEntry,
-  team,
-  VoteLogEntry
+  VoteLogEntry,
+  agentRoles,
+  team
 } from '../game-data.js';
-import {
-  extractLogOfPeriod,
-  roleTextMap,
-  teamTextMap,
-  voteEntries
-} from '../game-utils.js';
-import Icon from '../Icon.js';
+import { extractLogOfPeriod, roleTextMap, voteEntries } from '../game-utils.js';
+import useLang from '../utils/useLang.js';
 import Player from './Player.js';
-import { makeLangResource } from '../LangResource.js';
 
 const LangResource = makeLangResource({
   noVote: { en: 'No vote', ja: '投票なし' }
@@ -100,6 +97,7 @@ type LogItem<T extends LogEntry> = (props: {
 
 const StatusLogItem: LogItem<StatusLogEntry> = props => {
   const { game, myAgent, entry } = props;
+  const lang = useLang();
 
   const content = (() => {
     switch (entry.event) {
@@ -117,7 +115,7 @@ const StatusLogItem: LogItem<StatusLogEntry> = props => {
           .filter(([role, count]) => count > 0);
         const totalAlive = entry.agents.filter(a => a.life === 'alive').length;
         const countsText = counts
-          .map(([role, count]) => `${count} 人の${roleTextMap[role]}`)
+          .map(([role, count]) => `${count} 人の${roleTextMap[lang][role]}`)
           .join('、');
         if (entry.day === 0) {
           return (
@@ -194,6 +192,8 @@ const StatusLogItem: LogItem<StatusLogEntry> = props => {
 
 const ChatLogItem: LogItem<ChatLogEntry> = props => {
   const { game, myAgent, entry } = props;
+  const lang = useLang();
+
   const invisible =
     myAgent !== 'god' &&
     myAgent.role !== 'werewolf' &&
@@ -207,8 +207,10 @@ const ChatLogItem: LogItem<ChatLogEntry> = props => {
         {myAgent === 'god' && (
           <span className="speaker-role">
             {agent.role === 'werewolf'
-              ? '狼'
-              : roleTextMap[agent.role].charAt(0)}
+              ? lang === 'en'
+                ? 'W'
+                : '狼'
+              : roleTextMap[lang][agent.role].charAt(0)}
           </span>
         )}
         {entry.content}
@@ -366,7 +368,8 @@ const ResultLogItem: LogItem<ResultLogEntry> = props => {
       </div>
       {myAgent !== 'god' && (
         <div className="your-result">
-          あなたが味方した陣営（{teamTextMap[team(myAgent.role)]}）
+          あなたが味方した陣営（
+          <TeamDisplay team={team(myAgent.role)} />）
           {winner === team(myAgent.role) ? (
             <>
               の勝利。

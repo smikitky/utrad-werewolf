@@ -14,7 +14,7 @@ import withLoginBoundary, { Page } from './withLoginBoundary.js';
 import { makeLangResource } from './LangResource.js';
 
 const LangResource = makeLangResource({
-  start: { en: '-person Werewolf', ja: '人で新規ゲームを開始' },
+  start: { en: '-player Werewolf', ja: '人で新規ゲームを開始' },
   ready: { en: "I'm Ready!", ja: '準備OK!' },
   pause: { en: 'Not Ready', ja: '一時的に不参加' },
   profile: { en: 'Profile', ja: 'プロフィール' },

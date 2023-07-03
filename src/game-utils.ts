@@ -12,18 +12,36 @@ import {
   VotePhase
 } from './game-data';
 
-export const roleTextMap: { [key in AgentRole]: string } = {
-  villager: '村人',
-  werewolf: '人狼',
-  seer: '占い師',
-  possessed: '裏切り者',
-  medium: '霊媒師',
-  bodyguard: '狩人'
+export type Lang = 'en' | 'ja';
+
+export const roleTextMap: { [lang in Lang]: { [key in AgentRole]: string } } = {
+  en: {
+    villager: 'Villager',
+    werewolf: 'Werewolf',
+    seer: 'Seer',
+    possessed: 'Possessed',
+    medium: 'Medium',
+    bodyguard: 'Bodyguard'
+  },
+  ja: {
+    villager: '村人',
+    werewolf: '人狼',
+    seer: '占い師',
+    possessed: '裏切り者',
+    medium: '霊媒師',
+    bodyguard: '狩人'
+  }
 };
 
-export const teamTextMap: { [key in Team]: string } = {
-  villagers: '村人陣営',
-  werewolves: '人狼陣営'
+export const teamTextMap: { [lang in Lang]: { [key in Team]: string } } = {
+  en: {
+    villagers: 'Villagers',
+    werewolves: 'Werewolves'
+  },
+  ja: {
+    villagers: '村人陣営',
+    werewolves: '人狼陣営'
+  }
 };
 
 export const agentTotalCount = (counts: AgentCount) =>

@@ -1,14 +1,27 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { team, UserEntry, UserGameHistory } from './game-data';
-import { roleTextMap, teamTextMap } from './game-utils';
 import Icon from './Icon';
+import { BasicLangResource, makeLangResource } from './LangResource';
+import RoleDisplay, { TeamDisplay } from './RoleDisplay';
+import { UserEntry, UserGameHistory, team } from './game-data';
 import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import useTitle from './utils/useTitle';
 import withLoginBoundary, { Page } from './withLoginBoundary';
+
+const LangResource = makeLangResource({
+  userInformation: { en: 'User Information', ja: 'ユーザ情報' },
+  userUid: { en: 'User ID', ja: 'ユーザ UID' },
+  userName: { en: 'User Name', ja: 'ユーザ名' },
+  changeUserName: { en: 'Change User Name', ja: 'ユーザ名を変更' },
+  onlineStatus: { en: 'Online Status', ja: 'オンライン状況' },
+  playHistory: { en: 'Play History', ja: 'プレイ履歴' },
+  items: { en: 'Items', ja: '件' },
+  aborted: { en: '(Aborted)', ja: '(中断)' },
+  won: { en: ' Won', ja: '勝利' }
+});
 
 const Profile: Page = ({ loginUser }) => {
   const uid = useParams().uid as string;
@@ -44,20 +57,30 @@ const Profile: Page = ({ loginUser }) => {
 
   return (
     <StyledDiv>
-      <h1>プロフィール</h1>
+      <h1>
+        <BasicLangResource id="profile" />
+      </h1>
       <section>
-        <h2>ユーザ情報</h2>
+        <h2>
+          <LangResource id="userInformation" />
+        </h2>
         <dl>
-          <dt>ユーザ UID</dt>
+          <dt>
+            <LangResource id="userUid" />
+          </dt>
           <dd>{uid}</dd>
-          <dt>ユーザ名</dt>
+          <dt>
+            <LangResource id="userName" />
+          </dt>
           <dd>
             {editName === null ? (
               <>
                 {user.data.name}
                 {loginUser.status === 'loggedIn' && loginUser.uid === uid && (
                   <>
-                    <button onClick={handleNameChange}>ユーザ名変更</button>
+                    <button onClick={handleNameChange}>
+                      <LangResource id="changeUserName" />
+                    </button>
                   </>
                 )}
               </>
@@ -69,15 +92,35 @@ const Profile: Page = ({ loginUser }) => {
                   onChange={e => setEditName(e.target.value)}
                   autoFocus
                 />
-                <button onClick={commitNameChange}>決定</button>
-                <button onClick={() => setEditName(null)}>キャンセル</button>
+                <button onClick={commitNameChange}>
+                  <BasicLangResource id="ok" />
+                </button>
+                <button onClick={() => setEditName(null)}>
+                  <BasicLangResource id="cancel" />
+                </button>
               </>
             )}
           </dd>
-          <dt>オンライン状況</dt>
-          <dd>{user.data.onlineStatus ? 'オンライン' : 'オフライン'}</dd>
+          <dt>
+            <LangResource id="onlineStatus" />
+          </dt>
+          <dd>
+            {user.data.onlineStatus ? (
+              <BasicLangResource id="online" />
+            ) : (
+              <BasicLangResource id="offline" />
+            )}
+          </dd>
         </dl>
-        <h2>プレイ履歴{userHistory.data && <> ({history.length}件)</>}</h2>
+        <h2>
+          <LangResource id="playHistory" />
+          {userHistory.data && (
+            <>
+              {' '}
+              ({history.length} <LangResource id="items" />)
+            </>
+          )}
+        </h2>
         <ul>
           {history.map(([gameId, entry]) => (
             <li key={gameId}>
@@ -85,14 +128,17 @@ const Profile: Page = ({ loginUser }) => {
                 <span className="date">
                   {formatDate(entry.finishedAt as number)}
                 </span>{' '}
-                <span className="num-agents">{entry.numAgents}名</span>{' '}
-                <span className="role">{roleTextMap[entry.role]}</span>{' '}
+                <span className="num-agents">{entry.numAgents}P</span>{' '}
+                <span className="role">
+                  <RoleDisplay role={entry.role} />
+                </span>{' '}
                 <span className="result">
                   {entry.wasAborted ? (
-                    '(中断)'
+                    <LangResource id="aborted" />
                   ) : (
                     <>
-                      {teamTextMap[entry.winner!]}勝利
+                      {<TeamDisplay team={entry.winner!} />}
+                      <LangResource id="won" />
                       {entry.winner === team(entry.role) ? (
                         <Icon icon="military_tech" />
                       ) : (

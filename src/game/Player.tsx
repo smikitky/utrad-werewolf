@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import { FC, MouseEventHandler } from 'react';
 import styled from 'styled-components';
+import RoleDisplay from '../RoleDisplay.js';
 import { AgentInfo } from '../game-data.js';
-import { roleTextMap } from '../game-utils.js';
 
 const Player: FC<{
   agent: AgentInfo;
@@ -28,7 +28,11 @@ const Player: FC<{
       <div className="indicators">
         <div>{agent.name}</div>
         {isMe && <div>あなた</div>}
-        {revealRole && <div>{roleTextMap[agent.role]}</div>}
+        {revealRole && (
+          <div>
+            <RoleDisplay role={agent.role} />
+          </div>
+        )}
       </div>
     </StyledPlayerDiv>
   );

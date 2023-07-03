@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
+import { Lang } from '../game-utils';
 
-export type Lang = 'ja' | 'en';
 export const LangContext = createContext<Lang>('ja');
 export const SetLangContext = createContext<(lang: Lang) => void>(() => {});
 

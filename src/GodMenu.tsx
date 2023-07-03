@@ -2,16 +2,27 @@ import * as db from 'firebase/database';
 import { FC, MouseEventHandler, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
-import { teamTextMap } from './game-utils';
 import Icon from './Icon';
+import { makeLangResource } from './LangResource';
+import { TeamDisplay } from './RoleDisplay';
 import UserList, { UserListCommand } from './UserList';
+import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
 import { database } from './utils/firebase.js';
 import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import useTitle from './utils/useTitle';
 import withLoginBoundary from './withLoginBoundary';
+
+const LangResource = makeLangResource({
+  allUsers: { en: 'All Users', ja: '全ユーザー' },
+  addNpcAccount: { en: 'Add NPC Account', ja: 'NPCアカウントを追加' },
+  allLog: { en: 'Full Game Log', ja: '全ゲーム一覧' },
+  recentGames: { en: 'Recent Games', ja: '最近のゲーム' },
+  showFullLog: { en: 'Show Full Log', ja: '全ログを表示' },
+  aborted: { en: '(Aborted)', ja: '(中断)' },
+  won: { en: ' Won', ja: '勝利' }
+});
 
 const GodMenu: FC = () => {
   const [newUid, setNewUid] = useState('');
@@ -40,7 +51,7 @@ const GodMenu: FC = () => {
     return unsubscribe;
   }, [logRef]);
 
-  useTitle('God Mode メニュー');
+  useTitle('God Mode Menu');
 
   if (!users.data) return null;
 
@@ -93,13 +104,17 @@ const GodMenu: FC = () => {
   return (
     <StyledDiv>
       <h1>God Mode Menu</h1>
-      <h2>全ユーザー</h2>
+      <h2>
+        <LangResource id="allUsers" />
+      </h2>
       <UserList
         onUserCommand={handleUserCommand}
         onlineOnly={false}
         showAdminMenu={true}
       />
-      <h2>NPCアカウントを追加</h2>
+      <h2>
+        <LangResource id="addNpcAccount" />
+      </h2>
       <div>
         <input
           type="text"
@@ -111,11 +126,13 @@ const GodMenu: FC = () => {
       </div>
       <h2>
         {showFullLog ? (
-          '全ゲーム一覧'
+          <LangResource id="allLog" />
         ) : (
           <>
-            最近のゲーム{' '}
-            <button onClick={() => setShowFullLog(true)}>全件表示</button>
+            <LangResource id="recentGames" />{' '}
+            <button onClick={() => setShowFullLog(true)}>
+              <LangResource id="showFullLog" />
+            </button>
           </>
         )}
       </h2>
@@ -130,11 +147,14 @@ const GodMenu: FC = () => {
             .map(([gameId, game]) => (
               <li key={gameId}>
                 <Link to={`/god/${gameId}`}>
-                  {formatDate(game.finishedAt as number)} {game.numAgents}名{' '}
+                  {formatDate(game.finishedAt as number)} {game.numAgents}P{' '}
                   {game.wasAborted ? (
-                    '(中断)'
+                    <LangResource id="aborted" />
                   ) : (
-                    <>{teamTextMap[game.winner!]}勝利</>
+                    <>
+                      <TeamDisplay team={game.winner!} />
+                      <LangResource id="won" />
+                    </>
                   )}{' '}
                 </Link>
                 <button

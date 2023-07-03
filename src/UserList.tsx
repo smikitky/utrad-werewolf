@@ -13,8 +13,19 @@ import styled from 'styled-components';
 import Icon from './Icon';
 import { useLoginUser } from './utils/user';
 import { Link } from 'react-router-dom';
+import { BasicLangResource, makeLangResource } from './LangResource';
 
 export type UserListCommand = 'toggleReady' | 'toggleOnline' | 'toggleGod';
+
+const LangResource = makeLangResource({
+  goToGame: { en: 'Go to This Game', ja: 'ゲームへ' },
+  makeReady: { en: 'Make Ready', ja: '準備OKにする' },
+  makeUnready: { en: 'Make Unready', ja: '一時待機中にする' },
+  forceOnline: { en: 'Force Online', ja: '強制オンライン化' },
+  forceOffline: { en: 'Force Offline', ja: '強制オフライン化' },
+  turnToAdmin: { en: 'Turn to Admin', ja: '管理者にする' },
+  revokeAdmin: { en: 'Revoke Admin', ja: '管理者を取り消す' }
+});
 
 const UserList: FC<{
   onlineOnly?: boolean;
@@ -129,7 +140,7 @@ const UserList: FC<{
             <span className="name">
               {user.name}
               {user.canBeGod && (
-                <span title="管理者" className="god-indicator">
+                <span title="Admin" className="god-indicator">
                   ★
                 </span>
               )}
@@ -147,27 +158,39 @@ const UserList: FC<{
           <ul onClick={handleMenuSelect}>
             {selectedUser.currentGameId && (
               <li data-command="goToGame">
-                <Link to={`/god/${selectedUser.currentGameId}`}>ゲームへ</Link>
+                <Link to={`/god/${selectedUser.currentGameId}`}>
+                  <LangResource id="goToGame" />
+                </Link>
               </li>
             )}
             {selectedUser.onlineStatus && !selectedUser.currentGameId && (
               <li data-command="toggleReady">
-                {selectedUser.ready ? '一時待機中にする' : '準備OKにする'}
+                {selectedUser.ready ? (
+                  <LangResource id="makeUnready" />
+                ) : (
+                  <LangResource id="makeReady" />
+                )}
               </li>
             )}
             <li data-command="profile">
-              <Link to={`/profile/${menu.target}`}>プロフィール</Link>
+              <Link to={`/profile/${menu.target}`}>
+                <BasicLangResource id="profile" />
+              </Link>
             </li>
             <li data-command="toggleOnline">
-              {selectedUser.onlineStatus
-                ? '強制オフライン化'
-                : '強制オンライン化'}
+              {selectedUser.onlineStatus ? (
+                <LangResource id="forceOffline" />
+              ) : (
+                <LangResource id="forceOnline" />
+              )}
             </li>
             {menu.target !== loginUser.uid && (
               <li data-command="toggleGod">
-                {selectedUser.canBeGod
-                  ? '管理者権限を剥奪'
-                  : '管理者権限を付与'}
+                {selectedUser.canBeGod ? (
+                  <LangResource id="revokeAdmin" />
+                ) : (
+                  <LangResource id="turnToAdmin" />
+                )}
               </li>
             )}
           </ul>

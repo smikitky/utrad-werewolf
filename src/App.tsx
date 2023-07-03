@@ -38,11 +38,12 @@ import Profile from './Profile.js';
 import Icon from './Icon.js';
 import Switch from './Switch.js';
 import useLang, {
-  Lang,
   LangContext,
   SetLangContext,
   useSetLang
 } from './utils/useLang.js';
+import { BasicLangResource } from './LangResource.js';
+import { Lang } from './game-utils.js';
 
 const MessagesContext = createContext<{
   list: (ReactNode | string)[];
@@ -61,7 +62,7 @@ const Layout: FC = props => {
         <div>
           <Link to="/">
             <Icon icon="home" />
-            トップへ
+            <BasicLangResource id="home" />
           </Link>
         </div>
         <div>
@@ -76,7 +77,7 @@ const Layout: FC = props => {
             <>
               <Link to="/god">
                 <Icon icon="policy" />
-                神になる
+                <BasicLangResource id="godMode" />
               </Link>{' '}
               |{' '}
             </>

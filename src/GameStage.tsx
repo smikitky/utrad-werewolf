@@ -3,24 +3,15 @@ import { FC, KeyboardEventHandler, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Alert from './Alert .js';
-import { AgentId, AgentInfo, AgentRole, Game } from './game-data.js';
-import {
-  Action,
-  agentAction,
-  extractLogOfPeriod,
-  roleTextMap
-} from './game-utils.js';
+import RoleDisplay from './RoleDisplay.js';
+import { AgentId, AgentInfo, Game } from './game-data.js';
+import { Action, agentAction, extractLogOfPeriod } from './game-utils.js';
 import GameLog from './game/GameLog.js';
 import Player from './game/Player.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
-import { useLoginUser } from './utils/user.js';
+import useLang from './utils/useLang.js';
 import withLoginBoundary, { Page } from './withLoginBoundary.js';
-
-const RoleDisplay: FC<{ role: AgentRole }> = props => {
-  const { role } = props;
-  return <>{roleTextMap[role]}</>;
-};
 
 const Players: FC<{
   game: Game;

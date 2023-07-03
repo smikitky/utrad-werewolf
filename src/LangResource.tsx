@@ -1,5 +1,6 @@
 import { ReactNode, FC } from 'react';
-import useLang, { Lang } from './utils/useLang';
+import useLang from './utils/useLang';
+import { Lang } from './game-utils';
 
 export type LangResource<T extends string> = {
   [id in T]: {
@@ -24,5 +25,9 @@ export const BasicLangResource = makeLangResource({
   ok: { en: 'OK', ja: 'OK' },
   cancel: { en: 'Cancel', ja: 'キャンセル' },
   home: { en: 'Home', ja: 'ホーム' },
-  logout: { en: 'Log Out', ja: 'ログアウト' }
+  logout: { en: 'Log Out', ja: 'ログアウト' },
+  profile: { en: 'Profile', ja: 'プロフィール' },
+  online: { en: 'Online', ja: 'オンライン' },
+  offline: { en: 'Offline', ja: 'オフライン' },
+  godMode: { en: 'God Mode', ja: 'ゴッドモード' }
 });
