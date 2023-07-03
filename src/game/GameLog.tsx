@@ -31,6 +31,11 @@ import {
 } from '../game-utils.js';
 import Icon from '../Icon.js';
 import Player from './Player.js';
+import { makeLangResource } from '../LangResource.js';
+
+const LangResource = makeLangResource({
+  noVote: { en: 'No vote', ja: '投票なし' }
+});
 
 const VoteDetails: FC<{
   game: Game;
@@ -53,7 +58,7 @@ const VoteDetails: FC<{
     return (
       <StyledVotes>
         <Icon icon="how_to_vote" />
-        投票なし
+        <LangResource id="noVote" />
       </StyledVotes>
     );
 

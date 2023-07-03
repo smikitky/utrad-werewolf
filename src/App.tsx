@@ -36,6 +36,13 @@ import LoginScreen from './LoginScreen.js';
 import Menu from './Menu.js';
 import Profile from './Profile.js';
 import Icon from './Icon.js';
+import Switch from './Switch.js';
+import useLang, {
+  Lang,
+  LangContext,
+  SetLangContext,
+  useSetLang
+} from './utils/useLang.js';
 
 const MessagesContext = createContext<{
   list: (ReactNode | string)[];
@@ -45,6 +52,8 @@ const MessagesContext = createContext<{
 const Layout: FC = props => {
   const user = useLoginUser();
   const messages = useContext(MessagesContext);
+  const lang = useLang();
+  const setLang = useSetLang();
 
   return (
     <>
@@ -56,6 +65,13 @@ const Layout: FC = props => {
           </Link>
         </div>
         <div>
+          <Switch
+            leftLabel="EN"
+            rightLabel="JA"
+            value={lang === 'en' ? 'left' : 'right'}
+            onChange={s => setLang(s === 'right' ? 'ja' : 'en')}
+          />
+          |
           {user.status === 'loggedIn' && user.data.canBeGod === true && (
             <>
               <Link to="/god">
@@ -113,6 +129,8 @@ const App: FC = () => {
   );
   const getTokenRef = useRef<null | (() => Promise<string>)>(null);
   const [messages, setMessages] = useState<(string | ReactNode)[]>([]);
+
+  const [lang, setLang] = useState<Lang>('ja');
 
   const userProfile = useFirebaseSubscription<UserEntry | null>(
     uid ? `/users/${uid}` : undefined
@@ -221,10 +239,14 @@ const App: FC = () => {
     <LoginUserContext.Provider value={user}>
       <ApiContext.Provider value={apiCaller}>
         <MessagesContext.Provider value={messageList}>
-          <StyledDiv>
-            {linkErrorCode && <div>Error {linkErrorCode}</div>}
-            <RouterProvider router={router} />
-          </StyledDiv>
+          <LangContext.Provider value={lang}>
+            <SetLangContext.Provider value={setLang}>
+              <StyledDiv>
+                {linkErrorCode && <div>Error {linkErrorCode}</div>}
+                <RouterProvider router={router} />
+              </StyledDiv>
+            </SetLangContext.Provider>
+          </LangContext.Provider>
         </MessagesContext.Provider>
       </ApiContext.Provider>
     </LoginUserContext.Provider>

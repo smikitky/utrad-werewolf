@@ -11,6 +11,20 @@ import UserList from './UserList.js';
 import { auth, database } from './utils/firebase.js';
 import { useApi } from './utils/useApi.js';
 import withLoginBoundary, { Page } from './withLoginBoundary.js';
+import { makeLangResource } from './LangResource.js';
+
+const LangResource = makeLangResource({
+  start: { en: '-person Werewolf', ja: '人で新規ゲームを開始' },
+  ready: { en: "I'm Ready!", ja: '準備OK!' },
+  pause: { en: 'Not Ready', ja: '一時的に不参加' },
+  profile: { en: 'Profile', ja: 'プロフィール' },
+  logout: { en: 'Log Out', ja: 'ログアウト' },
+  customizeMembers: {
+    en: 'Customize Members',
+    ja: 'メンバー構成をカスタマイズする'
+  },
+  onlineUsers: { en: 'Online Users', ja: 'オンラインのユーザー' }
+});
 
 const Menu: Page = ({ loginUser }) => {
   const api = useApi();
@@ -58,29 +72,29 @@ const Menu: Page = ({ loginUser }) => {
           <big>
             {agentTotalCount(customMode ? agentCount : defaultAgentCount)}
           </big>
-          人で新規ゲーム
+          <LangResource id="start" />
         </button>
         <div className="sub">
           <button onClick={handleReadyClick}>
             {loginUser.data.ready ? (
               <>
                 <Icon icon="pause" />
-                一時的に不参加
+                <LangResource id="pause" />
               </>
             ) : (
               <>
                 <Icon icon="play_circle" />
-                準備OK!
+                <LangResource id="ready" />
               </>
             )}{' '}
           </button>
           <button onClick={handleProfileClick}>
             <Icon icon="person" />
-            プロフィール
+            <LangResource id="profile" />
           </button>
           <button onClick={handleLogoutClick}>
             <Icon icon="logout" />
-            ログアウト
+            <LangResource id="logout" />
           </button>
         </div>
       </nav>
@@ -91,7 +105,7 @@ const Menu: Page = ({ loginUser }) => {
             checked={customMode}
             onChange={e => setCustomMode(e.target.checked)}
           />{' '}
-          メンバー構成をカスタマイズする
+          <LangResource id="customizeMembers" />
         </label>
         {customMode && (
           <>
@@ -105,7 +119,9 @@ const Menu: Page = ({ loginUser }) => {
           </>
         )}
       </div>
-      <h2>オンラインのユーザー</h2>
+      <h2>
+        <LangResource id="onlineUsers" />
+      </h2>
       <UserList onlineOnly={true} />
     </StyledDiv>
   );
