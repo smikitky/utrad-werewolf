@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Alert from './Alert ';
 import Icon from './Icon';
+import { BasicLangResource, makeLangResource } from './LangResource';
 import RoleDisplay from './RoleDisplay';
 import {
   AgentId,
@@ -11,32 +12,67 @@ import {
   BaseVoteLogEntry,
   DivineLogEntry,
   Game,
+  GameStatus,
   GuardLogEntry,
   OverLogEntry,
   UserEntries
 } from './game-data';
-import { Action, agentAction, extractLogOfPeriod } from './game-utils';
+import { agentAction, extractLogOfPeriod } from './game-utils';
 import GameLog from './game/GameLog';
 import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
-import useLang from './utils/useLang';
 import useTitle from './utils/useTitle';
 import withLoginBoundary, { Page } from './withLoginBoundary';
 
-const actionTextMap: Record<Action, string> = {
-  attackVote: '襲撃投票中',
-  guard: '護衛先選択中',
-  divine: '占い先選択中',
-  vote: '追放投票中',
-  talk: '話し合い中（発話終了待ち）',
-  whisper: '囁き中（発話終了待ち）',
-  finish: 'ゲーム終了',
-  wait: '他のユーザの行動待ち'
-};
+const LangResource = makeLangResource({
+  gameId: { en: 'Game ID', ja: 'ゲーム ID' },
+  startedAt: { en: 'Started at', ja: '開始' },
+  finished: { en: 'Finished', ja: 'ゲーム終了' },
+  aborted: { en: 'Aborted', ja: '強制中断' },
+  villagesWon: { en: 'Villagers Team won', ja: '村人陣営の勝利' },
+  werewolvesWon: { en: 'Werewolves Team won', ja: '人狼陣営の勝利' },
+  gameStatus: {
+    en: (props: { status: GameStatus }) => (
+      <>
+        Day {props.status.day}, Period: {props.status.period}, Vote Phase:{' '}
+        {props.status.votePhase}
+      </>
+    ),
+    ja: (props: { status: GameStatus }) => (
+      <>
+        日付：{props.status.day}、時間帯：{props.status.period}、投票ラウンド：
+        {props.status.votePhase}
+      </>
+    )
+  },
+  finishedAt: { en: 'Finished at', ja: '終了時刻' },
+  attackVote: { en: 'Voting to attack', ja: '襲撃投票中' },
+  guard: { en: 'Choosing guard target', ja: '護衛先選択中' },
+  divine: { en: 'Choosing divine target', ja: '占い先選択中' },
+  vote: { en: 'Voting to expel', ja: '追放投票中' },
+  talk: { en: 'In talk', ja: '話し合い中（発話終了待ち）' },
+  whisper: { en: 'In whisper chat', ja: '囁き中（発話終了待ち）' },
+  finish: { en: 'Finished', ja: 'ゲーム終了' },
+  wait: { en: 'Waiting', ja: '他のユーザの行動待ち' },
+  name: { en: 'name', ja: '名前' },
+  role: { en: 'role', ja: '役割' },
+  life: { en: 'life', ja: '生死' },
+  currentAction: { en: 'action', ja: '現在の行動' },
+  user: { en: 'user', ja: 'ユーザ' },
+  details: { en: 'Details', ja: '詳細' },
+  abort: { en: 'Abort Game', ja: '強制中断' },
+  fullLog: { en: 'Complete Log', ja: '完全ログ' },
+  personLog: {
+    en: ({ children }) => <>{children} log</>,
+    ja: ({ children }) => <>{children}のログ</>
+  },
+  apiLog: { en: 'API response log', ja: 'APIログ' },
+  debugLog: { en: 'Debug log', ja: 'デバッグ生ログ' }
+});
 
 const lastAction = (game: Game, agent: AgentInfo) => {
-  if (agent.life === 'dead') return '(死亡)';
+  if (agent.life === 'dead') return '(dead)';
   const periodLog = extractLogOfPeriod(game);
   const targetName = (agentId: AgentId) =>
     game.agents.find(a => a.agentId === agentId)!.name;
@@ -48,7 +84,7 @@ const lastAction = (game: Game, agent: AgentInfo) => {
   ) as BaseVoteLogEntry | undefined;
   if (voteEntry)
     return `${
-      voteEntry.type === 'vote' ? '追放投票先' : '襲撃投票先'
+      voteEntry.type === 'vote' ? 'expel-voted to' : 'attack-voted to'
     }: ${targetName(voteEntry.target)}`;
   const abilityEntry = periodLog.find(
     l =>
@@ -56,12 +92,12 @@ const lastAction = (game: Game, agent: AgentInfo) => {
   ) as DivineLogEntry | GuardLogEntry | undefined;
   if (abilityEntry)
     return `${
-      abilityEntry.type === 'divine' ? '占い対象' : '護衛対象'
+      abilityEntry.type === 'divine' ? 'Divine target' : 'Guard target'
     }: ${targetName(abilityEntry.target)}`;
   const overEntry = periodLog.find(
     l => l.type === 'over' && l.agent === agent.agentId
   ) as OverLogEntry | undefined;
-  if (overEntry) return '(発話終了)';
+  if (overEntry) return '(over)';
 };
 
 type ShowLogType = 'game' | 'debug' | 'api' | 'off' | AgentId;
@@ -78,22 +114,23 @@ const GodMode: Page = () => {
   const userData = useFirebaseSubscription<UserEntries>(`/users`);
   const game = gameData.data;
   const api = useApi();
-  const lang = useLang();
 
   useTitle(
     !game
       ? '??'
-      : '人狼: ' +
+      : 'Werewolf: ' +
           (game.finishedAt
-            ? '終了'
-            : `${game.status.day}日目${
-                game.status.period === 'day' ? '昼' : '夜'
+            ? 'Finshed'
+            : `Day ${game.status.day}, ${
+                game.status.period === 'day' ? 'daytime' : 'night'
               }${
                 typeof game.status.votePhase === 'number' &&
                 game.status.votePhase > 0
-                  ? '投票中 '
+                  ? 'voting '
                   : ' '
-              } ${game?.agents.filter(a => a.life === 'alive').length}人生存`)
+              } ${
+                game?.agents.filter(a => a.life === 'alive').length
+              } players alive`)
   );
 
   useEffect(() => {
@@ -102,7 +139,12 @@ const GodMode: Page = () => {
     }
   }, [selectedAgent, game]);
 
-  if (game === null) return <Alert>該当ゲームデータは存在しません</Alert>;
+  if (game === null)
+    return (
+      <Alert>
+        <BasicLangResource id="gameDataNotFound" />
+      </Alert>
+    );
   if (!game) return null;
 
   const actionClick = async () => {
@@ -140,7 +182,7 @@ const GodMode: Page = () => {
   };
 
   const handleAbortClick = async () => {
-    if (!confirm('強制中断しますか？')) return;
+    if (!confirm('Forcibly abort this game?')) return;
     await api('abortGame', { gameId });
   };
 
@@ -160,27 +202,37 @@ const GodMode: Page = () => {
       <div className="status-pane">
         <div className="status-main">
           <div>
-            <b>ゲーム ID</b>: {gameId} (<b>開始</b>:{' '}
-            {formatDate(game.startedAt as number)})
+            <b>
+              <LangResource id="gameId" />
+            </b>
+            : {gameId} (
+            <b>
+              <LangResource id="startedAt" />
+            </b>
+            : {formatDate(game.startedAt as number)})
           </div>
           {game.finishedAt ? (
             <div>
-              ゲーム終了（
-              {game.wasAborted
-                ? '強制中断'
-                : game.winner === 'villagers'
-                ? '村人陣営の勝利'
-                : '人狼陣営の勝利'}
+              <LangResource id="finished" />（
+              {game.wasAborted ? (
+                <LangResource id="aborted" />
+              ) : game.winner === 'villagers' ? (
+                <LangResource id="villagesWon" />
+              ) : (
+                <LangResource id="werewolvesWon" />
+              )}
               ）
             </div>
           ) : (
             <div>
-              <b>日付</b>: {game.status.day}、<b>時間帯</b>:{' '}
-              {game.status.period}、<b>投票ラウンド</b>: {game.status.votePhase}
+              <LangResource id="gameStatus" status={game.status} />
             </div>
           )}
           {game.finishedAt && (
-            <div>終了時刻：{formatDate(game.finishedAt as number)}</div>
+            <div>
+              <LangResource id="finishedAt" />:{' '}
+              {formatDate(game.finishedAt as number)}
+            </div>
           )}
         </div>
         <div className="commands">
@@ -188,7 +240,7 @@ const GodMode: Page = () => {
             onClick={handleAbortClick}
             disabled={typeof game.finishedAt === 'number'}
           >
-            強制中断
+            <LangResource id="abort" />
           </button>
         </div>
       </div>
@@ -198,14 +250,22 @@ const GodMode: Page = () => {
           value={String(showLogType)}
           onChange={handleLogTypeSelect}
         >
-          <option value="game">完全ログ</option>
+          <option value="game">
+            <LangResource id="fullLog" />
+          </option>
           {game.agents.map(a => (
             <option key={a.agentId} value={a.agentId}>
-              {a.name} (<RoleDisplay role={a.role} />) のログ
+              <LangResource id="personLog">
+                {a.name} (<RoleDisplay role={a.role} />)
+              </LangResource>
             </option>
           ))}
-          <option value="debug">デバッグ生ログ</option>
-          <option value="api">APIレスポンスログ</option>
+          <option value="debug">
+            <LangResource id="debugLog" />
+          </option>
+          <option value="api">
+            <LangResource id="apiLog" />
+          </option>
         </select>
         {showLogType === 'game' || typeof showLogType === 'number' ? (
           <GameLog
@@ -239,17 +299,29 @@ const GodMode: Page = () => {
         )}
       </div>
       <details className="foot" open>
-        <summary>詳細</summary>
+        <summary>
+          <LangResource id="details" />
+        </summary>
         <div className="table-wrapper">
           <table className="players">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>名前</th>
-                <th>役割</th>
-                <th>生死</th>
-                <th>現在の行動</th>
-                <th>ユーザー</th>
+                <th>
+                  <LangResource id="name" />
+                </th>
+                <th>
+                  <LangResource id="role" />
+                </th>
+                <th>
+                  <LangResource id="life" />
+                </th>
+                <th>
+                  <LangResource id="currentAction" />
+                </th>
+                <th>
+                  <LangResource id="user" />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -269,9 +341,15 @@ const GodMode: Page = () => {
                     <td>
                       <RoleDisplay role={agent.role} />
                     </td>
-                    <td>{agent.life === 'alive' ? '生存' : '死亡'}</td>
+                    <td>
+                      {agent.life === 'alive' ? (
+                        <BasicLangResource id="alive" />
+                      ) : (
+                        <BasicLangResource id="dead" />
+                      )}
+                    </td>
                     <td className={classNames('action', action)}>
-                      {actionTextMap[action]}
+                      {<LangResource id={action} />}
                       {action === 'wait' && <> {lastAction(game, agent)}</>}
                     </td>
                     <td>

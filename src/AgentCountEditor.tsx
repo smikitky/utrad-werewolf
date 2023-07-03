@@ -66,7 +66,7 @@ const StyledDiv = styled.div`
   flex-flow: row wrap;
   gap: 5px;
   .cell {
-    width: 85px;
+    width: 90px;
     display: flex;
     flex-direction: column;
     background: #eeeeee;

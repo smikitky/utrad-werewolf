@@ -14,16 +14,28 @@ import withLoginBoundary, { Page } from './withLoginBoundary.js';
 import { makeLangResource } from './LangResource.js';
 
 const LangResource = makeLangResource({
-  start: { en: '-player Werewolf', ja: '人で新規ゲームを開始' },
+  start: {
+    en: (props: { count: number }) => (
+      <>
+        Start <big>{props.count}</big>-player Werewolf
+      </>
+    ),
+    ja: (props: { count: number }) => (
+      <>
+        <big>{props.count}</big>人で新規ゲームを開始
+      </>
+    )
+  },
   ready: { en: "I'm Ready!", ja: '準備OK!' },
-  pause: { en: 'Not Ready', ja: '一時的に不参加' },
+  pause: { en: "I'm Not Ready for Now", ja: '一時的に不参加' },
   profile: { en: 'Profile', ja: 'プロフィール' },
   logout: { en: 'Log Out', ja: 'ログアウト' },
   customizeMembers: {
     en: 'Customize Members',
     ja: 'メンバー構成をカスタマイズする'
   },
-  onlineUsers: { en: 'Online Users', ja: 'オンラインのユーザー' }
+  onlineUsers: { en: 'Online Users', ja: 'オンラインのユーザ' },
+  reset: { en: 'Reset', ja: 'リセット' }
 });
 
 const Menu: Page = ({ loginUser }) => {
@@ -69,10 +81,10 @@ const Menu: Page = ({ loginUser }) => {
           className="start"
         >
           <Icon icon="play_arrow" />
-          <big>
-            {agentTotalCount(customMode ? agentCount : defaultAgentCount)}
-          </big>
-          <LangResource id="start" />
+          <LangResource
+            id="start"
+            count={agentTotalCount(customMode ? agentCount : defaultAgentCount)}
+          />
         </button>
         <div className="sub">
           <button onClick={handleReadyClick}>
@@ -111,9 +123,9 @@ const Menu: Page = ({ loginUser }) => {
           <>
             <AgentCountEditor value={agentCount} onChange={setAgentCount} />
             <div className="menu">
-              (合計: {agentTotalCount(agentCount)}人)&ensp;
+              (Total: {agentTotalCount(agentCount)})&ensp;
               <button onClick={() => setAgentCount(defaultAgentCount)}>
-                リセット
+                <LangResource id="reset" />
               </button>
             </div>
           </>
@@ -151,6 +163,9 @@ const StyledDiv = styled.div`
     > .menu {
       margin-top: 10px;
     }
+  }
+  button big {
+    font-size: 150%;
   }
 `;
 

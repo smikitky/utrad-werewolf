@@ -39,6 +39,18 @@ const LangResource = makeLangResource({
   you: { en: 'You', ja: 'あなた' },
   over: { en: '(over)', ja: '(発話終了)' },
   voted: { en: '(voted)', ja: '(投票終了)' },
+  speakerRole: {
+    en: (props: { role: AgentRole }) => (
+      <>{props.role.charAt(0).toUpperCase()}</>
+    ),
+    ja: (props: { role: AgentRole }) => (
+      <>
+        {props.role === 'werewolf'
+          ? '狼'
+          : roleTextMap.ja[props.role].charAt(0)}
+      </>
+    )
+  },
   prologueMessage: {
     en: (props: { counts: [AgentRole, number][] }) => {
       const { counts } = props;
@@ -138,8 +150,8 @@ const LangResource = makeLangResource({
       wasWerewolf: boolean;
     }) => (
       <>
-        The divination by {props.agentName} revealed that the role of{' '}
-        <strong>{props.targetName}</strong>. {props.targetName} was{' '}
+        The divination by {props.agentName} revealed that{' '}
+        <strong>{props.targetName}</strong> was{' '}
         <strong>{props.wasWerewolf ? 'a werewolf' : 'not a werewolf'}</strong>.
       </>
     ),
@@ -457,12 +469,8 @@ const ChatLogItem: LogItem<ChatLogEntry> = props => {
       <span className="speaker">{agent.name}</span>
       <span className="content">
         {myAgent === 'god' && (
-          <span className="speaker-role">
-            {agent.role === 'werewolf'
-              ? lang === 'en'
-                ? 'W'
-                : '狼'
-              : roleTextMap[lang][agent.role].charAt(0)}
+          <span className="speaker-role" title={agent.role}>
+            <LangResource id="speakerRole" role={agent.role} />
           </span>
         )}
         {entry.content}
@@ -681,12 +689,15 @@ const StyledGameLog = styled.ul`
       font-weight: bold;
     }
     .speaker-role {
+      display: inline-block;
+      text-align: center;
       font-size: 80%;
       color: white;
-      background: navy;
+      background: #000050;
       border-radius: 10px;
       padding: 0 2px;
       margin-right: 5px;
+      min-width: 20px;
     }
     &.talk,
     &.whisper {

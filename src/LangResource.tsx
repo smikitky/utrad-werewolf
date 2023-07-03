@@ -32,5 +32,11 @@ export const BasicLangResource = makeLangResource({
   profile: { en: 'Profile', ja: 'プロフィール' },
   online: { en: 'Online', ja: 'オンライン' },
   offline: { en: 'Offline', ja: 'オフライン' },
-  godMode: { en: 'God Mode', ja: 'ゴッドモード' }
+  godMode: { en: 'God Mode', ja: 'ゴッドモード' },
+  alive: { en: 'alive', ja: '生存' },
+  dead: { en: 'dead', ja: '死亡' },
+  gameDataNotFound: {
+    en: 'This game data does not exist.',
+    ja: '該当ゲームデータは存在しません'
+  }
 });

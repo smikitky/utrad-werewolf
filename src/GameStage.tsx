@@ -4,14 +4,148 @@ import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Alert from './Alert .js';
 import RoleDisplay from './RoleDisplay.js';
-import { AgentId, AgentInfo, Game } from './game-data.js';
+import { AgentId, AgentInfo, Game, GameStatus } from './game-data.js';
 import { Action, agentAction, extractLogOfPeriod } from './game-utils.js';
 import GameLog from './game/GameLog.js';
 import Player from './game/Player.js';
 import { useApi } from './utils/useApi.js';
 import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
-import useLang from './utils/useLang.js';
 import withLoginBoundary, { Page } from './withLoginBoundary.js';
+import { BasicLangResource, makeLangResource } from './LangResource.js';
+
+const LangResource = makeLangResource({
+  gameStatus: {
+    en: (props: { status: GameStatus }) => (
+      <>
+        <div className="day">
+          Day <big>{props.status.day}</big>,
+        </div>
+        <div className="time">
+          <big>{props.status.period === 'day' ? 'Daytime' : 'Night'}</big>
+        </div>
+      </>
+    ),
+    ja: (props: { status: GameStatus }) => (
+      <>
+        <div className="day">
+          <big>{props.status.day}</big> 日目
+        </div>
+        <div className="time">
+          <big>{props.status.period === 'day' ? '昼' : '夜'}</big>
+        </div>
+      </>
+    )
+  },
+  you: {
+    en: 'You',
+    ja: 'あなた'
+  },
+  gameFinished: {
+    en: 'Game Finished',
+    ja: 'ゲーム終了'
+  },
+  gameAborted: {
+    en: 'Game Aborted',
+    ja: 'ゲーム中断'
+  },
+  viewFullLog: {
+    en: 'View Complete Log',
+    ja: '完全ログを見る'
+  },
+  talkAction: {
+    en: 'Talk',
+    ja: '発言'
+  },
+  whisperAction: {
+    en: 'Whisper',
+    ja: '囁き'
+  },
+  overAction: {
+    en: 'Over',
+    ja: '会話を終了'
+  },
+  remainingTalks: {
+    en: (props: { number: number }) => <>({props.number}/10)</>,
+    ja: (props: { number: number }) => <>(残{props.number}/10)</>
+  },
+  votePrompt: {
+    en: (
+      <>
+        Vote for the person you want to <strong>expel</strong>.
+      </>
+    ),
+    ja: (
+      <>
+        誰を<strong>追放する</strong>か投票してください
+      </>
+    )
+  },
+  attackVotePrompt: {
+    en: (
+      <>
+        Vote for the person you want to <strong>attack</strong>.
+      </>
+    ),
+    ja: (
+      <>
+        誰を<strong>襲撃する</strong>か選択してください
+      </>
+    )
+  },
+  divinePrompt: {
+    en: (
+      <>
+        Select the person you want to <strong>divine</strong>.
+      </>
+    ),
+    ja: (
+      <>
+        誰を<strong>占う</strong>か選択してください
+      </>
+    )
+  },
+  guardPrompt: {
+    en: (
+      <>
+        Select the person you want to <strong>protext</strong> from the werewolf
+        attack.
+      </>
+    ),
+    ja: (
+      <>
+        誰を<strong>襲撃から守る</strong>か選択してください
+      </>
+    )
+  },
+  pleaseStandBy: {
+    en: "Please wait for other players' actions.",
+    ja: '他のプレーヤーの行動をお待ちください'
+  },
+  youWereKilled: {
+    en: 'You were killed.',
+    ja: 'あなたは死亡してしまった。'
+  },
+  watch: {
+    en: 'Watch the game in complete log',
+    ja: '残りを完全ログで閲覧'
+  },
+  yourAction: {
+    en: 'Your Action',
+    ja: 'あなたの行動'
+  },
+  notPlayer: {
+    en: 'You are not a player of this game.',
+    ja: 'あなたはこのゲームに参加していません'
+  },
+  thisGameWasFinished: {
+    en: 'This game was finished.',
+    ja: 'このゲームは終了しました。'
+  },
+  thisGameWasAborted: {
+    en: 'This game was forcibly aborted.',
+    ja: 'このゲームは強制中断されました。'
+  }
+});
 
 const Players: FC<{
   game: Game;
@@ -63,25 +197,32 @@ const Status: FC<{
       <div className="status">
         {game.finishedAt ? (
           <>
-            <big>ゲーム{game.wasAborted ? '中断' : '終了'}</big>
+            <big>
+              {game.wasAborted ? (
+                <LangResource id="gameAborted" />
+              ) : (
+                <LangResource id="gameFinished" />
+              )}
+            </big>
             <button onClick={onRevealAll} disabled={revealAll}>
-              完全ログを見る
+              <LangResource id="viewFullLog" />
             </button>
           </>
         ) : (
           <>
-            <div className="day">
-              <big>{game.status.day}</big> 日目
-            </div>
-            <div className="time">
-              <big>{game.status.period === 'day' ? '昼' : '夜'}</big>
-            </div>
+            <LangResource id="gameStatus" status={game.status} />
             <div className="my-role">
-              あなた:{' '}
+              <LangResource id="you" />:{' '}
               <big>
                 <RoleDisplay role={myAgent.role} />
               </big>{' '}
-              ({myAgent.life === 'alive' ? '生存' : '死亡'})
+              (
+              {myAgent.life === 'alive' ? (
+                <BasicLangResource id="alive" />
+              ) : (
+                <BasicLangResource id="dead" />
+              )}
+              )
             </div>
           </>
         )}
@@ -127,7 +268,12 @@ const ChatAction: ActionComp = props => {
   const api = useApi();
 
   if (action !== 'talk' && action !== 'whisper') return null;
-  const actionName = action === 'talk' ? '発言' : '囁き';
+  const actionName =
+    action === 'talk' ? (
+      <LangResource id="talkAction" />
+    ) : (
+      <LangResource id="whisperAction" />
+    );
 
   const handleSend = async () => {
     if (!content || busy) return;
@@ -163,7 +309,10 @@ const ChatAction: ActionComp = props => {
   return (
     <StyledChatAction>
       <span className="title">
-        {actionName} <small>(残{remaining}/10)</small>
+        {actionName}{' '}
+        <small>
+          <LangResource id="remainingTalks" number={remaining} />
+        </small>
       </span>
       <input
         type="text"
@@ -175,7 +324,7 @@ const ChatAction: ActionComp = props => {
         {actionName}
       </button>
       <button onClick={handleOver} disabled={busy}>
-        会話を終了
+        <LangResource id="overAction" />
       </button>
     </StyledChatAction>
   );
@@ -206,26 +355,10 @@ const ChooseAction: ActionComp = props => {
     return null;
 
   const prompt = {
-    vote: (
-      <>
-        誰を<strong>追放する</strong>か投票してください
-      </>
-    ),
-    attackVote: (
-      <>
-        誰を<strong>襲撃する</strong>か選択してください
-      </>
-    ),
-    divine: (
-      <>
-        誰を<strong>占う</strong>か選択してください
-      </>
-    ),
-    guard: (
-      <>
-        誰を<strong>襲撃から守る</strong>か選択してください
-      </>
-    )
+    vote: <LangResource id="votePrompt" />,
+    attackVote: <LangResource id="attackVotePrompt" />,
+    divine: <LangResource id="divinePrompt" />,
+    guard: <LangResource id="guardPrompt" />
   }[action];
   const api = useApi();
 
@@ -261,7 +394,7 @@ const ChooseAction: ActionComp = props => {
           })}
         </ul>
         <button disabled={target === null || busy} onClick={handleVote}>
-          決定
+          <BasicLangResource id="ok" />
         </button>
       </div>
     </StyledChooseDiv>
@@ -298,9 +431,11 @@ const FinishAction: ActionComp = props => {
   const { game, onRevealAll, revealAll } = props;
   return (
     <div>
-      このゲームは{game.wasAborted ? '中断されました' : '終了しました'}。
+      <LangResource
+        id={game.wasAborted ? 'thisGameWasAborted' : 'thisGameWasFinished'}
+      />{' '}
       <button onClick={onRevealAll} disabled={revealAll}>
-        完全ログを表示する
+        <LangResource id="viewFullLog" />
       </button>
     </div>
   );
@@ -309,13 +444,17 @@ const FinishAction: ActionComp = props => {
 const WaitAction: ActionComp = props => {
   const { myAgent, revealAll, onRevealAll } = props;
   if (myAgent.life === 'alive') {
-    return <div>他のプレーヤーの行動をお待ちください</div>;
+    return (
+      <div>
+        <LangResource id="pleaseStandBy" />
+      </div>
+    );
   } else {
     return (
       <div>
-        あなたは死亡してしまった。
+        <LangResource id="youWereKilled" />{' '}
         <button disabled={revealAll} onClick={onRevealAll}>
-          残りを完全ログで観戦
+          <LangResource id="watch" />
         </button>
       </div>
     );
@@ -348,7 +487,9 @@ const ActionPane: FC<{
 
   return (
     <StyledActionPane>
-      <div className="title">あなたの行動</div>
+      <div className="title">
+        <LangResource id="yourAction" />
+      </div>
       <div className="body">
         <ActionComp
           gameId={gameId}
@@ -390,7 +531,12 @@ const GameStage: Page = ({ loginUser }) => {
 
   const api = useApi();
 
-  if (game === null) return <Alert>該当ゲームデータは存在しません</Alert>;
+  if (game === null)
+    return (
+      <Alert>
+        <BasicLangResource id="gameDataNotFound" />
+      </Alert>
+    );
   if (!game) return null;
 
   const myAgent = game.agents.find(a => a.userId === loginUser.uid);
@@ -399,11 +545,13 @@ const GameStage: Page = ({ loginUser }) => {
     return (
       <Alert>
         <div>
-          あなたはこのゲームに参加していません
+          <LangResource id="notPlayer" />
           {loginUser.data.canBeGod && (
             <div>
               <Link to={`/god/${gameId}`}>
-                <button>God Mode で見る</button>
+                <button>
+                  <LangResource id="viewFullLog" />
+                </button>
               </Link>
             </div>
           )}
