@@ -4,16 +4,19 @@ import { Lang } from './game-utils';
 
 export type LangResource<T extends string> = {
   [id in T]: {
-    [lang in Lang]: ReactNode;
+    [lang in Lang]: ReactNode | FC<any>;
   };
 };
 
 export const makeLangResource = <T extends string>(
   resource: LangResource<T>
 ) => {
-  const LangResource: FC<{ id: T }> = ({ id }) => {
+  const LangResource: FC<{ id: T; [rest: string]: any }> = props => {
+    const { id, ...rest } = props;
     const lang = useLang();
-    return <>{resource[id][lang]}</>;
+    const Target = resource[id][lang];
+    if (typeof Target === 'function') return <Target {...rest} />;
+    return <>{Target}</>;
   };
   return LangResource;
 };

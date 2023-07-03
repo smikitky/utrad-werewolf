@@ -12,4 +12,4 @@ export default useLang;
 
 export const useSetLang = () => {
   return useContext(SetLangContext);
-}
+};

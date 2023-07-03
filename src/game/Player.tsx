@@ -3,6 +3,11 @@ import { FC, MouseEventHandler } from 'react';
 import styled from 'styled-components';
 import RoleDisplay from '../RoleDisplay.js';
 import { AgentInfo } from '../game-data.js';
+import { makeLangResource } from '../LangResource.js';
+
+const LangResource = makeLangResource({
+  you: { en: 'You', ja: 'あなた' }
+});
 
 const Player: FC<{
   agent: AgentInfo;
@@ -27,7 +32,11 @@ const Player: FC<{
       <img src={`/agent${agent.agentId}.jpg`} alt="" />
       <div className="indicators">
         <div>{agent.name}</div>
-        {isMe && <div>あなた</div>}
+        {isMe && (
+          <div>
+            <LangResource id="you" />
+          </div>
+        )}
         {revealRole && (
           <div>
             <RoleDisplay role={agent.role} />
