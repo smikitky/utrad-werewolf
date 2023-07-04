@@ -354,14 +354,18 @@ const handleAddUser: ModeHandler = async ({ uid, payload }) => {
 };
 
 const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
-  const name = (payload.name as string) ?? 'new user';
-  if (name.length > 20) return jsonResponse(400, 'Name is too long');
+  const name = payload.name as string | undefined;
+  if (name && name.length > 20) return jsonResponse(400, 'Name is too long');
+  const lang = payload.lang as string | undefined;
+  if (lang && !['en', 'ja'].includes(lang))
+    return jsonResponse(400, 'Invalid lang');
   const userRef = db.ref('users').child(uid);
   const user = (await userRef.once('value')).val() as Partial<UserEntry>;
   await userRef.update({
     createdAt: user?.createdAt ?? now(),
     ready: user?.ready ?? true,
-    name: (payload?.name as string) ?? user.name ?? 'new user'
+    name: name ?? user.name ?? 'new user',
+    lang: lang ?? user.lang ?? 'en'
   });
   return jsonResponse(200, 'OK');
 };

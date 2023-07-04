@@ -1,6 +1,7 @@
 import { KeyboardEventHandler, ReactNode, FC } from 'react';
 import classnames from 'classnames';
 import styled from 'styled-components';
+import classNames from 'classnames';
 
 export type SwitchStatus = 'left' | 'right';
 
@@ -9,10 +10,12 @@ const Switch: FC<{
   rightLabel: ReactNode;
   value: SwitchStatus;
   onChange: (value: SwitchStatus) => void;
+  disabled?: boolean;
 }> = props => {
-  const { leftLabel, rightLabel, value, onChange } = props;
+  const { leftLabel, rightLabel, value, onChange, disabled } = props;
 
   const handleClick = () => {
+    if (disabled) return;
     onChange(value === 'left' ? 'right' : 'left');
   };
 
@@ -31,7 +34,7 @@ const Switch: FC<{
   };
 
   return (
-    <StyledSpan>
+    <StyledSpan className={classNames({ disabled })}>
       {leftLabel}
       <span className="track" onClick={handleClick}>
         <span
@@ -49,6 +52,10 @@ const StyledSpan = styled.span`
   display: inline-flex;
   gap: 3px;
   align-items: center;
+
+  &.disabled {
+    opacity: 0.5;
+  }
 
   > .track {
     display: inline-block;

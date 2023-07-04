@@ -68,22 +68,23 @@ const LoginScreen: FC = () => {
       <h1>UTRAD Werewolf</h1>
       <section>
         <button onClick={handleGoogleLoginClick} disabled={busy}>
-          Google アカウントでログイン
+          Login with Google Account
         </button>
       </section>
       <section>
         <input
-          placeholder="メールアドレス"
+          placeholder="E-mail address"
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
         />
         <button onClick={handleEmailLoginClick} disabled={busy}>
-          メールアドレスでログイン
+          Login with E-mail Address
         </button>
         {mailSent && (
           <p>
-            メールを送信しました。メールに記載されたリンクをクリックしてください。
+            An e-mail was sent to the specified address. Please click the link
+            in the mail.
           </p>
         )}
       </section>

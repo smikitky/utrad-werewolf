@@ -1,9 +1,9 @@
 import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
 import * as db from 'firebase/database';
 import {
-  createContext,
   FC,
   ReactNode,
+  createContext,
   useCallback,
   useContext,
   useEffect,
@@ -12,10 +12,10 @@ import {
   useState
 } from 'react';
 import {
-  createBrowserRouter,
   Link,
   Outlet,
-  RouterProvider
+  RouterProvider,
+  createBrowserRouter
 } from 'react-router-dom';
 import styled from 'styled-components';
 import { UserEntry } from './game-data.js';
@@ -32,18 +32,14 @@ import {
 import GameStage from './GameStage.js';
 import GodMenu from './GodMenu.js';
 import GodMode from './GodMode.js';
+import Icon from './Icon.js';
+import { BasicLangResource } from './LangResource.js';
+import LangSwitch from './LangSwitch.js';
 import LoginScreen from './LoginScreen.js';
 import Menu from './Menu.js';
 import Profile from './Profile.js';
-import Icon from './Icon.js';
-import Switch from './Switch.js';
-import useLang, {
-  LangContext,
-  SetLangContext,
-  useSetLang
-} from './utils/useLang.js';
-import { BasicLangResource } from './LangResource.js';
 import { Lang } from './game-utils.js';
+import useLang, { LangContext } from './utils/useLang.js';
 
 const MessagesContext = createContext<{
   list: (ReactNode | string)[];
@@ -54,7 +50,6 @@ const Layout: FC = props => {
   const user = useLoginUser();
   const messages = useContext(MessagesContext);
   const lang = useLang();
-  const setLang = useSetLang();
 
   return (
     <>
@@ -66,13 +61,6 @@ const Layout: FC = props => {
           </Link>
         </div>
         <div>
-          <Switch
-            leftLabel="EN"
-            rightLabel="JA"
-            value={lang === 'en' ? 'left' : 'right'}
-            onChange={s => setLang(s === 'right' ? 'ja' : 'en')}
-          />
-          |
           {user.status === 'loggedIn' && user.data.canBeGod === true && (
             <>
               <Link to="/god">
@@ -83,9 +71,12 @@ const Layout: FC = props => {
             </>
           )}
           {user.status === 'loggedIn' ? (
-            <Link to={`/profile/${user.uid}`}>
-              <Icon icon="person" /> <b>{user.data.name}</b>
-            </Link>
+            <>
+              <LangSwitch />|
+              <Link to={`/profile/${user.uid}`}>
+                <Icon icon="person" /> <b>{user.data.name}</b>
+              </Link>
+            </>
           ) : user.status === 'indeterminate' ? (
             '...'
           ) : (
@@ -241,12 +232,10 @@ const App: FC = () => {
       <ApiContext.Provider value={apiCaller}>
         <MessagesContext.Provider value={messageList}>
           <LangContext.Provider value={lang}>
-            <SetLangContext.Provider value={setLang}>
-              <StyledDiv>
-                {linkErrorCode && <div>Error {linkErrorCode}</div>}
-                <RouterProvider router={router} />
-              </StyledDiv>
-            </SetLangContext.Provider>
+            <StyledDiv>
+              {linkErrorCode && <div>Error {linkErrorCode}</div>}
+              <RouterProvider router={router} />
+            </StyledDiv>
           </LangContext.Provider>
         </MessagesContext.Provider>
       </ApiContext.Provider>

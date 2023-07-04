@@ -261,6 +261,7 @@ export interface GameEntries {
 export interface UserEntry {
   createdAt: number;
   name: string;
+  lang?: 'en' | 'ja';
   onlineStatus?: boolean;
   ready: boolean;
   canBeGod?: boolean;

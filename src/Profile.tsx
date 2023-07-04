@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Icon from './Icon';
 import { BasicLangResource, makeLangResource } from './LangResource';
+import LangSwitch from './LangSwitch';
 import RoleDisplay, { TeamDisplay } from './RoleDisplay';
 import { UserEntry, UserGameHistory, team } from './game-data';
 import formatDate from './utils/formatDate';
@@ -16,6 +17,7 @@ const LangResource = makeLangResource({
   userUid: { en: 'User ID', ja: 'ユーザ UID' },
   userName: { en: 'User Name', ja: 'ユーザ名' },
   changeUserName: { en: 'Change User Name', ja: 'ユーザ名を変更' },
+  language: { en: 'Language', ja: '使用言語' },
   onlineStatus: { en: 'Online Status', ja: 'オンライン状況' },
   playHistory: { en: 'Play History', ja: 'プレイ履歴' },
   items: { en: 'Items', ja: '件' },
@@ -40,7 +42,7 @@ const Profile: Page = ({ loginUser }) => {
     [userHistory.data]
   );
 
-  useTitle('プロフィール');
+  useTitle('Profile');
 
   if (user.data === undefined) return null;
 
@@ -100,6 +102,12 @@ const Profile: Page = ({ loginUser }) => {
                 </button>
               </>
             )}
+          </dd>
+          <dt>
+            <LangResource id="language" />
+          </dt>
+          <dd>
+            <LangSwitch />
           </dd>
           <dt>
             <LangResource id="onlineStatus" />
@@ -182,7 +190,7 @@ const StyledDiv = styled.div`
     .role {
       font-size: 90%;
       display: inline-block;
-      width: 70px;
+      width: 80px;
       text-align: center;
       background: #eeddff;
       border-radius: 10px;
