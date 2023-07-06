@@ -10,11 +10,13 @@ import styled from 'styled-components';
 import { auth, googleAuthProvider } from './utils/firebase.js';
 import { useApi } from './utils/useApi.js';
 import { useLoginUser } from './utils/user';
+import Alert from './Alert .js';
 
 const LoginScreen: FC = () => {
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState('');
   const [mailSent, setMailSent] = useState(false);
+  const [isApiWorking, setIsApiWorking] = useState<boolean | '?'>('?');
   const api = useApi();
   const loginUser = useLoginUser();
   const navigate = useNavigate();
@@ -38,6 +40,19 @@ const LoginScreen: FC = () => {
         });
     }
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (isApiWorking === '?') {
+        const res = await fetch('/.netlify/functions/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'ping' })
+        });
+        setIsApiWorking(res.ok);
+      }
+    })();
+  }, [isApiWorking]);
 
   useEffect(() => {
     if (loginUser.status === 'loggedIn') navigate('/');
@@ -66,6 +81,14 @@ const LoginScreen: FC = () => {
   return (
     <StyledDiv>
       <h1>UTRAD Werewolf</h1>
+      {isApiWorking === false && (
+        <Alert>
+          <div>
+            The Werewolf API seems to be not working. If you are an
+            administrator, ensure you have correctly finished the setup process.
+          </div>
+        </Alert>
+      )}
       <section>
         <button onClick={handleGoogleLoginClick} disabled={busy}>
           Login with Google Account

@@ -134,6 +134,7 @@ interface ReqPayload {
 }
 
 type GameRequestType =
+  | 'ping'
   | 'matchNewGame'
   | 'addUser'
   | 'setProfile'
@@ -380,7 +381,7 @@ const handleEditUser: ModeHandler = async ({ uid, payload }) => {
   const user = (await db.ref('users').child(uid).get()).val();
   if (!user.canBeGod) return jsonResponse(403, 'You are not a god');
   if (uid === target && !canBeGod)
-    return jsonResponse(400, 'You cannot remove your god status');
+    return jsonResponse(400, 'You cannot remove your own god status');
   await db.ref('users').child(target).update({ canBeGod });
   return jsonResponse(200, 'OK');
 };
@@ -602,8 +603,13 @@ const handleDivineGuard = makeGameHandler(
 export const handler: Handler = async (event, context) => {
   try {
     const { type, payload } = parseInput(event) as GameRequestData;
+
+    if (type === 'ping')
+      return jsonResponse(200, { message: 'pong', timestamp: now() });
+
     const uid = await checkAuth(event);
     const handlers: { [key in GameRequestType]: ModeHandler } = {
+      ping: (() => {}) as any, // never called
       matchNewGame: handleMatchNewGame,
       addUser: handleAddUser,
       setProfile: handleSetProfile,
