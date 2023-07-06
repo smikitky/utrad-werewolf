@@ -1,9 +1,4 @@
-
 {
-  "name": "utrad-werewolf",
-  "author": "Soichiro Miki <smiki-tky@umin.ac.jp>",
-  "workspaces": [
-    "packages/webapp",
-    "packages/docs"
-  ]
+  "name": "utrad-werewolf-root",
+  "description": "This is a dummy root package.json. Go to individual packages and install deps there."
 }

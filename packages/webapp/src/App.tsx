@@ -1,6 +1,7 @@
 import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
 import * as db from 'firebase/database';
 import {
+  Component,
   FC,
   ReactNode,
   createContext,
