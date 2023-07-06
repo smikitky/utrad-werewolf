@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createGlobalStyle } from 'styled-components';
-import App from './App';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -19,6 +18,10 @@ const GlobalStyle = createGlobalStyle`
     list-style: none;
     padding: 0;
     margin: 0;
+    &.bullet {
+      list-style: disc;
+      margin-left: 1em;
+    }
   }
 
   h1 {
@@ -66,9 +69,29 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <GlobalStyle />
-    <App />
-  </React.StrictMode>
-);
+const main = async () => {
+  const root = ReactDOM.createRoot(
+    document.getElementById('root') as HTMLElement
+  );
+
+  if (typeof import.meta.env.FB_APP_CONFIG === 'undefined') {
+    const StartupError = (await import('./StartupError')).default;
+    root.render(
+      <>
+        <GlobalStyle />
+        <StartupError undefinedEnvs={['FB_APP_CONFIG']} />
+      </>
+    );
+    return;
+  }
+
+  const App = (await import('./App')).default;
+  root.render(
+    <React.StrictMode>
+      <GlobalStyle />
+      <App />
+    </React.StrictMode>
+  );
+};
+
+main();
