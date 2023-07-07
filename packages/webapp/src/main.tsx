@@ -1,6 +1,7 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import React, { ReactNode } from 'react';
+import ReactDOM, { Root } from 'react-dom/client';
 import { createGlobalStyle } from 'styled-components';
+import Alert from './Alert ';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -69,18 +70,50 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
+const configCheck = (): ReactNode => {
+  if (typeof import.meta.env.FB_APP_CONFIG === 'undefined') {
+    return (
+      <>
+        <code>FB_APP_CONFIG</code> environment variable is not set. Please set
+        them in Netlify Dashboard. (Or if you are running the app locally, set
+        them in <code>.env</code> file.)
+      </>
+    );
+  }
+  try {
+    atob(import.meta.env.FB_APP_CONFIG);
+  } catch (err: any) {
+    return (
+      <>
+        Coult not parse <code>FB_APP_CONFIG</code> environment. It's not
+        properly encoded in base64.
+      </>
+    );
+  }
+  try {
+    JSON.parse(atob(import.meta.env.FB_APP_CONFIG));
+  } catch (err: any) {
+    return (
+      <>
+        Coult not parse <code>FB_APP_CONFIG</code> environment. The doceded
+        string is not a valid JSON string.
+      </>
+    );
+  }
+  return 'null';
+};
+
 const main = async () => {
   const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
   );
 
-  if (typeof import.meta.env.FB_APP_CONFIG === 'undefined') {
-    const StartupError = (await import('./StartupError')).default;
+  const error = configCheck();
+  if (error !== 'null') {
     root.render(
-      <>
-        <GlobalStyle />
-        <StartupError undefinedEnvs={['FB_APP_CONFIG']} />
-      </>
+      <Alert>
+        <div>{error}</div>
+      </Alert>
     );
     return;
   }
