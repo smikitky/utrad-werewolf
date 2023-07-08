@@ -1,15 +1,25 @@
+---
+sidebar_position: 3
+---
+
 # Installation
 
 To deploy your own UTRAD Werewolf server, follow these steps.
 
 :::info
 
-This is a web-based project, but our docs do not assume you have any prior knowledge of web technologies, including JavaScript and HTML. Just follow the steps below and you should be able to get things working! However, we *do* assume the following:
+This is a web-based project, but our docs do not assume you have any prior knowledge of web technologies, including JavaScript and HTML. Just follow the steps below and you should be able to get things working! However, we _do_ assume the following:
 
 - You have basic knowledge of **Git** and **GitHub**.
 - You have a valid **GitHub account**.
-- You have a valid  **Google account** (because we rely on Firebase).
+- You have a valid **Google account** (because we rely on Firebase).
 - You can use a terminal (command line).
+
+:::
+
+:::caution
+
+Before you begin, be aware that this is a platform to support researches of AI Werewolf. We do not offer any sophisticated user management features like a full-fledged SNS or a game app do. It is not intended to efficiently manage more than 100 users. Please limit your use to a closed research group, and do not make the URL available to the general public.
 
 :::
 
@@ -26,44 +36,156 @@ The use of these services is **typically** free for a small research project. Fo
 
 ### 1. Deploy Your Site Using Netlify
 
-Press the button below, and follow the displayed steps. If you're not a Netlify user yet, you need to sign up (you can use your GitHub account). You need to connect your GitHub account and Netlify. It automatically creates a fork of our "utrad-werewolf" repository into your GitHub account.
+Press the "Deploy to Netlify" button below, and follow the displayed instructions. If you're not a Netlify user yet, you need to sign up (you can use your GitHub account). You need to connect your GitHub account and Netlify. It automatically creates a fork of our "utrad-werewolf" repository into your GitHub account.
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/smikitky/jinro?base=packages/webapp)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/smikitky/jinro&base=packages/webapp)
 
-If a deployment succeeds, you can open the URL of your site. A screen like this should appear in your browser.
+After a successful deployment, you can open the deployed site by clicking the URL on the "Site overview" section of the dashboard. The URL should look like `https://<your-site-name>.netlify.app/`. An error screen like this should appear in your browser.
 
-(TODO: Screenshot)
+![Startup error screen](./startup-error.png)
 
-It shows an error, and this is because we have not set up our database (the place to store the actual game log data) yet. We use Firebase Realtime Database, so let's set this up.
+This is expected for now because we have not set up our database (the place to store the actual game log data) yet. Our next step is to resolve this error.
 
 :::note
 
-You can change the URL of your site in the site's dashboard. If you like, you can use a custom domain. If you want to customize the URL, it's recommended to do it here because Firebase will use that information.
+You can change the URL (subdomain) of your site in the site's dashboard. If you like, you can also use a fully custom domain. If you want to customize the URL, it's recommended to do it here because Firebase will need that information (but you can change the settings later).
 
 :::
 
-### 2. Create a Firebase Project and Save Authentication Data
+### 2. Create and Configure a Firebase Project
+
+This is the toughest part. If you're stuck, refer to the official Firebase tutorial, too.
 
 - [Visit Firebase](https://firebase.google.com/), and sign in using your Google account.
+
 - Create a new Firebase project. In this tutorial, we use `my-wolf` as the example project name. You don't need to enable Google Analytics.
+
+- In the Firebase console, navigate to the Realtime Database section, and create a database. The default security mode can be anything.
+
+- Go to the "rules" tab, and copy-paste the folloing security rules into the text box, and save them.
+
+  ```json
+  {
+    "rules": {
+      "games": { "$gameId": { ".read": true } },
+      "userHistory": { "$uid": { ".read": true } },
+      "globalHistory": {
+        ".read": "root.child('users').child(auth.uid).child('canBeGod').val() === true",
+        ".indexOn": "finishedAt"
+      },
+      "users": {
+        ".read": true,
+        "$uid": {
+          "onlineStatus": {
+            ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('canBeGod').val() === true"
+          },
+          "ready": {
+            ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('canBeGod').val() === true"
+          }
+        }
+      }
+    }
+  }
+  ```
+
+- Set up user authentication providers. Navigate to "Authentication &gt; Sign in method", and enable the following two log-in providers.
+
+  - Google
+  - Mail/Password: Enable "Email link (passwordless sign-in)" option
+
+- Navigate to the "Project settings &gt; Overview" section, and register a new "Web app". Then you will see `firebaseConfig` data that looks like this:
+
+  ```js
+  const firebaseConfig = {
+    apiKey: "AIzaSyDOCAbC123dEf456GhI789jKl012-MnO",
+    authDomain: "<your-project-id>.firebaseapp.com",
+    databaseURL: "https://<your-database-name>.firebaseio.com",
+    projectId: "my-wolf",
+    appId: "1:xxxxxxx:web:xxxxxxxxxxxxxxxxxxx",
+  };
+  ```
+
+  Copy the object part (between `{` and `}`), and save it as a **valid** JSON (JavaScript Object Notation) file.
+
+  ```json title="appconfig.json"
+  {
+    "apiKey": "AIzaSyDOCAbC123dEf456GhI789jKl012-MnO",
+    "authDomain": "<your-project-id>.firebaseapp.com",
+    "databaseURL": "https://<your-database-name>.firebaseio.com",
+    "projectId": "my-wolf",
+    "appId": "1:xxxxxxx:web:xxxxxxxxxxxxxxxxxxx"
+  }
+  ```
+
+  Then, encode this JSON file using base64.
+
+  ```bash title="In your terminal"
+  $ cat appconfig.json | base64 -w0 > appconfig-base64.txt
+  ```
+
+  The `base64` utility is available on Linux/Mac. If you're on Windows, Git Bash comes with the `base64` tool.
+
+  :::caution
+  The data to encode must be valid as JSON. For example, property names such as `appId` must be enclosed in double quotes. A modern editor like VSCode may fix obvious errors when you save a file with the `.json` extention. You can use any online JavaScript-to-JSON converter, too (this data is not a secret, anyway).
+  :::
+
+- In the Project settings section, open "Service account". Click "Generate New Private Key", and download a JSON file called `serviceAccountKey.json`. Use the `base64` tool again to encode this into a one-line strong.
+
+  ```bash title="In your terminal"
+  $ cat serviceAccountKey.json | base64 -w0 > serviceAccountKey-base64.txt
+  ```
+
+- Finally, register these key data as Netlify's environment variables. Go to Netlify's dashboard, navigate to "Site configuration &gt; Environment variables", and add the following two environment variables:
+
+  - `FB_APP_CONFIG`: The base64-encoded data of the app config object (`firebaseConfig`).
+  - `GCP_CREDENTIALS`: The base64-encoded data of the service account key file.
+
+<details>
+<summary>What are these encoded data for?</summary>
+
+- [The Firebase config object](https://firebase.google.com/docs/web/learn-more#config-object) (encoded as `FB_APP_CONFIG`) is an identity file that associates your web app (hosted by Netlify and running on browsers) and your Firebase project. This is a non-secret piece of data. This information is usually something you could write directly in JavaScript code and commit to Git, but we use an anvironment variable to make your own Firebase project available.
+- [The service account key file](https://firebase.google.com/docs/admin/setup#initialize_the_sdk_in_non-google_environments) (encoded as `GCP_CREDENTIALS`) is essentially a "password file" with which Firebase grants full admin access to your Realtime Database (and other resources). It's used only by the _server_ backend you trust. Never share this with anyone.
+
+</details>
+
+- On the Netlify dashboard, re-run the deployment so that the new environment variables take effect. When the deployment succees, reopen the site URL. Congratulations, you should now see a log-in screen.
+
+You can now close Firebase console and Netlify dashboard tabs on your browser.
 
 ### 3. Log In to the Werewolf Server and Become Admin
 
+Sign-in to the app using your personal Google account. Go to the "Profile" page and change your user name to something other than "new user". **The first user who changed their user name on the profile screen** will be automatically granted an admin (aka "god") priviledge of the app. See "God Mode" menu will appear on the right of the top menu.
+
 ### 4. Start Your First Game
+
+It takes 5 players to play a werewolf game, so let's create non-player character (NPC) accounts now.
 
 ## Run on Your Local Machine (Optional)
 
-You can also run this project locally on your development machine. It still needs Firebase Realtime Database account.
+You can also run this app locally on your development machine. You still need Firebase Realtime Database account.
+
+:::caution
+
+You need some experience about Node.js, NPM and JavaScript.
+
+:::
 
 - Install Node.js on your machine. Node.JS is a JavaScript runtime, and it is required to test the app locally. Windows users can simply use the installer available on the official site. If you're on Linux, it's usually easiest to use [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm).
+
 - Clone the `utrad-werewolf` repository, and do `cd utrad-werewolf/packages/webapp`. (This repository is a monorepo and the actual web UI is located here.)
+
 - Configure environment variables. Make a new file named `.env` under `webapp`, and define required environment variables. Your `.env` file should look like this:
+
   ```env
-  ......
+  FB_APP_CONFIG="(base64-encoded string of your app config JSON)"
+  GCP_CREDENTIALS="(base64-encoded string of your server key)"
   ```
-- Run the following on a terminal. This starts a local web server.
+
+- Run the following on a terminal. This will install all the dependencies and start a local web server.
+
   ```bash
   $ npm ci
   $ npm run dev
   ```
+
 - Open a browser by clicking the shown link (which should look like `http://localhost:8888/`).
