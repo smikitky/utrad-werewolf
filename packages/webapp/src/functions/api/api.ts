@@ -23,7 +23,9 @@ import {
   UserEntries,
   VoteLogEntry,
   Team,
-  UserEntry
+  UserEntry,
+  Mark,
+  marks
 } from '../../game-data.js';
 import {
   Lang,
@@ -139,6 +141,8 @@ type GameRequestType =
   | 'matchNewGame'
   | 'addUser'
   | 'setProfile'
+  | 'deleteGame'
+  | 'setGameAttributes'
   | 'abortGame'
   | 'talk'
   | 'whisper'
@@ -153,7 +157,7 @@ type GameRequestData = {
   payload: ReqPayload;
 };
 
-type ModeHandler = (params: {
+type ModeHandler = <P>(params: {
   uid: string;
   requestType: GameRequestType;
   payload: any;
@@ -217,6 +221,27 @@ const makeGameHandler = (handler: GameHandler): ModeHandler => {
     if (error) throw error;
     if (res.committed) return jsonResponse(200, 'OK');
     return jsonResponse(500, 'Failed to update game');
+  };
+};
+
+const asGod = (
+  handler: (params: {
+    uid: string;
+    payload: any;
+    game?: Game;
+  }) => Promise<HandlerResponse>
+): ModeHandler => {
+  return async ({ uid, payload }) => {
+    const user = (await db.ref('users').child(uid).get()).val();
+    if (!user.canBeGod) return jsonResponse(403, 'You are not a god');
+    const gameId = payload.gameId as string | undefined;
+    let game = undefined;
+    if (gameId) {
+      const gameRef = db.ref(`games/${gameId}`);
+      game = (await gameRef.get()).val() as Game;
+      if (!game) return jsonResponse(404, 'Game not found');
+    }
+    return handler({ uid, payload, game });
   };
 };
 
@@ -306,19 +331,15 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
   return jsonResponse(200, { gameId });
 };
 
-const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
+const handleAbortGame = asGod(async ({ uid, payload, game }) => {
   const gameId = payload.gameId as string;
-  if (!gameId) return jsonResponse(400, 'gameId is required');
-  const gameRef = db.ref(`games/${gameId}`);
-  const game = (await gameRef.once('value')).val() as Game;
-  if (!game) return jsonResponse(404, 'Game not found');
+  if (!game) return jsonResponse(400, 'gameId is required');
 
   const userIds = game.agents.map(a => a.userId);
-  // if (!userIds.includes(uid))
-  //   return jsonResponse(403, 'You are not a player of this game');
-  await gameRef.update({ finishedAt: now(), wasAborted: true });
+  await db
+    .ref(`games/${gameId}`)
+    .update({ finishedAt: now(), wasAborted: true });
   const numAgents = game.agents.length;
-
   await db
     .ref('userHistory')
     .update(
@@ -338,9 +359,9 @@ const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
   releaseUsers(userIds);
 
   return jsonResponse(200, 'OK');
-};
+});
 
-const handleAddUser: ModeHandler = async ({ uid, payload }) => {
+const handleAddUser = asGod(async ({ payload }) => {
   const newUid = payload.newUid as string;
   const name = (payload.name as string) ?? 'bot';
   if (typeof newUid !== 'string' || !newUid)
@@ -355,7 +376,7 @@ const handleAddUser: ModeHandler = async ({ uid, payload }) => {
     ready: true
   });
   return jsonResponse(200, 'OK');
-};
+});
 
 const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
   const {
@@ -394,6 +415,43 @@ const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
   });
   return jsonResponse(200, 'OK');
 };
+
+const handleDeleteGame = asGod(async ({ payload, game }) => {
+  const gameId = payload.gameId as string;
+  if (!game) return jsonResponse(400, 'gameId is required');
+  if (!game.finishedAt)
+    return jsonResponse(400, 'You cannot remove an unfinished game');
+
+  const userIds = game.agents.map(a => a.userId);
+  await db.ref().update({
+    [`/games/${gameId}`]: null,
+    [`/globalHistory/${gameId}`]: null,
+    ...Object.fromEntries(
+      userIds.map(uid => [`/userHistory/${uid}/${gameId}`, null])
+    )
+  });
+  return jsonResponse(200, 'OK');
+});
+
+const handleSetGameAttributes = asGod(async ({ payload, game }) => {
+  const gameId = payload.gameId as string;
+  if (!game) return jsonResponse(400, 'gameId is required');
+
+  const mark = payload.mark as Mark | null;
+  if (mark && !marks.includes(mark as Mark)) {
+    return jsonResponse(400, 'Invalid mark');
+  }
+
+  const userIds = game.agents.map(a => a.userId);
+  await db.ref().update({
+    [`/games/${gameId}/mark`]: mark,
+    [`/globalHistory/${gameId}/mark`]: mark,
+    ...Object.fromEntries(
+      userIds.map(uid => [`/userHistory/${uid}/${gameId}/mark`, mark])
+    )
+  });
+  return jsonResponse(200, 'OK');
+});
 
 const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1);
 
@@ -622,6 +680,8 @@ export const handler: Handler = async (event, context) => {
       matchNewGame: handleMatchNewGame,
       addUser: handleAddUser,
       setProfile: handleSetProfile,
+      deleteGame: handleDeleteGame,
+      setGameAttributes: handleSetGameAttributes,
       abortGame: handleAbortGame,
       talk: handleChat,
       whisper: handleChat,

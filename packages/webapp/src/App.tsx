@@ -198,7 +198,7 @@ const App: FC = () => {
 
   useEffect(() => {
     if (uid && !userProfile?.data?.createdAt) {
-      apiCaller('setProfile', {});
+      apiCaller('setProfile', { updates: {} });
     }
   }, [uid, userProfile]);
 

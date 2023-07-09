@@ -28,7 +28,7 @@ export const agentRoles = [
   'bodyguard'
 ] as const;
 
-export type AgentRole = typeof agentRoles[number];
+export type AgentRole = (typeof agentRoles)[number];
 
 export type Team = 'villagers' | 'werewolves';
 
@@ -244,10 +244,24 @@ export interface GameRuleSet {
 }
 */
 
+export const marks = [
+  'star',
+  'favorite',
+  'bookmark',
+  'smart_toy',
+  'person',
+  'group',
+  'key',
+  'check_circle',
+  'priority_high'
+] as const;
+export type Mark = (typeof marks)[number];
+
 export interface Game {
   startedAt: TimeStamp;
   finishedAt?: TimeStamp;
   wasAborted?: boolean;
+  mark?: Mark;
   winner?: Team;
   agents: AgentInfo[];
   status: GameStatus;
@@ -277,6 +291,7 @@ export interface UserGameHistory {
     [gameId: string]: {
       finishedAt: TimeStamp;
       wasAborted?: boolean;
+      mark?: Mark;
       numAgents: number;
       role: AgentRole;
       winner?: Team;
@@ -284,13 +299,16 @@ export interface UserGameHistory {
   };
 }
 
+export interface GlobalGameHistoryEntry {
+  finishedAt: TimeStamp;
+  wasAborted?: boolean;
+  mark?: Mark;
+  numAgents: number;
+  winner?: Team;
+}
+
 export interface GlobalGameHistory {
-  [gameId: string]: {
-    finishedAt: TimeStamp;
-    wasAborted?: boolean;
-    numAgents: number;
-    winner?: Team;
-  };
+  [gameId: string]: GlobalGameHistoryEntry;
 }
 
 export interface Database {

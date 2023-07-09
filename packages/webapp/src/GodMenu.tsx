@@ -6,7 +6,14 @@ import Icon from './Icon';
 import { makeLangResource } from './LangResource';
 import { TeamDisplay } from './RoleDisplay';
 import UserList, { UserListCommand } from './UserList';
-import { GlobalGameHistory, UserEntries, UserEntry } from './game-data';
+import {
+  GlobalGameHistory,
+  GlobalGameHistoryEntry,
+  Mark,
+  UserEntries,
+  UserEntry,
+  marks
+} from './game-data';
 import { database } from './utils/firebase.js';
 import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
@@ -86,9 +93,7 @@ const GodMenu: FC = () => {
     }
   };
 
-  const handleDownloadLog: MouseEventHandler = async ev => {
-    const gameId = (ev.currentTarget as HTMLAnchorElement).dataset.gameid;
-    if (!gameId) return;
+  const handleDownloadLog = async (gameId: string) => {
     const ref = db.ref(database, `/games/${gameId}`);
     const data = (await db.get(ref)).val();
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -99,6 +104,16 @@ const GodMenu: FC = () => {
     a.href = url;
     a.download = `${gameId}.json`;
     a.click();
+  };
+
+  const handleDeleteGame = async (gameId: string) => {
+    if (!confirm(`Delete game ${gameId} permanently? You cannot undo this.`))
+      return;
+    await api('deleteGame', { gameId });
+  };
+
+  const handleMarkGame = async (gameId: string, mark: Mark | null) => {
+    await api('setGameAttributes', { gameId, mark });
   };
 
   return (
@@ -145,29 +160,14 @@ const GodMenu: FC = () => {
                 (b[1].finishedAt as number) - (a[1].finishedAt as number)
             )
             .map(([gameId, game]) => (
-              <li key={gameId}>
-                <Link to={`/god/${gameId}`}>
-                  {formatDate(game.finishedAt as number)} {game.numAgents}P{' '}
-                  {game.wasAborted ? (
-                    <LangResource id="aborted" />
-                  ) : (
-                    <>
-                      <TeamDisplay team={game.winner!} />
-                      <LangResource id="won" />
-                    </>
-                  )}{' '}
-                </Link>
-                <button
-                  className="download"
-                  data-gameid={gameId}
-                  onClick={handleDownloadLog}
-                >
-                  <Icon icon="download" />
-                </button>
-                <span className="game-id" role="button">
-                  {gameId}
-                </span>
-              </li>
+              <GodGameLogItem
+                key={gameId}
+                gameId={gameId}
+                game={game}
+                onDownloadLogClick={handleDownloadLog}
+                onDeleteGameClick={handleDeleteGame}
+                onStarGameClick={handleMarkGame}
+              />
             ))}
       </ul>
     </StyledDiv>
@@ -192,12 +192,103 @@ const StyledDiv = styled.div`
       color: gray;
       font-size: 80%;
     }
-    .download {
+    .menu {
       color: green;
       cursor: pointer;
       background: none;
       border: none;
       padding: 0;
+    }
+  }
+`;
+
+const GodGameLogItem: FC<{
+  gameId: string;
+  game: GlobalGameHistoryEntry;
+  onDownloadLogClick: (gameId: string) => void;
+  onDeleteGameClick: (gameId: string) => void;
+  onStarGameClick: (gameId: string, mark: Mark | null) => void;
+}> = props => {
+  const {
+    gameId,
+    game,
+    onDownloadLogClick,
+    onDeleteGameClick,
+    onStarGameClick
+  } = props;
+  return (
+    <StyledLi key={gameId}>
+      <span className="mark">
+        <Icon icon={game.mark ?? 'star_border'} />
+        <div className="dropdown">
+          {marks.map(mark => (
+            <button
+              className="menu"
+              key={mark}
+              onClick={() => onStarGameClick(gameId, mark)}
+            >
+              <Icon icon={mark} />
+            </button>
+          ))}
+          <button
+            className="menu remove"
+            onClick={() => onStarGameClick(gameId, null)}
+          >
+            <Icon icon="close" />
+          </button>
+        </div>
+      </span>
+      <Link to={`/god/${gameId}`}>
+        {formatDate(game.finishedAt as number)} {game.numAgents}P{' '}
+        {game.wasAborted ? (
+          <LangResource id="aborted" />
+        ) : (
+          <>
+            <TeamDisplay team={game.winner!} />
+            <LangResource id="won" />
+          </>
+        )}{' '}
+      </Link>
+      <button className="menu" onClick={() => onDownloadLogClick(gameId)}>
+        <Icon icon="download" />
+      </button>
+      <button className="menu" onClick={() => onDeleteGameClick(gameId)}>
+        <Icon icon="delete_forever" />
+      </button>
+      <span className="game-id" role="button">
+        {gameId}
+      </span>
+    </StyledLi>
+  );
+};
+
+const StyledLi = styled.li`
+  .mark {
+    color: orange;
+    cursor: pointer;
+    position: relative;
+    .dropdown {
+      background: white;
+      border: 1px solid gray;
+      position: absolute;
+      display: none;
+      top: 50%;
+      left: 50%;
+      z-index: 1;
+    }
+    &:hover {
+      .dropdown {
+        display: flex;
+      }
+    }
+    button.menu {
+      color: orange;
+      &:hover {
+        background: #eeeeee;
+      }
+      &.remove {
+        color: black;
+      }
     }
   }
 `;
