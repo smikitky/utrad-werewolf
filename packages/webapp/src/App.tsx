@@ -35,7 +35,7 @@ import GodMenu from './GodMenu.js';
 import GodMode from './GodMode.js';
 import Icon from './Icon.js';
 import { BasicLangResource } from './LangResource.js';
-import LangSwitch from './LangSwitch.js';
+import { LoginUserLangSwitch } from './LangSwitch.js';
 import LoginScreen from './LoginScreen.js';
 import Menu from './Menu.js';
 import Profile from './Profile.js';
@@ -73,7 +73,7 @@ const Layout: FC = props => {
           )}
           {user.status === 'loggedIn' ? (
             <>
-              <LangSwitch />|
+              <LoginUserLangSwitch />|
               <Link to={`/profile/${user.uid}`}>
                 <Icon icon="person" /> <b>{user.data.name}</b>
               </Link>

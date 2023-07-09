@@ -38,5 +38,7 @@ export const BasicLangResource = makeLangResource({
   gameDataNotFound: {
     en: 'This game data does not exist.',
     ja: '該当ゲームデータは存在しません'
-  }
+  },
+  en: { en: 'English', ja: '英語' },
+  ja: { en: 'Japanese', ja: '日本語' }
 });

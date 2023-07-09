@@ -78,7 +78,7 @@ const GodMenu: FC = () => {
         break;
       }
       case 'toggleGod':
-        await api('editUser', {
+        await api('setProfile', {
           target: uid,
           updates: { canBeGod: !user.canBeGod }
         });

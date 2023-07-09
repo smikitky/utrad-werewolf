@@ -26,6 +26,7 @@ import {
   UserEntry
 } from '../../game-data.js';
 import {
+  Lang,
   extractLogOfPeriod,
   isValidAgentCount,
   shuffleArray
@@ -138,7 +139,6 @@ type GameRequestType =
   | 'matchNewGame'
   | 'addUser'
   | 'setProfile'
-  | 'editUser'
   | 'abortGame'
   | 'talk'
   | 'whisper'
@@ -343,7 +343,10 @@ const handleAbortGame: ModeHandler = async ({ uid, payload }) => {
 const handleAddUser: ModeHandler = async ({ uid, payload }) => {
   const newUid = payload.newUid as string;
   const name = (payload.name as string) ?? 'bot';
-  if (!newUid) return jsonResponse(400, 'newUid is required');
+  if (typeof newUid !== 'string' || !newUid)
+    return jsonResponse(400, 'newUid is required');
+  if (/[^a-zA-Z0-9_-]/.test(newUid)) return jsonResponse(400, 'Invalid newUid');
+
   const usersRef = db.ref('users').child(newUid);
   await usersRef.set({
     createdAt: now(),
@@ -355,34 +358,40 @@ const handleAddUser: ModeHandler = async ({ uid, payload }) => {
 };
 
 const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
-  const name = payload.name as string | undefined;
+  const {
+    target = uid,
+    updates: { name, lang, canBeGod }
+  } = payload as {
+    target?: string;
+    updates: {
+      name?: string;
+      lang?: Lang;
+      canBeGod?: boolean;
+    };
+  };
+
+  const user = (await db.ref('users').child(uid).get()).val();
+  if (target !== uid) {
+    if (!user.canBeGod) return jsonResponse(403, 'You are not a god');
+  }
+
   if (name && name.length > 20) return jsonResponse(400, 'Name is too long');
-  const lang = payload.lang as string | undefined;
   if (lang && !['en', 'ja'].includes(lang))
     return jsonResponse(400, 'Invalid lang');
-  const userRef = db.ref('users').child(uid);
-  const user = (await userRef.once('value')).val() as Partial<UserEntry>;
-  await userRef.update({
-    createdAt: user?.createdAt ?? now(),
-    ready: user?.ready ?? true,
-    name: name ?? user.name ?? 'new user',
-    lang: lang ?? user.lang ?? 'en'
-  });
-  return jsonResponse(200, 'OK');
-};
+  if (typeof canBeGod === 'boolean') {
+    if (!user.canBeGod) return jsonResponse(403, 'You are not a god');
+    if (uid === target && !canBeGod)
+      return jsonResponse(400, 'You cannot remove your own god privilege');
+  }
 
-const handleEditUser: ModeHandler = async ({ uid, payload }) => {
-  const {
-    target,
-    updates: { canBeGod }
-  } = payload as { target: string; updates: { canBeGod: boolean } };
-  if (typeof target !== 'string' || typeof canBeGod !== 'boolean')
-    return jsonResponse(400, 'Invalid payload');
-  const user = (await db.ref('users').child(uid).get()).val();
-  if (!user.canBeGod) return jsonResponse(403, 'You are not a god');
-  if (uid === target && !canBeGod)
-    return jsonResponse(400, 'You cannot remove your own god status');
-  await db.ref('users').child(target).update({ canBeGod });
+  const userRef = db.ref('users').child(target);
+  const targetUser = (await userRef.get()).val() as Partial<UserEntry>;
+  await userRef.update({
+    createdAt: targetUser?.createdAt ?? now(),
+    name: name ?? targetUser.name ?? 'new user',
+    lang: lang ?? targetUser.lang ?? 'en',
+    canBeGod: canBeGod ?? targetUser.canBeGod ?? false
+  });
   return jsonResponse(200, 'OK');
 };
 
@@ -613,7 +622,6 @@ export const handler: Handler = async (event, context) => {
       matchNewGame: handleMatchNewGame,
       addUser: handleAddUser,
       setProfile: handleSetProfile,
-      editUser: handleEditUser,
       abortGame: handleAbortGame,
       talk: handleChat,
       whisper: handleChat,

@@ -11,6 +11,8 @@ import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import useTitle from './utils/useTitle';
 import withLoginBoundary, { Page } from './withLoginBoundary';
+import { Lang } from './game-utils';
+import Alert from './Alert ';
 
 const LangResource = makeLangResource({
   userInformation: { en: 'User Information', ja: 'ユーザ情報' },
@@ -22,7 +24,11 @@ const LangResource = makeLangResource({
   playHistory: { en: 'Play History', ja: 'プレイ履歴' },
   items: { en: 'Items', ja: '件' },
   aborted: { en: '(Aborted)', ja: '(中断)' },
-  won: { en: ' Won', ja: '勝利' }
+  won: { en: ' Won', ja: '勝利' },
+  godModeAlert: {
+    en: 'As an admin, you can edit this user profile.',
+    ja: '管理者はこのユーザのプロフィールを編集できます。'
+  }
 });
 
 const Profile: Page = ({ loginUser }) => {
@@ -33,6 +39,10 @@ const Profile: Page = ({ loginUser }) => {
     `/userHistory/${uid}/`
   );
   const [editName, setEditName] = useState<string | null>(null);
+
+  const profileEditable =
+    loginUser.status === 'loggedIn' &&
+    (loginUser.uid === uid || loginUser.data.canBeGod);
 
   const history = useMemo(
     () =>
@@ -47,14 +57,16 @@ const Profile: Page = ({ loginUser }) => {
   if (user.data === undefined) return null;
 
   const handleNameChange = async () => {
-    if (loginUser.status !== 'loggedIn') return;
-    setEditName(loginUser.data.name);
+    setEditName(user.data!.name);
   };
 
   const commitNameChange = async () => {
-    if (loginUser.status !== 'loggedIn') return;
-    await api('setProfile', { name: editName });
+    await api('setProfile', { target: uid, updates: { name: editName } });
     setEditName(null);
+  };
+
+  const handleUserLangChange = async (selection: Lang) => {
+    await api('setProfile', { target: uid, updates: { lang: selection } });
   };
 
   return (
@@ -62,6 +74,11 @@ const Profile: Page = ({ loginUser }) => {
       <h1>
         <BasicLangResource id="profile" />
       </h1>
+      {profileEditable && uid !== loginUser.uid && (
+        <Alert variation="info">
+          <LangResource id="godModeAlert" />
+        </Alert>
+      )}
       <section>
         <h2>
           <LangResource id="userInformation" />
@@ -78,7 +95,7 @@ const Profile: Page = ({ loginUser }) => {
             {editName === null ? (
               <>
                 {user.data.name}
-                {loginUser.status === 'loggedIn' && loginUser.uid === uid && (
+                {profileEditable && (
                   <>
                     <button onClick={handleNameChange}>
                       <LangResource id="changeUserName" />
@@ -107,7 +124,15 @@ const Profile: Page = ({ loginUser }) => {
             <LangResource id="language" />
           </dt>
           <dd>
-            <LangSwitch />
+            {profileEditable ? (
+              <LangSwitch
+                value={user.data.lang ?? 'en'}
+                onChange={handleUserLangChange}
+                disabled={false}
+              />
+            ) : (
+              <BasicLangResource id={user.data.lang ?? 'en'} />
+            )}
           </dd>
           <dt>
             <LangResource id="onlineStatus" />
