@@ -7,9 +7,9 @@ sidebar_position: 6
 
 ## Basics of API
 
-To control players programmatically, you need to access our web API (simple REST API). You can access the API using any programming language, including JavaScript, Python, Java, C++, and so on.
+To control players programmatically, you need to access our web API (simple REST API). You can access the API using any programming language that can make HTTP requests, including JavaScript, Python, Java, C++, Bash (using tools like `curl`), and so on.
 
-The endpoint (URL) of the API is `https://<domain>/.netlify/functions/api`, where `<domain>` is the domain of your app (something like 'your-site.netlify.app', or something like `localhost:8888` when you're running the app locally).
+The endpoint (URL) of the API is `https://<domain>/.netlify/functions/api`, where `<domain>` is the domain of your app (something like 'your-site.netlify.app', or something like `localhost:8888` if you're running the app locally).
 
 Here is an example API call. This will have the same effect as if an NPC user ("alice-bot") made a "talk" message in her web browser during the specified game.
 
@@ -22,7 +22,7 @@ import TabItem from '@theme/TabItem';
 `fetch` is available by default for Node.js &ge; 18. If you're using an older version, install `node-fetch` using NPM.
 
 ```js
-// import fetch from "node-fetch";
+// import fetch from "node-fetch"; // Node 17 or below
 
 const res = fetch("https://your-site/.netlify/functions/api", {
   method: "POST",
@@ -75,16 +75,16 @@ response = requests.post(
 - The HTTP method (verb) is always `'POST'` (this also applies to API calls only for fetching data).
 - The `content-type` header is always `'application/json'`.
 - The `authorization` and `x-godmode-uid-override` headers specify the user.
-  - The authorization token (`1a2b3c4d` in the example above) is set via `MASTER_PASS` environment variable described below.
+  - The authorization token (`1a2b3c4d` in the example above) is the `MASTER_PASS` environment variable described below.
   - The `x-godmode-uid-override` header let you "pretend" any valid user (NPC or human). You must specify a valid UID (you can find the UID of a user in their profile page).
 
 For this to work, you must define the `MASTER_PASS` environment variable on the Netlify dashboard. Note that you need to **re-deploy** the site after changing an environment variable.
 
 :::note
-You don't need to set `MASTER_PASS` if you are not interested in using our API. Users (including god users) using a web browser uses a different mechanism for authentication.
+`MASTER_PASS` will allow you do to anything on behalf of any user. You should not set `MASTER_PASS` if you are not interested in using our API. Users (including god users) using a web browser uses a different and safer mechanism for authentication.
 :::
 
-The `data` in the example is the actual command you are issueing to the API.
+The `data` in the example describes the command you are issueing to the API.
 
 Practically, you will want to define and reuse a function like this:
 
@@ -92,8 +92,7 @@ Practically, you will want to define and reuse a function like this:
 <TabItem value="js" label="Node.js">
 
 ```js
-// For Node.js <= 16
-// import fetch from "node-fetch";
+// import fetch from "node-fetch"; // Node 17 or below
 
 const MASTER_PASS = "1a2b3c4d";
 
@@ -176,7 +175,7 @@ This approach is very simple, but you cannot get a real-time log, so you will ne
 
 Alternatively, you can set up a Firebase Admin SDK to read realtime data from Firebase Realtime Database. To do so, follow the steps described in [Firebase Realtime Database docs](https://firebase.google.com/docs/database/admin/start).
 
-:::warning
+:::caution
 
 **Treat the data as read-only**. This approach can give you full **admin** access to Firebase Realtime Database from your development machine. However, do not attempt to directly write data into Realtime Database. It will bypass all the integrity-check code implemented at the API level, and almost certainly break your game logs! To perform in-game actions such as talking or voting, **always** use the API, as described below.
 
@@ -184,13 +183,13 @@ Alternatively, you can set up a Firebase Admin SDK to read realtime data from Fi
 
 ## Performing In-game Actions
 
-Here are the list of available actions you can perform during a game:
+Here is the list of available actions you can perform during a game as a player.
 
-| action       | payload example                                      |
+| action type  | payload example                                      |
 | ------------ | ---------------------------------------------------- |
 | `talk`       | `{ gameId: "...", content: "Hello I'm a villager" }` |
 | `whisper`    | `{ gameId: "...", content: "Let's kill 3" }`         |
-| `over`       | `{ gameId: "..." }` (finishes both talk and whisper) |
+| `over`       | `{ gameId: "..." }` (ends both talk and whisper)     |
 | `vote`       | `{ gameId: "...", target: 3 }`                       |
 | `attackVote` | `{ gameId: "...", target: 3 }`                       |
 | `divine`     | `{ gameId: "...", target: 3 }`                       |
@@ -229,23 +228,27 @@ call_api("alice-bot", {
 
 Only actions that are legal during the course of the game will be accepted by the API. For example, it is not possible for a villager to whisper, divine, vote to expel themself, or perform "over" twice in the same time period. A killed player cannot perform any of the above actions. When an error occurs, you will get a status code of 400 and a message such as "You cannot do this action now" and "Your vote target is dead".
 
+:::note
+The same API is used when users play Werewolf (or when a god user controls players) on a browser. In god mode, you can issue these commands arbitrary at any time during the game, and view its results in the "API log" section. This is useful for understanding how these actions work.
+:::
+
 ## Starting and Stopping a Game
 
-Make an API call like this to start a new Werewolf game. This has the same effect as pressing the "Start N-player Werewolf" button on the user's home page. The specified user (`alice-bot` in this case) will always participate in the game, and other players will be randomly chosen from available accounts that are "online and ready".
+Make an API call like this to start a new Werewolf game. This has the same effect as pressing the "Start N-player Werewolf" button on the user's home page. The specified user (`alice-bot` in this case) will always participate in the game, and other players will be randomly selected from available accounts that are "online and ready".
 
 <Tabs groupId="lang">
 <TabItem value="js" label="Node.js">
 
 ```js
-// With default set of players
+// With default 5-player mode
 await callApi("alice-bot", { action: "matchNewGame" });
 
-// With customized player nubmers
+// With customized player nubmers (up to 15 players)
 await callApi("alice-bot", {
   action: "matchNewGame",
   payload: {
     agentCount: {
-      villager: 3,
+      villager: 2,
       werewolf: 2,
       seer: 2,
       possessed: 1,

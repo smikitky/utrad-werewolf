@@ -6,7 +6,17 @@ sidebar_position: 3
 
 To deploy your own UTRAD Werewolf server, follow these steps.
 
-:::info
+:::caution
+
+Before you begin, be aware that this is a platform to support researches of AI Werewolf. We do not offer any sophisticated user management features like a full-fledged SNS or a game app do. It is not intended to efficiently manage more than 100 users.
+
+All knowledable users, **including newly registered users**, can access the full game log of other users. User profile, including user names, cannot be private. Therefore, you must limit your use to a closed research group. **Do not make the URL available to the general public**.
+
+Once your research is complete, it is recommended that the site itself be made invisible in the Netlify console or that Authentication be turned off in the Firebase console. This will make it impossible for existing users to re-log in or for new users to sign up.
+
+:::
+
+## Prerequisites
 
 This is a web-based project, but our docs do not assume you have any prior knowledge of web technologies, including JavaScript and HTML. Just follow the steps below and you should be able to get things working! However, we _do_ assume the following:
 
@@ -14,14 +24,6 @@ This is a web-based project, but our docs do not assume you have any prior knowl
 - You have a valid **GitHub account**.
 - You have a valid **Google account** (because we rely on Firebase).
 - You can use a terminal (command line).
-
-:::
-
-:::caution
-
-Before you begin, be aware that this is a platform to support researches of AI Werewolf. We do not offer any sophisticated user management features like a full-fledged SNS or a game app do. It is not intended to efficiently manage more than 100 users. Please limit your use to a closed research group, and do not make the URL available to the general public.
-
-:::
 
 ## Services We Depend on
 
@@ -65,10 +67,10 @@ This is the toughest part. If you're stuck, refer to the official Firebase tutor
 - In the Firebase console, navigate to the Realtime Database section, and create a database. The default security rule can be anything.
 
   :::note
-  Don't use "Firestore Database". It's a different product.
+  Don't use "_Firestore_ Database". It's a different solution, and we won't use it.
   :::
 
-- Go to the "Rules" tab, and copy-paste the folloing security rules into the text box, and save them.
+- Go to the "Realtime Databae &gt; Rules" tab, and copy-paste the folloing security rules into the text box, and save them.
 
   ```json
   {
@@ -168,15 +170,9 @@ It takes 5 players to play a werewolf game, so let's create non-player character
 
 ## Run on Your Local Machine (Optional)
 
-You can also run this app locally on your development machine. You still need Firebase Realtime Database account.
+You can also run this app locally on your development machine. You still need Firebase Realtime Database account. You need some experience about Node.js, NPM and JavaScript.
 
-:::caution
-
-You need some experience about Node.js, NPM and JavaScript.
-
-:::
-
-- Install Node.js on your machine. Node.JS is a JavaScript runtime, and it is required to test the app locally. Windows users can simply use the installer available on the official site. If you're on Linux, it's usually easiest to use [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm).
+- Make sure you have installed a recent version of Node.js on your machine. Windows users can simply use the installer available on the official site. If you're on Linux, it's usually easiest to use [NVM (Node Version Manager)](https://github.com/nvm-sh/nvm).
 
 - Clone the `utrad-werewolf` repository, and do `cd utrad-werewolf/packages/webapp`. (This repository is a monorepo and the actual web UI is located here.)
 
