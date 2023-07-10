@@ -58,11 +58,17 @@ This is the toughest part. If you're stuck, refer to the official Firebase tutor
 
 - [Visit Firebase](https://firebase.google.com/), and sign in using your Google account.
 
-- Create a new Firebase project. In this tutorial, we use `my-wolf` as the example project name. You don't need to enable Google Analytics.
+- Create a new Firebase project. In this tutorial, we use `my-wolf` as the example project name. You don't need to turn on Google Analytics.
 
-- In the Firebase console, navigate to the Realtime Database section, and create a database. The default security mode can be anything.
+- You will be instructed to create your first "App". Create an Web app and give it a nickname such as `werewolf-web`. You will be instructed to install Firebase SDK, but you can skip this step (SDK is included in our repository). Proceed to the console.
 
-- Go to the "rules" tab, and copy-paste the folloing security rules into the text box, and save them.
+- In the Firebase console, navigate to the Realtime Database section, and create a database. The default security rule can be anything.
+
+  :::note
+  Don't use "Firestore Database". It's a different product.
+  :::
+
+- Go to the "Rules" tab, and copy-paste the folloing security rules into the text box, and save them.
 
   ```json
   {
@@ -88,12 +94,12 @@ This is the toughest part. If you're stuck, refer to the official Firebase tutor
   }
   ```
 
-- Set up user authentication providers. Navigate to "Authentication &gt; Sign in method", and enable the following two log-in providers.
+- Set up user authentication providers. Go to the "Authentication" section and start it. Navigate to "Authentication &gt; Sign in method", and enable the following two log-in providers.
 
   - Google
   - Mail/Password: Enable "Email link (passwordless sign-in)" option
 
-- Navigate to the "Project settings &gt; Overview" section, and register a new "Web app". Then you will see `firebaseConfig` data that looks like this:
+- Navigate to the "Project settings &gt; Overview" section. You can find the "App" you created before. And there you can see the `firebaseConfig` data that looks like this:
 
   ```js
   const firebaseConfig = {
