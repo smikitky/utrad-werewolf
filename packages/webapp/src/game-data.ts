@@ -248,6 +248,8 @@ export const marks = [
   'star',
   'favorite',
   'bookmark',
+  'thumb_up',
+  'thumb_down',
   'smart_toy',
   'person',
   'group',
