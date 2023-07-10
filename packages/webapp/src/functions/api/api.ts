@@ -144,6 +144,7 @@ type GameRequestType =
   | 'deleteGame'
   | 'setGameAttributes'
   | 'abortGame'
+  | 'getGameLog'
   | 'talk'
   | 'whisper'
   | 'over'
@@ -534,6 +535,15 @@ const movePhase = (game: Game): Game => {
   return nextGame;
 };
 
+const handleGetGameLog: ModeHandler = async ({ uid, payload }) => {
+  const gameId = payload.gameId as string;
+  if (!gameId) return jsonResponse(400, 'gameId is required');
+  const gameRef = db.ref(`games/${gameId}`);
+  const game = (await gameRef.once('value')).val() as Game;
+  if (!game) return jsonResponse(404, 'Game not found');
+  return jsonResponse(200, game);
+};
+
 const availableChatType = (
   game: Game,
   agent: AgentInfo
@@ -683,6 +693,7 @@ export const handler: Handler = async (event, context) => {
       deleteGame: handleDeleteGame,
       setGameAttributes: handleSetGameAttributes,
       abortGame: handleAbortGame,
+      getGameLog: handleGetGameLog,
       talk: handleChat,
       whisper: handleChat,
       over: handleOver,
