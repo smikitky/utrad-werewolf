@@ -67,6 +67,7 @@ const GlobalStyle = createGlobalStyle`
 
   .material-icons {
     vertical-align: middle;
+    font-size: 120%;
   }
 `;
 

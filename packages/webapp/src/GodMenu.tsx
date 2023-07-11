@@ -20,6 +20,7 @@ import { useApi } from './utils/useApi';
 import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import useTitle from './utils/useTitle';
 import withLoginBoundary from './withLoginBoundary';
+import Toggle from './Toggle';
 
 const LangResource = makeLangResource({
   allUsers: { en: 'All Users', ja: '全ユーザー' },
@@ -32,41 +33,40 @@ const LangResource = makeLangResource({
 });
 
 const GodMenu: FC = () => {
-  const [newUid, setNewUid] = useState('');
-  const [results, setResults] = useState<any[]>([]);
-  const users = useFirebaseSubscription<UserEntries>('/users');
-  const api = useApi();
-  const [gameLog, setGameLog] = useState<GlobalGameHistory | Error>();
-  const [showFullLog, setShowFullLog] = useState(false);
-
-  const logRef = useMemo(
-    () =>
-      db.query(
-        db.ref(database, 'globalHistory'),
-        db.orderByChild('finishedAt'),
-        ...(showFullLog ? [] : [db.limitToLast(20)])
-      ),
-    [showFullLog]
-  );
-
-  useEffect(() => {
-    const unsubscribe = db.onValue(
-      logRef,
-      snapshot => setGameLog(snapshot.val()),
-      err => setGameLog(err)
-    );
-    return unsubscribe;
-  }, [logRef]);
-
+  const [selected, setSelected] = useState(0);
   useTitle('God Mode Menu');
 
-  if (!users.data) return null;
+  const choices = [
+    <>
+      <Icon icon="group" /> All Users
+    </>,
+    <>
+      <Icon icon="list" /> Game Log
+    </>,
+    <>
+      <Icon icon="settings" /> Settings
+    </>
+  ];
 
-  const addUserClick = async () => {
-    const res = await api('addUser', { newUid });
-    const item = res;
-    setResults([item, ...results]);
-  };
+  return (
+    <StyledDiv>
+      <h1>God Mode Menu</h1>
+      <Toggle choices={choices} value={selected} onChange={setSelected} />
+      {selected === 0 && <GodAllUsers />}
+      {selected === 1 && <GodGlobalLog />}
+      {selected === 2 && <GodSettings />}
+    </StyledDiv>
+  );
+};
+
+const StyledDiv = styled.div`
+  padding: 10px;
+`;
+
+export default withLoginBoundary({ mustBeGod: true })(GodMenu);
+
+const GodAllUsers: FC = () => {
+  const api = useApi();
 
   const handleUserCommand = async (
     uid: string,
@@ -93,6 +93,52 @@ const GodMenu: FC = () => {
     }
   };
 
+  return (
+    <>
+      <h2>
+        <LangResource id="allUsers" />
+      </h2>
+      <UserList
+        onUserCommand={handleUserCommand}
+        onlineOnly={false}
+        showAdminMenu={true}
+      />
+    </>
+  );
+};
+
+const GodGlobalLog: FC = () => {
+  const api = useApi();
+  const [gameLog, setGameLog] = useState<GlobalGameHistory | Error>();
+  const [showFullLog, setShowFullLog] = useState(false);
+  const [filter, setFilter] = useState<number>(-1); // index of Mark
+
+  const logRef = useMemo(
+    () =>
+      filter === -1
+        ? db.query(
+            db.ref(database, 'globalHistory'),
+            ...(showFullLog ? [] : [db.limitToLast(20)])
+          )
+        : db.query(
+            db.ref(database, 'globalHistory'),
+            db.orderByChild('mark'),
+            db.startAt(marks[filter]),
+            db.endAt(marks[filter]),
+            ...(showFullLog ? [] : [db.limitToLast(20)])
+          ),
+    [showFullLog, filter]
+  );
+
+  useEffect(() => {
+    const unsubscribe = db.onValue(
+      logRef,
+      snapshot => setGameLog(snapshot.val()),
+      err => setGameLog(err)
+    );
+    return unsubscribe;
+  }, [logRef]);
+
   const handleDownloadLog = async (gameId: string) => {
     const ref = db.ref(database, `/games/${gameId}`);
     const data = (await db.get(ref)).val();
@@ -117,28 +163,7 @@ const GodMenu: FC = () => {
   };
 
   return (
-    <StyledDiv>
-      <h1>God Mode Menu</h1>
-      <h2>
-        <LangResource id="allUsers" />
-      </h2>
-      <UserList
-        onUserCommand={handleUserCommand}
-        onlineOnly={false}
-        showAdminMenu={true}
-      />
-      <h2>
-        <LangResource id="addNpcAccount" />
-      </h2>
-      <div>
-        <input
-          type="text"
-          placeholder="uid"
-          value={newUid}
-          onChange={e => setNewUid(e.target.value)}
-        />
-        <button onClick={addUserClick}>Add</button>
-      </div>
+    <StyledGlobalLogDiv>
       <h2>
         {showFullLog ? (
           <LangResource id="allLog" />
@@ -151,13 +176,17 @@ const GodMenu: FC = () => {
           </>
         )}
       </h2>
+      <Toggle
+        choices={['ALL', ...marks.map(mark => <Icon icon={mark} />)]}
+        value={filter + 1}
+        onChange={index => setFilter(index - 1)}
+      />
       <ul className="recent">
         {gameLog &&
           !(gameLog instanceof Error) &&
           Object.entries(gameLog)
             .sort(
-              (a, b) =>
-                (b[1].finishedAt as number) - (a[1].finishedAt as number)
+              ([a], [b]) => b.localeCompare(a) // sort by gameId
             )
             .map(([gameId, game]) => (
               <GodGameLogItem
@@ -170,17 +199,13 @@ const GodMenu: FC = () => {
               />
             ))}
       </ul>
-    </StyledDiv>
+    </StyledGlobalLogDiv>
   );
 };
 
-const StyledDiv = styled.div`
-  padding: 10px;
-  height: 100%;
-  display: flex;
-  flex-flow: column;
+const StyledGlobalLogDiv = styled.div`
   .recent {
-    flex: 1 1 auto;
+    margin-top: 10px;
     min-height: 20em;
     overflow-y: auto;
     list-style: disc;
@@ -217,7 +242,7 @@ const GodGameLogItem: FC<{
     onStarGameClick
   } = props;
   return (
-    <StyledLi key={gameId}>
+    <StyledLogLi key={gameId}>
       <span className="mark">
         <Icon icon={game.mark ?? 'star_border'} />
         <div className="dropdown">
@@ -258,11 +283,11 @@ const GodGameLogItem: FC<{
       <span className="game-id" role="button">
         {gameId}
       </span>
-    </StyledLi>
+    </StyledLogLi>
   );
 };
 
-const StyledLi = styled.li`
+const StyledLogLi = styled.li`
   .mark {
     color: orange;
     cursor: pointer;
@@ -293,4 +318,28 @@ const StyledLi = styled.li`
   }
 `;
 
-export default withLoginBoundary({ mustBeGod: true })(GodMenu);
+const GodSettings: FC = () => {
+  const api = useApi();
+  const [newUid, setNewUid] = useState('');
+
+  const addUserClick = async () => {
+    const res = await api('addUser', { newUid });
+  };
+
+  return (
+    <>
+      <h2>
+        <LangResource id="addNpcAccount" />
+      </h2>
+      <div>
+        <input
+          type="text"
+          placeholder="uid"
+          value={newUid}
+          onChange={e => setNewUid(e.target.value)}
+        />
+        <button onClick={addUserClick}>Add</button>
+      </div>
+    </>
+  );
+};
