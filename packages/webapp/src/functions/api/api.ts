@@ -237,10 +237,14 @@ const asGod = (
     if (!user.canBeGod) return jsonResponse(403, 'You are not a god');
     const gameId = payload.gameId as string | undefined;
     let game = undefined;
-    if (gameId) {
-      const gameRef = db.ref(`games/${gameId}`);
-      game = (await gameRef.get()).val() as Game;
-      if (!game) return jsonResponse(404, 'Game not found');
+    if (gameId !== undefined) {
+      if (typeof gameId === 'string' && gameId.match(/^[a-zA-Z0-9_-]+$/)) {
+        const gameRef = db.ref(`games/${gameId}`);
+        game = (await gameRef.get()).val() as Game;
+        if (!game) return jsonResponse(404, 'Game not found');
+      } else {
+        return jsonResponse(400, 'Invalid gameId');
+      }
     }
     return handler({ uid, payload, game });
   };
@@ -439,17 +443,12 @@ const handleSetGameAttributes = asGod(async ({ payload, game }) => {
   if (!game) return jsonResponse(400, 'gameId is required');
 
   const mark = payload.mark as Mark | null;
-  if (mark && !marks.includes(mark as Mark)) {
+  if (![...marks, null].includes(mark)) {
     return jsonResponse(400, 'Invalid mark');
   }
 
-  const userIds = game.agents.map(a => a.userId);
   await db.ref().update({
-    [`/games/${gameId}/mark`]: mark,
-    [`/globalHistory/${gameId}/mark`]: mark,
-    ...Object.fromEntries(
-      userIds.map(uid => [`/userHistory/${uid}/${gameId}/mark`, mark])
-    )
+    [`/globalHistory/${gameId}/mark`]: mark
   });
   return jsonResponse(200, 'OK');
 });
@@ -679,7 +678,7 @@ const handleDivineGuard = makeGameHandler(
 
 export const handler: Handler = async (event, context) => {
   try {
-    const { type, payload } = parseInput(event) as GameRequestData;
+    const { type, payload = {} } = parseInput(event) as GameRequestData;
 
     if (type === 'ping')
       return jsonResponse(200, { message: 'pong', timestamp: now() });
