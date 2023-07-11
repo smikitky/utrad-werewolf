@@ -349,6 +349,8 @@ The log data is a large JSON object that hold the following as the top-most keys
 - `log`: The game log. See below.
 - `winner`: When this game is finished successfully, contains the winner. Either `"villagers"` or `"werewolves"`.
 
+All time data are stored as time since the Unix epoch, in milliseconds.
+
 ## Game Logs
 
 The `log` data is a large JSON object that basically looks like this:

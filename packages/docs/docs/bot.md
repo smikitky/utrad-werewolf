@@ -70,6 +70,25 @@ response = requests.post(
 ```
 
 </TabItem>
+
+<TabItem value="curl" label="cURL">
+
+```bash title="In a terminal"
+curl -X POST https://your-site/.netlify/functions/api \
+-H 'Content-Type: application/json' \
+-H 'Authorization: Bearer 1a2b3c4d' \
+-H 'x-godmode-uid-override: alice-bot' \
+-d '{
+  "action": "talk",
+  "payload": {
+    "gameId": "-NXC7Mw8XomYbbsRa76i",
+    "content": "Hello, I am a villager!"
+  }
+}'
+```
+
+</TabItem>
+
 </Tabs>
 
 - The HTTP method (verb) is always `'POST'` (this also applies to API calls only for fetching data).
@@ -77,14 +96,13 @@ response = requests.post(
 - The `authorization` and `x-godmode-uid-override` headers specify the user.
   - The authorization token (`1a2b3c4d` in the example above) is the `MASTER_PASS` environment variable described below.
   - The `x-godmode-uid-override` header let you "pretend" any valid user (NPC or human). You must specify a valid UID (you can find the UID of a user in their profile page).
+- The `data` is the HTTP request body. It describes the command you are issueing to the API.
 
-For this to work, you must define the `MASTER_PASS` environment variable on the Netlify dashboard. Note that you need to **re-deploy** the site after changing an environment variable.
+For this to work, you must set the `MASTER_PASS` environment variable on the Netlify dashboard. Use a safe password with a sufficient length. Note that you need to re-deploy the site so that the new environment variable takes effect.
 
 :::note
-`MASTER_PASS` will allow you do to anything on behalf of any user. You should not set `MASTER_PASS` if you are not interested in using our API. Users (including god users) using a web browser uses a different and safer mechanism for authentication.
+You should not set `MASTER_PASS` if you are not interested in using the API. Users (including God users) using a web browser uses a different and safer mechanism for authentication.
 :::
-
-The `data` in the example describes the command you are issueing to the API.
 
 Practically, you will want to define and reuse a function like this:
 
@@ -94,7 +112,7 @@ Practically, you will want to define and reuse a function like this:
 ```js
 // import fetch from "node-fetch"; // Node 17 or below
 
-const MASTER_PASS = "1a2b3c4d";
+const MASTER_PASS = loadPasswordSomehow();
 
 async function callApi(uid, data) {
   const res = await fetch("https://your-site/.netlify/functions/api", {
@@ -118,7 +136,7 @@ async function callApi(uid, data) {
 import requests
 import json
 
-MASTER_PASS = "1a2b3c4d"
+MASTER_PASS = load_password_somehow();
 
 def call_api(uid, data):
     url = "https://your-site/.netlify/functions/api"
@@ -171,13 +189,13 @@ log_data = call_api("alice-bot", {
 
 This approach is very simple, but you cannot get a real-time log, so you will need to repeat this periodically (e.g., once in 5 seconds).
 
-### Option 2: Getting Real-time Log Using Firebase RTDB Admin SDK
+### Option 2: Getting Real-time Log Using Firebase Admin SDK
 
 Alternatively, you can set up a Firebase Admin SDK to read realtime data from Firebase Realtime Database. To do so, follow the steps described in [Firebase Realtime Database docs](https://firebase.google.com/docs/database/admin/start).
 
 :::caution
 
-**Treat the data as read-only**. This approach can give you full **admin** access to Firebase Realtime Database from your development machine. However, do not attempt to directly write data into Realtime Database. It will bypass all the integrity-check code implemented at the API level, and almost certainly break your game logs! To perform in-game actions such as talking or voting, **always** use the API, as described below.
+**Teat the data as read-only** when you directly read from the database. This approach can give you full **admin** access to Firebase Realtime Database from your development machine. However, you must not attempt to directly write data into Realtime Database. Doing so will bypass all the integrity-check code implemented at the API level, and almost certainly break your game logs! To perform in-game actions such as talking or voting, **always** use the API, as described below.
 
 :::
 
@@ -234,19 +252,20 @@ The same API is used when users play Werewolf (or when a god user controls playe
 
 ## Starting and Stopping a Game
 
-Make an API call like this to start a new Werewolf game. This has the same effect as pressing the "Start N-player Werewolf" button on the user's home page. The specified user (`alice-bot` in this case) will always participate in the game, and other players will be randomly selected from available accounts that are "online and ready".
+Make an API call like this to start a new Werewolf game:
 
 <Tabs groupId="lang">
 <TabItem value="js" label="Node.js">
 
 ```js
 // With default 5-player mode
-await callApi("alice-bot", { action: "matchNewGame" });
+const { gameId } = await callApi("alice-bot", { action: "matchNewGame" });
 
-// With customized player nubmers (up to 15 players)
-await callApi("alice-bot", {
+// Alternatively, with customized player nubmers (up to 15 players)
+const { gameId } = await callApi("alice-bot", {
   action: "matchNewGame",
   payload: {
+    // All 6 keys (roles) are required
     agentCount: {
       villager: 2,
       werewolf: 2,
@@ -262,7 +281,9 @@ await callApi("alice-bot", {
 </TabItem>
 </Tabs>
 
-To forcibly abort a game in progress, make an API call like this. Note that only users with an admin privilege can do this, so you must specify the uid of an admin (god) account.
+This has the same effect as pressing the "Start N-player Werewolf" button on the user's home page. The specified user (`alice-bot` in this case) will always participate in the game, and other players will be randomly selected from available accounts that are "online and ready".
+
+To forcibly abort a game in progress, make an API call like this:
 
 <Tabs groupId="lang">
 <TabItem value="js" label="Node.js">
@@ -273,6 +294,8 @@ await callApi("bEx8rSmh62eGWe6skikj3sYLzbAm", {
   payload: { gameId: "-NXC7Mw8XomYbbsRa76i" },
 });
 ```
+
+Note that only users with an admin privilege can do this, so you must specify the uid of an admin (god) account.
 
 </TabItem>
 </Tabs>

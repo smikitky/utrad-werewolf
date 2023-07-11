@@ -76,10 +76,14 @@ This is the toughest part. If you're stuck, refer to the official Firebase tutor
   {
     "rules": {
       "games": { "$gameId": { ".read": true } },
-      "userHistory": { "$uid": { ".read": true } },
+      "userHistory": {
+        "$uid": {
+          ".read": "$uid === auth.uid || root.child('users').child(auth.uid).child('canBeGod').val() === true"
+        }
+      },
       "globalHistory": {
         ".read": "root.child('users').child(auth.uid).child('canBeGod').val() === true",
-        ".indexOn": "finishedAt"
+        ".indexOn": ["mark", "finishedAt"]
       },
       "users": {
         ".read": true,
