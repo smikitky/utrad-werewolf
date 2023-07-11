@@ -263,7 +263,6 @@ export interface Game {
   startedAt: TimeStamp;
   finishedAt?: TimeStamp;
   wasAborted?: boolean;
-  mark?: Mark;
   winner?: Team;
   agents: AgentInfo[];
   status: GameStatus;
@@ -288,16 +287,17 @@ export interface UserEntries {
   [uid: string]: UserEntry;
 }
 
+export interface UserGameHistoryEntry {
+  finishedAt: TimeStamp;
+  wasAborted?: boolean;
+  numAgents: number;
+  role: AgentRole;
+  winner?: Team;
+}
+
 export interface UserGameHistory {
   [userId: string]: {
-    [gameId: string]: {
-      finishedAt: TimeStamp;
-      wasAborted?: boolean;
-      mark?: Mark;
-      numAgents: number;
-      role: AgentRole;
-      winner?: Team;
-    };
+    [gameId: string]: UserGameHistoryEntry;
   };
 }
 

@@ -28,21 +28,22 @@ const LangResource = makeLangResource({
   godModeAlert: {
     en: 'As an admin, you can edit this user profile.',
     ja: '管理者はこのユーザのプロフィールを編集できます。'
-  }
+  },
+  noHistory: { en: 'No play history yet.', ja: 'まだプレイ履歴はありません。' }
 });
 
 const Profile: Page = ({ loginUser }) => {
   const uid = useParams().uid as string;
   const user = useFirebaseSubscription<UserEntry>(`/users/${uid}`);
   const api = useApi();
+
+  const canViewUserHistory = loginUser.data.canBeGod || uid === loginUser.uid;
+  const canEditProfile = loginUser.data.canBeGod || loginUser.uid === uid;
+
   const userHistory = useFirebaseSubscription<UserGameHistory['a']>(
-    `/userHistory/${uid}/`
+    canViewUserHistory ? `/userHistory/${uid}/` : undefined
   );
   const [editName, setEditName] = useState<string | null>(null);
-
-  const profileEditable =
-    loginUser.status === 'loggedIn' &&
-    (loginUser.uid === uid || loginUser.data.canBeGod);
 
   const history = useMemo(
     () =>
@@ -74,7 +75,7 @@ const Profile: Page = ({ loginUser }) => {
       <h1>
         <BasicLangResource id="profile" />
       </h1>
-      {profileEditable && uid !== loginUser.uid && (
+      {canEditProfile && uid !== loginUser.uid && (
         <Alert variation="info">
           <LangResource id="godModeAlert" />
         </Alert>
@@ -95,7 +96,7 @@ const Profile: Page = ({ loginUser }) => {
             {editName === null ? (
               <>
                 {user.data.name}
-                {profileEditable && (
+                {canEditProfile && (
                   <>
                     <button onClick={handleNameChange}>
                       <LangResource id="changeUserName" />
@@ -124,7 +125,7 @@ const Profile: Page = ({ loginUser }) => {
             <LangResource id="language" />
           </dt>
           <dd>
-            {profileEditable ? (
+            {canEditProfile ? (
               <LangSwitch
                 value={user.data.lang ?? 'en'}
                 onChange={handleUserLangChange}
@@ -145,46 +146,55 @@ const Profile: Page = ({ loginUser }) => {
             )}
           </dd>
         </dl>
-        <h2>
-          <LangResource id="playHistory" />
-          {userHistory.data && (
-            <>
-              {' '}
-              ({history.length} <LangResource id="items" />)
-            </>
-          )}
-        </h2>
-        <ul>
-          {history.map(([gameId, entry]) => (
-            <li key={gameId}>
-              <Link to={`/game/${gameId}`}>
-                <span className="date">
-                  {formatDate(entry.finishedAt as number)}
-                </span>{' '}
-                <span className="num-agents">{entry.numAgents}P</span>{' '}
-                <span className="role">
-                  <RoleDisplay role={entry.role} />
-                </span>{' '}
-                <span className="result">
-                  {entry.wasAborted ? (
-                    <LangResource id="aborted" />
-                  ) : (
-                    <>
-                      {<TeamDisplay team={entry.winner!} />}
-                      <LangResource id="won" />
-                      {entry.winner === team(entry.role) ? (
-                        <Icon icon="military_tech" />
+        {canViewUserHistory && (
+          <>
+            <h2>
+              <LangResource id="playHistory" />
+              {userHistory.data && (
+                <>
+                  {' '}
+                  ({history.length} <LangResource id="items" />)
+                </>
+              )}
+            </h2>
+            {history.length === 0 && (
+              <div>
+                <LangResource id="noHistory" />
+              </div>
+            )}
+            <ul>
+              {history.map(([gameId, entry]) => (
+                <li key={gameId}>
+                  <Link to={`/game/${gameId}`}>
+                    <span className="date">
+                      {formatDate(entry.finishedAt as number)}
+                    </span>{' '}
+                    <span className="num-agents">{entry.numAgents}P</span>{' '}
+                    <span className="role">
+                      <RoleDisplay role={entry.role} />
+                    </span>{' '}
+                    <span className="result">
+                      {entry.wasAborted ? (
+                        <LangResource id="aborted" />
                       ) : (
-                        <Icon icon="mood_bad" />
+                        <>
+                          {<TeamDisplay team={entry.winner!} />}
+                          <LangResource id="won" />
+                          {entry.winner === team(entry.role) ? (
+                            <Icon icon="military_tech" />
+                          ) : (
+                            <Icon icon="mood_bad" />
+                          )}
+                        </>
                       )}
-                    </>
-                  )}
-                </span>{' '}
-                <span className="game-id">{gameId}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                    </span>{' '}
+                    <span className="game-id">{gameId}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
     </StyledDiv>
   );
