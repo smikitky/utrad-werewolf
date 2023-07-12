@@ -7,9 +7,9 @@ const Toggle: FC<{
   onChange: (index: number) => void;
 }> = props => {
   const { choices, value, onChange } = props;
-  const [border, setBorder] = useState<{ left: number; right: number }>({
+  const [border, setBorder] = useState<{ left: number; width: number }>({
     left: 0,
-    right: 0
+    width: 0
   });
   const divRef = useRef<HTMLDivElement>(null);
 
@@ -19,8 +19,8 @@ const Toggle: FC<{
     if (div) {
       const selected = div.children[value] as HTMLButtonElement;
       const left = selected.offsetLeft;
-      const right = div.offsetWidth - left - selected.offsetWidth;
-      setBorder({ left, right });
+      const width = selected.offsetWidth;
+      setBorder({ left, width });
     }
   }, [value, choices]);
 
@@ -37,7 +37,7 @@ const Toggle: FC<{
       ))}
       <div
         className="bottom_border"
-        style={{ left: border.left, right: border.right }}
+        style={{ left: border.left + 'px', width: border.width + 'px' }}
       />
     </StyledDiv>
   );

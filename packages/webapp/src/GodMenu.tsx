@@ -27,7 +27,8 @@ const LangResource = makeLangResource({
   recentGames: { en: 'Recent Games', ja: '最近のゲーム' },
   showFullLog: { en: 'Show Full Log', ja: '全ログを表示' },
   aborted: { en: '(Aborted)', ja: '(中断)' },
-  won: { en: ' Won', ja: '勝利' }
+  won: { en: ' Won', ja: '勝利' },
+  settings: { en: 'Settings', ja: '設定' }
 });
 
 const GodMenu: FC = () => {
@@ -36,19 +37,19 @@ const GodMenu: FC = () => {
 
   const choices = [
     <>
-      <Icon icon="group" /> All Users
+      <Icon icon="group" /> <LangResource id="allUsers" />
     </>,
     <>
-      <Icon icon="list" /> Game Log
+      <Icon icon="list" /> <LangResource id="recentGames" />
     </>,
     <>
-      <Icon icon="settings" /> Settings
+      <Icon icon="settings" /> <LangResource id="settings" />
     </>
   ];
 
   return (
     <StyledDiv>
-      <h1>God Mode Menu</h1>
+      <h1>God Mode</h1>
       <Toggle choices={choices} value={selected} onChange={setSelected} />
       {selected === 0 && <GodAllUsers />}
       {selected === 1 && <GodGlobalLog />}
