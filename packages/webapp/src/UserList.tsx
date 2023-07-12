@@ -212,29 +212,43 @@ const StyledDiv = styled.div`
       display: flex;
       align-items: center;
       gap: 4px;
-      border-radius: 4px;
-      background-color: silver;
-      padding: 0 5px;
+      border-radius: 13px;
+      background-color: #aaaaaa;
+      padding: 0 2px;
       user-select: none;
+      border: 1px solid #888888;
+      color: #555555;
+      .status {
+        height: 21px;
+        background: #ffffffbb;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+      }
       .name {
         flex: 1;
         height: 25px;
+        font-size: 90%;
+        line-height: 25px;
+        font-weight: bold;
       }
       .god-indicator {
         color: #915e00;
       }
       &.online {
         background-color: #aaffaa;
+        border-color: #88cc88;
+        color: black;
       }
       &.in-game {
         background-color: #fff56b;
       }
-      &.online.ready .status .material-icons {
-        color: green;
+      &.online.ready .status {
+        color: #00aa00;
       }
       &.online:not(.ready) {
-        background-color: #9db694;
-        .status .material-icons {
+        background-color: #9dc694;
+        .status {
           color: brown;
         }
       }

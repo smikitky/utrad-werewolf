@@ -89,43 +89,52 @@ const LoginScreen: FC = () => {
           </div>
         </Alert>
       )}
-      <section>
-        <button onClick={handleGoogleLoginClick} disabled={busy}>
-          Login with Google Account
-        </button>
-      </section>
-      <section>
-        <input
-          placeholder="E-mail address"
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-        <button onClick={handleEmailLoginClick} disabled={busy}>
-          Login with E-mail Address
-        </button>
-        {mailSent && (
-          <p>
-            An e-mail was sent to the specified address. Please click the link
-            in the mail.
-          </p>
-        )}
-      </section>
+      <div className="login-pane">
+        <section>
+          <button onClick={handleGoogleLoginClick} disabled={busy}>
+            Login with Google Account
+          </button>
+        </section>
+        <div>or</div>
+        <section>
+          <input
+            placeholder="E-mail address"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
+          <button onClick={handleEmailLoginClick} disabled={busy}>
+            Login with Email Address
+          </button>
+          {mailSent && (
+            <p>
+              An e-mail was sent to the specified address. Please click the link
+              in the mail.
+            </p>
+          )}
+        </section>
+      </div>
     </StyledDiv>
   );
 };
 
 const StyledDiv = styled.div`
-  section {
-    width: 350px;
-    max-width: 100%;
-    margin: 15px auto;
+  .login-pane {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: #eeeeff;
+    align-items: center;
+  }
+
+  section {
+    width: 350px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: #dddddd;
     border-radius: 5px;
-    padding: 15px;
+    padding: 10px;
   }
 `;
 
