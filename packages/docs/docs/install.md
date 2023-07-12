@@ -8,9 +8,7 @@ To deploy your own UTRAD Werewolf server, follow these steps.
 
 :::caution
 
-Before you begin, be aware that this is a platform to support researches of AI Werewolf. We do not offer any sophisticated user management features like a full-fledged SNS or a game app do. It is not intended to efficiently manage more than 100 users.
-
-All knowledable users, **including newly registered users**, can access the full game log of other users. User profile, including user names, cannot be private. Therefore, you must limit your use to a closed research group. **Do not make the URL available to the general public**.
+Before you begin, be aware that this is a platform to support researches of AI Werewolf. We do not offer any sophisticated user management features like a full-fledged SNS or a game app do. It is not intended to efficiently manage more than 100 users. User profile, including user names, cannot be private. Therefore, you must limit your use to a closed research group. **Do not make the URL available to the general public**.
 
 Once your research is complete, it is recommended that the site itself be made invisible in the Netlify console or that Authentication be turned off in the Firebase console. This will make it impossible for existing users to re-log in or for new users to sign up.
 
@@ -64,13 +62,13 @@ This is the toughest part. If you're stuck, refer to the official Firebase tutor
 
 - You will be instructed to create your first "App". Create an Web app and give it a nickname such as `werewolf-web`. You will be instructed to install Firebase SDK, but you can skip this step (SDK is included in our repository). Proceed to the console.
 
-- In the Firebase console, navigate to the Realtime Database section, and create a database. The default security rule can be anything.
+- In the Firebase console, navigate to the Realtime Database section, and create a database. The default security rule should be "Locked".
 
   :::note
   Don't use "_Firestore_ Database". It's a different solution, and we won't use it.
   :::
 
-- Go to the "Realtime Databae &gt; Rules" tab, and copy-paste the folloing security rules into the text box, and save them.
+- Go to the "Realtime Databae &gt; Rules" tab, and copy-paste the folloing security rules into the text box, and save them. This step is important; if you forgot to do this, an attacker can steal all the infromation stored in the database.
 
   ```json
   {
@@ -171,6 +169,18 @@ Sign-in to the app using your personal Google account. Go to the "Profile" page 
 ### 4. Start Your First Game
 
 It takes 5 players to play a werewolf game, so let's create non-player character (NPC) accounts now.
+
+## Updating
+
+Your Netlify site is linked to the **fork** of our repository. To update the site, you can push new contents to your fork, and Netlify will re-deploy the site for you. If you just to want to update the app to the latest, the process will be something like this:
+
+```bash
+$ git remote add upstream https://github.com/smikitky/utrad-werewolf
+$ git fetch upstream
+$ git checkout main
+$ git merge upstream/main
+$ git push
+```
 
 ## Run on Your Local Machine (Optional)
 

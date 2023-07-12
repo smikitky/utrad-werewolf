@@ -382,7 +382,7 @@ The keys like `-NZylcvSgiD9fHfmldMi` is an auto-generated ID of the log entry. E
 
 The entries in the `"log"` object will arrive from the API in chronological order, but some languages may not preserve the key order of the `"log"` object when parsing JSON into their language-specific map/dictionary types. If you need to sort log data in chronological order, **sort _keys_ alphabetically** rather than _timestamps_. When multiple entries are logged in a single API call, their timestamps will have identical values. In the example above, notice how the last vote log and the "voteSettled" event log immediately after it have the same timestamp (`1688975425332`). If you use timestamps for sorting, there is a risk that the order will not be preserved.
 
-In Python &ge; 3.7 and recent versions of JavaScript, the key order is guaranteed to be preserved, so it is safe to iterate over log entries like `for (const entry of Object.values(log))` (JavaScript) or `for entry in log.values():` (Python).
+In Python &ge; 3.7 and recent versions of JavaScript, the key order is guaranteed to be preserved, so it is safe to iterate over log entries like `for (const entry of Object.values(log))` (JavaScript) or `for entry in log.values()` (Python).
 
 </details>
 

@@ -24,5 +24,4 @@ Before accessing the demo site, please agree to the following:
 - The demo site should only be used to evaluate the functionality of our project. [Set up your own site](./install) for actual AI development or storing large amounts of data.
 - The user name and the game logs you create on the demo site will be visible to other users. Do not post any personal information (such as your real name) or inappropriate remarks.
 - Since everyone will have the admin privilege, other users may (accidentally or intentionally) abort your game or use God mode to play games pretending you.
-- We will not use the game logs you create on the demo site to train our AI.
 - Your game logs may be deleted without notice.

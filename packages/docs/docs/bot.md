@@ -158,11 +158,15 @@ def call_api(uid, data):
 
 We will be using this function in the rest of this article, too.
 
+:::note
+If you're not sure how to securely store `MASTER_PASS`, you can use "dotenv" libraries available on many languages.
+:::
+
 ## Reading In-game Data
 
 ### Option 1: Polling API
 
-To fetch the entire log of the specified game, you can use the fallowing API call:
+To fetch the entire log of the specified game, you can use the following API call:
 
 <Tabs groupId="lang">
 <TabItem value="js" label="Node.js">
@@ -187,6 +191,8 @@ log_data = call_api("alice-bot", {
 </TabItem>
 </Tabs>
 
+The log format is described in a [separate page](./log-format).
+
 This approach is very simple, but you cannot get a real-time log, so you will need to repeat this periodically (e.g., once in 5 seconds).
 
 ### Option 2: Getting Real-time Log Using Firebase Admin SDK
@@ -196,6 +202,8 @@ Alternatively, you can set up a Firebase Admin SDK to read realtime data from Fi
 :::caution
 
 **Teat the data as read-only** when you directly read from the database. This approach can give you full **admin** access to Firebase Realtime Database from your development machine. However, you must not attempt to directly write data into Realtime Database. Doing so will bypass all the integrity-check code implemented at the API level, and almost certainly break your game logs! To perform in-game actions such as talking or voting, **always** use the API, as described below.
+
+If you are comfortable with working with text streams, a safer alternative is to use the official [Realtime Database REST API](https://firebase.google.com/docs/database/rest/retrieve-data#section-rest-streaming) to receive streaming game log data.
 
 :::
 
