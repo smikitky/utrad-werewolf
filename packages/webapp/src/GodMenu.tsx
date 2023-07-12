@@ -1,27 +1,24 @@
 import * as db from 'firebase/database';
-import { FC, MouseEventHandler, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import Icon from './Icon';
 import { makeLangResource } from './LangResource';
 import { TeamDisplay } from './RoleDisplay';
+import Toggle from './Toggle';
 import UserList, { UserListCommand } from './UserList';
 import {
   GlobalGameHistory,
   GlobalGameHistoryEntry,
   Mark,
-  UserEntries,
   UserEntry,
   marks
 } from './game-data';
 import { database } from './utils/firebase.js';
 import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
-import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import useTitle from './utils/useTitle';
 import withLoginBoundary from './withLoginBoundary';
-import Toggle from './Toggle';
-import GridList from './GridList';
 
 const LangResource = makeLangResource({
   allUsers: { en: 'All Users', ja: '全ユーザー' },
