@@ -19,6 +19,7 @@ import formatDate from './utils/formatDate';
 import { useApi } from './utils/useApi';
 import useTitle from './utils/useTitle';
 import withLoginBoundary from './withLoginBoundary';
+import { useMessageAdder } from './Messages';
 
 const LangResource = makeLangResource({
   allUsers: { en: 'All Users', ja: '全ユーザー' },
@@ -26,6 +27,18 @@ const LangResource = makeLangResource({
   npcDesc: {
     en: 'NPC accounts are controlled in God mode or by API.',
     ja: 'NPC アカウントは、ゴッドモードか API で操作します。'
+  },
+  userAdded: {
+    en: ({ name }) => (
+      <>
+        New NPC user <b>"{name}"</b> added.
+      </>
+    ),
+    ja: ({ name }) => (
+      <>
+        NPC ユーザ <b>"{name}"</b> を追加しました。
+      </>
+    )
   },
   allLog: { en: 'Full Game Log', ja: '全ゲーム一覧' },
   recentGames: { en: 'Recent Games', ja: '最近のゲーム' },
@@ -338,6 +351,7 @@ const GodSettings: FC = () => {
   const [newUid, setNewUid] = useState('');
   const [newName, setNewName] = useState('');
   const [busy, setBusy] = useState(false);
+  const addMessage = useMessageAdder();
 
   const addUserClick = async () => {
     if (!newUid || !newName) return;
@@ -345,6 +359,7 @@ const GodSettings: FC = () => {
     const { ok } = await api('addUser', { newUid, name: newName });
     setBusy(false);
     if (ok) {
+      addMessage('info', <LangResource id="userAdded" name={newName} />);
       setNewUid('');
       setNewName('');
     }

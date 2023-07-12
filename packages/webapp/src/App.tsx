@@ -1,17 +1,6 @@
 import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
 import * as db from 'firebase/database';
-import {
-  Component,
-  FC,
-  ReactNode,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from 'react';
+import { FC, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   Link,
   Outlet,
@@ -19,6 +8,15 @@ import {
   createBrowserRouter
 } from 'react-router-dom';
 import styled from 'styled-components';
+import Icon from './Icon.js';
+import { BasicLangResource } from './LangResource.js';
+import { LoginUserLangSwitch } from './LangSwitch.js';
+import {
+  Messages,
+  MessagesContext,
+  MessagesDispatchContext,
+  messagesReducer
+} from './Messages.js';
 import { UserEntry } from './game-data.js';
 import { auth, database } from './utils/firebase.js';
 import { ApiCaller, ApiContext } from './utils/useApi.js';
@@ -33,24 +31,12 @@ import {
 import GameStage from './GameStage.js';
 import GodMenu from './GodMenu.js';
 import GodMode from './GodMode.js';
-import Icon from './Icon.js';
-import { BasicLangResource } from './LangResource.js';
-import { LoginUserLangSwitch } from './LangSwitch.js';
 import LoginScreen from './LoginScreen.js';
 import Menu from './Menu.js';
 import Profile from './Profile.js';
-import { Lang } from './game-utils.js';
-import useLang, { LangContext } from './utils/useLang.js';
-
-const MessagesContext = createContext<{
-  list: (ReactNode | string)[];
-  dismiss: (index: number) => void;
-}>({ list: [], dismiss: () => {} });
 
 const Layout: FC = props => {
   const user = useLoginUser();
-  const messages = useContext(MessagesContext);
-  const lang = useLang();
 
   return (
     <>
@@ -88,13 +74,7 @@ const Layout: FC = props => {
       <main>
         <Outlet />
       </main>
-      <div className="messages">
-        {messages.list.map((message, i) => (
-          <div className="message" key={i} onClick={() => messages.dismiss(i)}>
-            {message}
-          </div>
-        ))}
-      </div>
+      <Messages />
     </>
   );
 };
@@ -121,9 +101,7 @@ const App: FC = () => {
     undefined
   );
   const getTokenRef = useRef<null | (() => Promise<string>)>(null);
-  const [messages, setMessages] = useState<(string | ReactNode)[]>([]);
-
-  const [lang, setLang] = useState<Lang>('ja');
+  const [messages, dispatch] = useReducer(messagesReducer, []);
 
   const userProfile = useFirebaseSubscription<UserEntry | null>(
     uid ? `/users/${uid}` : undefined
@@ -163,26 +141,22 @@ const App: FC = () => {
       });
       const data = await res.json();
       if (!res.ok && !noError) {
-        setMessages(messages => [
-          ...messages,
-          <div>
-            <b>Error:</b> {data.message}
-          </div>
-        ]);
+        dispatch({
+          type: 'add',
+          payload: {
+            type: 'error',
+            content: (
+              <>
+                <b>Error:</b> {data.message}
+              </>
+            )
+          }
+        });
       }
       return { ok: res.ok, status: res.status, data };
     };
     return callApi;
   }, []);
-
-  const dismissMessage = useCallback((index: number) => {
-    setMessages(messages => messages.filter((_, i) => i !== index));
-  }, []);
-
-  const messageList = useMemo(
-    () => ({ list: messages, dismiss: dismissMessage }),
-    [messages, dismissMessage]
-  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
@@ -231,13 +205,13 @@ const App: FC = () => {
   return (
     <LoginUserContext.Provider value={user}>
       <ApiContext.Provider value={apiCaller}>
-        <MessagesContext.Provider value={messageList}>
-          <LangContext.Provider value={lang}>
+        <MessagesContext.Provider value={messages}>
+          <MessagesDispatchContext.Provider value={dispatch}>
             <StyledDiv>
               {linkErrorCode && <div>Error {linkErrorCode}</div>}
               <RouterProvider router={router} />
             </StyledDiv>
-          </LangContext.Provider>
+          </MessagesDispatchContext.Provider>
         </MessagesContext.Provider>
       </ApiContext.Provider>
     </LoginUserContext.Provider>
@@ -269,18 +243,6 @@ const StyledDiv = styled.div`
   main {
     flex: 1;
     overflow: auto;
-  }
-  .messages {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 100;
-    > .message {
-      padding: 10px 15px;
-      border: 1px solid orange;
-      margin-bottom: 10px;
-      background: pink;
-    }
   }
 `;
 
