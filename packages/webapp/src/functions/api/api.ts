@@ -368,15 +368,21 @@ const handleAbortGame = asGod(async ({ uid, payload, game }) => {
 
 const handleAddUser = asGod(async ({ payload }) => {
   const newUid = payload.newUid as string;
-  const name = (payload.name as string) ?? 'bot';
+  const name = (payload.name as string) ?? `bot-${newUid}`;
   if (typeof newUid !== 'string' || !newUid)
-    return jsonResponse(400, 'newUid is required');
-  if (/[^a-zA-Z0-9_-]/.test(newUid)) return jsonResponse(400, 'Invalid newUid');
+    return jsonResponse(400, 'New UID is required');
+  if (/[^a-zA-Z0-9_-]/.test(newUid))
+    return jsonResponse(400, 'New UID is invalid');
 
   const usersRef = db.ref('users').child(newUid);
+  if ((await usersRef.get()).exists()) {
+    return jsonResponse(400, 'This UID is already registered');
+  }
+
   await usersRef.set({
     createdAt: now(),
     name,
+    isNpc: true,
     onlineStatus: true,
     ready: true
   });

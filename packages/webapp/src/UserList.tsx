@@ -139,9 +139,14 @@ const UserList: FC<{
             </span>
             <span className="name">
               {user.name}
+              {user.isNpc && (
+                <span title="NPC" className="account-type npc">
+                  <Icon icon="smart_toy" />
+                </span>
+              )}
               {user.canBeGod && (
-                <span title="Admin" className="god-indicator">
-                  ★
+                <span title="Admin" className="account-type god">
+                  <Icon icon="stars" />
                 </span>
               )}
             </span>
@@ -227,13 +232,20 @@ const StyledDiv = styled.div`
       }
       .name {
         flex: 1;
+        display: flex;
+        align-items: center;
         height: 25px;
         font-size: 90%;
         line-height: 25px;
         font-weight: bold;
       }
-      .god-indicator {
-        color: #915e00;
+      .account-type {
+        font-size: 80%;
+        margin-left: 4px;
+        color: #0000ff66;
+        &.god {
+          color: #a16100aa;
+        }
       }
       &.online {
         background-color: #aaffaa;
@@ -241,6 +253,7 @@ const StyledDiv = styled.div`
         color: black;
       }
       &.in-game {
+        border-color: #ffcc00;
         background-color: #fff56b;
       }
       &.online.ready .status {

@@ -280,6 +280,7 @@ export interface UserEntry {
   onlineStatus?: boolean;
   ready: boolean;
   canBeGod?: boolean;
+  isNpc?: boolean;
   currentGameId?: string;
 }
 

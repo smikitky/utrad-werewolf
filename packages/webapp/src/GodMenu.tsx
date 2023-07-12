@@ -23,6 +23,10 @@ import withLoginBoundary from './withLoginBoundary';
 const LangResource = makeLangResource({
   allUsers: { en: 'All Users', ja: '全ユーザー' },
   addNpcAccount: { en: 'Add NPC Account', ja: 'NPCアカウントを追加' },
+  npcDesc: {
+    en: 'NPC accounts are controlled in God mode or by API.',
+    ja: 'NPC アカウントは、ゴッドモードか API で操作します。'
+  },
   allLog: { en: 'Full Game Log', ja: '全ゲーム一覧' },
   recentGames: { en: 'Recent Games', ja: '最近のゲーム' },
   showFullLog: { en: 'Show Full Log', ja: '全ログを表示' },
@@ -40,7 +44,7 @@ const GodMenu: FC = () => {
       <Icon icon="group" /> <LangResource id="allUsers" />
     </>,
     <>
-      <Icon icon="list" /> <LangResource id="recentGames" />
+      <Icon icon="history" /> <LangResource id="recentGames" />
     </>,
     <>
       <Icon icon="settings" /> <LangResource id="settings" />
@@ -332,9 +336,18 @@ const StyledLogTr = styled.tr`
 const GodSettings: FC = () => {
   const api = useApi();
   const [newUid, setNewUid] = useState('');
+  const [newName, setNewName] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const addUserClick = async () => {
-    const res = await api('addUser', { newUid });
+    if (!newUid || !newName) return;
+    setBusy(true);
+    const { ok } = await api('addUser', { newUid, name: newName });
+    setBusy(false);
+    if (ok) {
+      setNewUid('');
+      setNewName('');
+    }
   };
 
   return (
@@ -342,14 +355,25 @@ const GodSettings: FC = () => {
       <h2>
         <LangResource id="addNpcAccount" />
       </h2>
+      <p>
+        <LangResource id="npcDesc" />
+      </p>
       <div>
         <input
           type="text"
-          placeholder="uid"
+          placeholder="UID"
           value={newUid}
           onChange={e => setNewUid(e.target.value)}
         />
-        <button onClick={addUserClick}>Add</button>
+        <input
+          type="text"
+          placeholder="user name"
+          value={newName}
+          onChange={e => setNewName(e.target.value)}
+        />
+        <button onClick={addUserClick} disabled={!newUid || !newName || busy}>
+          <Icon icon="smart_toy" /> Add
+        </button>
       </div>
     </>
   );

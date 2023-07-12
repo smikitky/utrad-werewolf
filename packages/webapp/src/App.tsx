@@ -166,7 +166,7 @@ const App: FC = () => {
         setMessages(messages => [
           ...messages,
           <div>
-            <b>エラー:</b> {data.message}
+            <b>Error:</b> {data.message}
           </div>
         ]);
       }

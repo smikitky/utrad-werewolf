@@ -75,6 +75,9 @@ const GlobalStyle = createGlobalStyle`
     &:active {
       background: #ddddee;
     }
+    &:disabled {
+      background: #eeeeee;
+    }
   }
 
   .material-icons {
