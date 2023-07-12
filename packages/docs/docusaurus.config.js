@@ -41,8 +41,7 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+          editUrl: "https://github.com/smikitky/utrad-werewolf",
         },
         blog: {
           showReadingTime: true,
@@ -67,7 +66,7 @@ const config = {
         title: "UTRAD Werewolf",
         logo: {
           alt: "",
-          src: "img/logo.svg",
+          src: "img/werewolf-brand.jpg",
         },
         items: [
           {
@@ -75,6 +74,11 @@ const config = {
             sidebarId: "tutorialSidebar",
             position: "left",
             label: "Docs",
+          },
+          {
+            to: "docs/demo",
+            position: "left",
+            label: "Demo",
           },
           // {to: '/blog', label: 'Blog', position: 'left'},
           {

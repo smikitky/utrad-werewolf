@@ -19,7 +19,10 @@ function HomepageHeader() {
             className="button button--secondary button--lg"
             to="/docs/intro"
           >
-            See the Docs
+            Read Docs
+          </Link>
+          <Link className="button button--secondary button--lg" to="/docs/demo">
+            Try Demo
           </Link>
         </div>
       </div>
@@ -31,8 +34,8 @@ export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />"
+      title={`${siteConfig.title}`}
+      description="Official docs for the UTRAD Werewolf project"
     >
       <HomepageHeader />
       <main>
