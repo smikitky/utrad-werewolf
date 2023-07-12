@@ -306,6 +306,7 @@ export interface GlobalGameHistoryEntry {
   finishedAt: TimeStamp;
   wasAborted?: boolean;
   mark?: Mark;
+  protected?: boolean;
   numAgents: number;
   winner?: Team;
 }

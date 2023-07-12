@@ -433,6 +433,12 @@ const handleDeleteGame = asGod(async ({ payload, game }) => {
   if (!game.finishedAt)
     return jsonResponse(400, 'You cannot remove an unfinished game');
 
+  if ((await db.ref(`/globalHistory/${gameId}`).get()).val()?.protected)
+    return jsonResponse(
+      400,
+      'You cannot remove this game because it is protected'
+    );
+
   const userIds = game.agents.map(a => a.userId);
   await db.ref().update({
     [`/games/${gameId}`]: null,
