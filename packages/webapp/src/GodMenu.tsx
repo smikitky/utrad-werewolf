@@ -203,7 +203,7 @@ const GodGlobalLog: FC = () => {
             !(gameLog instanceof Error) &&
             Object.entries(gameLog)
               .sort(
-                ([a], [b]) => b.localeCompare(a) // sort by gameId
+                ([a], [b]) => (b < a ? -1 : b > a ? 1 : 0) // sort by gameId
               )
               .map(([gameId, game]) => (
                 <GodGameLogItem
