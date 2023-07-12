@@ -65,6 +65,18 @@ const GlobalStyle = createGlobalStyle`
     }
   }
 
+  button {
+    border: 1px solid gray;
+    border-radius: 4px;
+    background: #eeeeff;
+    &:hover {
+      background: #f5f5ff;
+    }
+    &:active {
+      background: #ddddee;
+    }
+  }
+
   .material-icons {
     vertical-align: middle;
     font-size: 120%;

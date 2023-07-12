@@ -162,37 +162,43 @@ const Profile: Page = ({ loginUser }) => {
                 <LangResource id="noHistory" />
               </div>
             )}
-            <ul>
-              {history.map(([gameId, entry]) => (
-                <li key={gameId}>
-                  <Link to={`/game/${gameId}`}>
-                    <span className="date">
-                      {formatDate(entry.finishedAt as number)}
-                    </span>{' '}
-                    <span className="num-agents">{entry.numAgents}P</span>{' '}
-                    <span className="role">
-                      <RoleDisplay role={entry.role} />
-                    </span>{' '}
-                    <span className="result">
-                      {entry.wasAborted ? (
-                        <LangResource id="aborted" />
-                      ) : (
-                        <>
-                          {<TeamDisplay team={entry.winner!} />}
-                          <LangResource id="won" />
-                          {entry.winner === team(entry.role) ? (
-                            <Icon icon="military_tech" />
+            <table>
+              <tbody>
+                {history.map(([gameId, entry]) => (
+                  <tr key={gameId}>
+                    <td>
+                      <Link to={`/game/${gameId}`}>
+                        <span className="date">
+                          {formatDate(entry.finishedAt as number)}
+                        </span>{' '}
+                        <span className="num-agents">{entry.numAgents}P</span>{' '}
+                        <span className="role">
+                          <RoleDisplay role={entry.role} />
+                        </span>{' '}
+                        <span className="result">
+                          {entry.wasAborted ? (
+                            <LangResource id="aborted" />
                           ) : (
-                            <Icon icon="mood_bad" />
+                            <>
+                              {<TeamDisplay team={entry.winner!} />}
+                              <LangResource id="won" />{' '}
+                              {entry.winner === team(entry.role) ? (
+                                <Icon icon="military_tech" />
+                              ) : (
+                                <Icon icon="mood_bad" />
+                              )}
+                            </>
                           )}
-                        </>
-                      )}
-                    </span>{' '}
-                    <span className="game-id">{gameId}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                        </span>
+                      </Link>
+                    </td>
+                    <td>
+                      <span className="game-id">{gameId}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </>
         )}
       </section>
@@ -216,11 +222,12 @@ const StyledDiv = styled.div`
       gap: 8px;
     }
   }
-  ul li {
-    list-style: disc;
-    margin-left: 20px;
+  table {
     a {
       text-decoration: none;
+    }
+    tr:hover {
+      background: #eeeeee;
     }
     .role {
       font-size: 90%;

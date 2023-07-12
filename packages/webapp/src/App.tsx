@@ -259,7 +259,7 @@ const StyledDiv = styled.div`
     flex-flow: row wrap;
     justify-content: space-between;
     background: #eeeeee;
-    border-bottom: 1px solid gray;
+    border-bottom: 1px solid #bbbbbb;
     a {
       font-weight: bold;
       color: inherit;

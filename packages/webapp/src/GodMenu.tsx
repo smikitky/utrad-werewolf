@@ -21,6 +21,7 @@ import useFirebaseSubscription from './utils/useFirebaseSubscription';
 import useTitle from './utils/useTitle';
 import withLoginBoundary from './withLoginBoundary';
 import Toggle from './Toggle';
+import GridList from './GridList';
 
 const LangResource = makeLangResource({
   allUsers: { en: 'All Users', ja: '全ユーザー' },
@@ -181,24 +182,26 @@ const GodGlobalLog: FC = () => {
         value={filter + 1}
         onChange={index => setFilter(index - 1)}
       />
-      <ul className="recent">
-        {gameLog &&
-          !(gameLog instanceof Error) &&
-          Object.entries(gameLog)
-            .sort(
-              ([a], [b]) => b.localeCompare(a) // sort by gameId
-            )
-            .map(([gameId, game]) => (
-              <GodGameLogItem
-                key={gameId}
-                gameId={gameId}
-                game={game}
-                onDownloadLogClick={handleDownloadLog}
-                onDeleteGameClick={handleDeleteGame}
-                onStarGameClick={handleMarkGame}
-              />
-            ))}
-      </ul>
+      <table className="recent">
+        <tbody>
+          {gameLog &&
+            !(gameLog instanceof Error) &&
+            Object.entries(gameLog)
+              .sort(
+                ([a], [b]) => b.localeCompare(a) // sort by gameId
+              )
+              .map(([gameId, game]) => (
+                <GodGameLogItem
+                  key={gameId}
+                  gameId={gameId}
+                  game={game}
+                  onDownloadLogClick={handleDownloadLog}
+                  onDeleteGameClick={handleDeleteGame}
+                  onStarGameClick={handleMarkGame}
+                />
+              ))}
+        </tbody>
+      </table>
     </StyledGlobalLogDiv>
   );
 };
@@ -206,23 +209,11 @@ const GodGlobalLog: FC = () => {
 const StyledGlobalLogDiv = styled.div`
   .recent {
     margin-top: 10px;
-    min-height: 20em;
-    overflow-y: auto;
-    list-style: disc;
-    padding-left: 20px;
-    a {
-      text-decoration: none;
+    tr:hover {
+      background: #eeeeee;
     }
-    .game-id {
-      color: gray;
-      font-size: 80%;
-    }
-    .menu {
-      color: green;
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
+    td {
+      padding: 0 5px;
     }
   }
 `;
@@ -242,8 +233,8 @@ const GodGameLogItem: FC<{
     onStarGameClick
   } = props;
   return (
-    <StyledLogLi key={gameId}>
-      <span className="mark">
+    <StyledLogTr key={gameId}>
+      <td className="mark">
         <Icon icon={game.mark ?? 'star_border'} />
         <div className="dropdown">
           {marks.map(mark => (
@@ -262,9 +253,13 @@ const GodGameLogItem: FC<{
             <Icon icon="close" />
           </button>
         </div>
-      </span>
-      <Link to={`/god/${gameId}`}>
-        {formatDate(game.finishedAt as number)} {game.numAgents}P{' '}
+      </td>
+      <td>
+        <Link to={`/god/${gameId}`}>
+          {formatDate(game.finishedAt as number)} {game.numAgents}P{' '}
+        </Link>
+      </td>
+      <td>
         {game.wasAborted ? (
           <LangResource id="aborted" />
         ) : (
@@ -272,22 +267,24 @@ const GodGameLogItem: FC<{
             <TeamDisplay team={game.winner!} />
             <LangResource id="won" />
           </>
-        )}{' '}
-      </Link>
-      <button className="menu" onClick={() => onDownloadLogClick(gameId)}>
-        <Icon icon="download" />
-      </button>
-      <button className="menu" onClick={() => onDeleteGameClick(gameId)}>
-        <Icon icon="delete_forever" />
-      </button>
-      <span className="game-id" role="button">
+        )}
+      </td>
+      <td>
+        <button className="menu" onClick={() => onDownloadLogClick(gameId)}>
+          <Icon icon="download" />
+        </button>
+        <button className="menu" onClick={() => onDeleteGameClick(gameId)}>
+          <Icon icon="delete_forever" />
+        </button>
+      </td>
+      <td className="game-id" role="button">
         {gameId}
-      </span>
-    </StyledLogLi>
+      </td>
+    </StyledLogTr>
   );
 };
 
-const StyledLogLi = styled.li`
+const StyledLogTr = styled.tr`
   .mark {
     color: orange;
     cursor: pointer;
@@ -303,7 +300,8 @@ const StyledLogLi = styled.li`
     }
     &:hover {
       .dropdown {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(6, auto);
       }
     }
     button.menu {
@@ -315,6 +313,21 @@ const StyledLogLi = styled.li`
         color: black;
       }
     }
+  }
+
+  a {
+    text-decoration: none;
+  }
+  .game-id {
+    color: gray;
+    font-size: 80%;
+  }
+  .menu {
+    color: green;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
   }
 `;
 

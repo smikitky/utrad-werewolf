@@ -146,13 +146,16 @@ const StyledDiv = styled.div`
     gap: 10px;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     .start {
-      min-height: 50px;
+      min-height: 100px;
       font-size: 120%;
     }
     .sub {
       display: flex;
       flex-flow: column;
-      gap: 10px;
+      gap: 5px;
+      > button {
+        flex-grow: 1;
+      }
     }
   }
   .custom {
