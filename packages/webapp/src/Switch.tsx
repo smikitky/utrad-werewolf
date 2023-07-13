@@ -22,10 +22,10 @@ const Switch: FC<{
   const handleKeyDown: KeyboardEventHandler = ev => {
     switch (ev.key) {
       case 'ArrowRight':
-        onChange('right');
+        if (value === 'left') onChange('right');
         break;
       case 'ArrowLeft':
-        onChange('left');
+        if (value === 'right') onChange('left');
         break;
       case ' ':
         onChange(value === 'left' ? 'right' : 'left');

@@ -24,6 +24,19 @@ const Toggle: FC<{
     }
   }, [value, choices]);
 
+  const handleKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      e.stopPropagation();
+      const newValue =
+        e.key === 'ArrowLeft'
+          ? (value + choices.length - 1) % choices.length
+          : (value + 1) % choices.length;
+      onChange(newValue);
+      (divRef.current!.children[newValue] as HTMLButtonElement).focus();
+    }
+  };
+
   return (
     <StyledDiv ref={divRef}>
       {choices.map((choice, index) => (
@@ -31,6 +44,8 @@ const Toggle: FC<{
           key={index}
           className={index === value ? 'selected' : ''}
           onClick={() => onChange(index)}
+          tabIndex={index === value ? 0 : -1}
+          onKeyDown={handleKeydown}
         >
           {choice}
         </button>
