@@ -83,17 +83,17 @@ const lastAction = (game: Game, agent: AgentInfo) => {
       l.votePhase === game.status.votePhase
   ) as BaseVoteLogEntry | undefined;
   if (voteEntry)
-    return `${
+    return `(${
       voteEntry.type === 'vote' ? 'expel-voted to' : 'attack-voted to'
-    }: ${targetName(voteEntry.target)}`;
+    }: ${targetName(voteEntry.target)})`;
   const abilityEntry = periodLog.find(
     l =>
       (l.type === 'divine' || l.type === 'guard') && l.agent === agent.agentId
   ) as DivineLogEntry | GuardLogEntry | undefined;
   if (abilityEntry)
-    return `${
-      abilityEntry.type === 'divine' ? 'Divine target' : 'Guard target'
-    }: ${targetName(abilityEntry.target)}`;
+    return `(${
+      abilityEntry.type === 'divine' ? 'divined' : 'guarded'
+    }: ${targetName(abilityEntry.target)})`;
   const overEntry = periodLog.find(
     l => l.type === 'over' && l.agent === agent.agentId
   ) as OverLogEntry | undefined;

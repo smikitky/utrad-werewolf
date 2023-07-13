@@ -2,7 +2,9 @@ import produce from 'immer';
 import {
   AttackLogEntry,
   BaseVoteLogEntry,
-  ExecuteLogEntry
+  ExecuteLogEntry,
+  GuardLogEntry,
+  GuardResultLogEntry
 } from '../../../game-data';
 import {
   extractLogOfPeriod,
@@ -11,6 +13,7 @@ import {
   pickRandomFromArray
 } from '../../../game-utils';
 import StatusEventHandler from './SatusEventHandler';
+import { gl } from 'date-fns/locale';
 
 /**
  * Kill the agent who gained the most votes during this period.
@@ -25,15 +28,31 @@ const showKilledResult: StatusEventHandler = (game, pushLog) => {
 
   const killTarget = pickRandomFromArray(mostVotes(lastVotes));
 
-  const guarded =
-    period === 'night' &&
-    periodLog.some(l => l.type === 'guard' && l.target === killTarget);
+  const successfulGuards = periodLog.filter(
+    l => period === 'night' && l.type === 'guard' && l.target === killTarget
+  ) as GuardLogEntry[];
 
-  game = pushLog<AttackLogEntry | ExecuteLogEntry>(game, {
-    type: period === 'day' ? 'execute' : 'attack',
-    target: guarded ? 'NOBODY' : killTarget
-  });
-  if (!guarded)
+  if (period === 'day') {
+    game = pushLog<ExecuteLogEntry>(game, {
+      type: 'execute',
+      target: killTarget
+    });
+  } else {
+    successfulGuards.forEach(l => {
+      game = pushLog<GuardResultLogEntry>(game, {
+        type: 'guardResult',
+        agent: l.agent,
+        target: killTarget
+      });
+    });
+    game = pushLog<AttackLogEntry>(game, {
+      type: 'attack',
+      intendedTarget: killTarget,
+      target: successfulGuards.length > 0 ? 'NOBODY' : killTarget
+    });
+  }
+
+  if (!successfulGuards.length)
     game = produce(game, draft => {
       draft.agents.find(a => a.agentId === killTarget)!.life = 'dead';
     });

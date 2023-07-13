@@ -190,6 +190,7 @@ export interface ExecuteLogEntry extends KillLogEntry {
 
 export interface AttackLogEntry extends KillLogEntry {
   type: 'attack';
+  intendedTarget: AgentId;
 }
 
 export interface ResultLogEntry extends BaseLogEntry {

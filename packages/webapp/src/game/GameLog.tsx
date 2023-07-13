@@ -16,10 +16,10 @@ import {
   GamePeriod,
   GameStatus,
   GuardLogEntry,
-  GuardResultLogEntry,
   KillLogEntry,
   LogEntry,
   LogType,
+  MediumResultLogEntry,
   OverLogEntry,
   ResultLogEntry,
   StatusLogEntry,
@@ -190,6 +190,20 @@ const LangResource = makeLangResource({
         {props.targetName} は
         <strong>{props.wasWerewolf ? '人狼だった' : '人狼ではなかった'}</strong>
         。
+      </>
+    )
+  },
+  guardResultLog: {
+    en: (props: { agentName: string; targetName: string }) => (
+      <>
+        The guard by {props.agentName} saved <strong>{props.targetName}</strong>{' '}
+        from the attack of werewolves.
+      </>
+    ),
+    ja: (props: { agentName: string; targetName: string }) => (
+      <>
+        {props.agentName} の護衛により <strong>{props.targetName}</strong>{' '}
+        は人狼の襲撃から守られた。
       </>
     )
   },
@@ -502,7 +516,7 @@ const AbilityLogItem: LogItem<DivineLogEntry | GuardLogEntry> = props => {
 };
 
 const AbilityResultLogItem: LogItem<
-  DivineResultLogEntry | GuardResultLogEntry
+  DivineResultLogEntry | MediumResultLogEntry
 > = props => {
   const { game, myAgent, entry } = props;
   if (myAgent !== 'god' && myAgent.agentId !== entry.agent) return null;
@@ -515,14 +529,27 @@ const AbilityResultLogItem: LogItem<
   const target = game.agents.find(a => a.agentId === entry.target)!;
   return (
     <li className="ability">
-      <LangResource
-        id={
-          entry.type === 'divineResult' ? 'divineResultLog' : 'mediumResultLog'
-        }
-        agentName={agentName}
-        targetName={target.name}
-        wasWerewolf={target.role === 'werewolf'}
-      />
+      {entry.type === 'divineResult' ? (
+        <LangResource
+          id="divineResultLog"
+          agentName={agentName}
+          targetName={target.name}
+          wasWerewolf={target.role === 'werewolf'}
+        />
+      ) : entry.type === 'mediumResult' ? (
+        <LangResource
+          id="mediumResultLog"
+          agentName={agentName}
+          targetName={target.name}
+          wasWerewolf={target.role === 'werewolf'}
+        />
+      ) : (
+        <LangResource
+          id="guardResultLog"
+          agentName={agentName}
+          targetName={target.name}
+        />
+      )}
     </li>
   );
 };
@@ -664,6 +691,7 @@ const GameLog: FC<{ game: Game; myAgent: AgentInfo | 'god' }> = props => {
           guard: AbilityLogItem,
           divineResult: AbilityResultLogItem,
           mediumResult: AbilityResultLogItem,
+          guardResult: AbilityResultLogItem,
           vote: VoteLogItem,
           attackVote: VoteLogItem,
           attack: KillLogItem,
