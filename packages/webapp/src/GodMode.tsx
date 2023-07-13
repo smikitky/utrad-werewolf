@@ -70,6 +70,7 @@ const LangResource = makeLangResource({
     ja: ({ children }) => <>{children}のログ</>
   },
   apiLog: { en: 'API response log', ja: 'APIログ' },
+  emptyApiLog: { en: 'No API response log yet', ja: 'APIログなし' },
   debugLog: { en: 'Debug log', ja: 'デバッグ生ログ' }
 });
 
@@ -203,7 +204,7 @@ const GodMode: Page = () => {
       </>
     )),
     <span title="API Log">
-      <Icon icon="api" />
+      <Icon icon="compare_arrows" />
     </span>,
     <span title="Debug Log">
       <Icon icon="data_object" />
@@ -297,6 +298,11 @@ const GodMode: Page = () => {
                 </li>
               ))}
             </ul>
+            {apiResponses.length === 0 && (
+              <div className="empty-log">
+                <LangResource id="emptyApiLog" />
+              </div>
+            )}
           </div>
         ) : (
           <div>(Log turned off)</div>
