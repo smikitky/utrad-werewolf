@@ -403,7 +403,7 @@ Here is the list of possible log types.
 | `vote` | Contains who (`agent`) voted on who (`target`). The agent can be visible to all players, but not target. |
 | `attackVote` | Contains who (`agent`) voted on who (`target`). The agent can be visible to werewolves, but not target. |
 | `execute` | Contains who (`target`) was expeled from the village. |
-| `attack` | Contains who (`target`) was killed by werewolves. |
+| `attack` | Contains who (`target`) was killed by werewolves. `target` can be `'NOBODY'` when a guard protected the target. `intendedTarget` always contains the agent werewolves tried to attack. |
 | `result` | Output only at the end of the game. Contains the number of survivors of the villagers' side (`survivingVillagers`) and that of the werewolves side (`survivingWerewolves`), and which team won (`winner`). |
 
 ## TypeScript Definition
