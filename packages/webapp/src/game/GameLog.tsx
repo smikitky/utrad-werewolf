@@ -472,7 +472,9 @@ const ChatLogItem: LogItem<ChatLogEntry> = props => {
     <li className={entry.type}>
       <span className="speaker">{agent.name}</span>
       <span className="content">
-        {myAgent === 'god' && <RoleTip role={agent.role} />}
+        {myAgent === 'god' && (
+          <RoleTip className="speaker-role" role={agent.role} />
+        )}
         {entry.content}
       </span>
     </li>
@@ -701,6 +703,9 @@ const StyledGameLog = styled.ul`
     border: 1px solid #eeeeee;
     .speaker {
       font-weight: bold;
+    }
+    .speaker-role {
+      margin-right: 5px;
     }
     &.talk,
     &.whisper {
