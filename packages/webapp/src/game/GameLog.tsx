@@ -174,7 +174,7 @@ const LangResource = makeLangResource({
       wasWerewolf: boolean;
     }) => (
       <>
-        The ability of {props.agentName} as a medium was activated.{' '}
+        The medium ability of {props.agentName} was activated.{' '}
         <strong>{props.targetName}</strong>, who has just been expeled, turned
         out to be{' '}
         <strong>{props.wasWerewolf ? 'a werewolf' : 'not a werewolf'}</strong>.
@@ -189,6 +189,7 @@ const LangResource = makeLangResource({
         {props.agentName} の霊媒師としての能力が発動した。さきほど追放された{' '}
         {props.targetName} は
         <strong>{props.wasWerewolf ? '人狼だった' : '人狼ではなかった'}</strong>
+        。
       </>
     )
   },
