@@ -59,6 +59,8 @@ fb.initializeApp({
 });
 const db = fb.database();
 
+const inDemoMode = process.env.DEMO_MODE === 'true';
+
 export const jsonResponse = (
   status: number,
   data: string | object
@@ -379,6 +381,9 @@ const handleAddUser = asGod(async ({ payload }) => {
     return jsonResponse(400, 'This UID is already registered');
   }
 
+  if (inDemoMode)
+    return jsonResponse(403, 'Sorry, you cannot add user in demo mode');
+
   await usersRef.set({
     createdAt: now(),
     name,
@@ -405,6 +410,11 @@ const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
   const user = (await db.ref('users').child(uid).get()).val();
   if (target !== uid) {
     if (!user.canBeGod) return jsonResponse(403, 'You are not a god');
+    if (inDemoMode)
+      return jsonResponse(
+        403,
+        'Sorry, you cannot edit the profile of other users in demo mode'
+      );
   }
 
   if (name && name.length > 20) return jsonResponse(400, 'Name is too long');
