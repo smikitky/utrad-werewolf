@@ -1,11 +1,13 @@
 import classNames from 'classnames';
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Alert from './Alert ';
 import Icon from './Icon';
 import { BasicLangResource, makeLangResource } from './LangResource';
 import RoleDisplay from './RoleDisplay';
+import RoleTip from './RoleTip';
+import Toggle from './Toggle';
 import {
   AgentId,
   AgentInfo,
@@ -186,16 +188,27 @@ const GodMode: Page = () => {
     await api('abortGame', { gameId });
   };
 
-  const handleLogTypeSelect: React.ChangeEventHandler<
-    HTMLSelectElement
-  > = e => {
-    const val = e.target.value;
-    if (/\d+/.test(val)) {
-      setShowLogType(Number(val) as AgentId);
-    } else {
-      setShowLogType(e.target.value as ShowLogType);
-    }
+  const handleLogTypeSelect = (index: number) => {
+    if (index === 0) setShowLogType('game');
+    else if (index === logTypeOptions.length - 1) setShowLogType('debug');
+    else if (index === logTypeOptions.length - 2) setShowLogType('api');
+    else setShowLogType(game.agents[index - 1].agentId);
   };
+
+  const logTypeOptions: ReactNode[] = [
+    <Icon icon="all_inclusive" />,
+    ...game.agents.map(a => (
+      <>
+        {a.agentId} <RoleTip role={a.role} />
+      </>
+    )),
+    <span title="API Log">
+      <Icon icon="api" />
+    </span>,
+    <span title="Debug Log">
+      <Icon icon="data_object" />
+    </span>
+  ];
 
   return (
     <StyledDiv>
@@ -245,28 +258,19 @@ const GodMode: Page = () => {
         </div>
       </div>
       <div className="log-pane">
-        <select
-          name="logtype"
-          value={String(showLogType)}
+        <Toggle
+          choices={logTypeOptions}
+          value={
+            showLogType === 'game'
+              ? 0
+              : showLogType === 'debug'
+              ? logTypeOptions.length - 1
+              : showLogType === 'api'
+              ? logTypeOptions.length - 2
+              : game.agents.findIndex(a => a.agentId === showLogType) + 1
+          }
           onChange={handleLogTypeSelect}
-        >
-          <option value="game">
-            <LangResource id="fullLog" />
-          </option>
-          {game.agents.map(a => (
-            <option key={a.agentId} value={a.agentId}>
-              <LangResource id="personLog">
-                {a.name} (<RoleDisplay role={a.role} />)
-              </LangResource>
-            </option>
-          ))}
-          <option value="debug">
-            <LangResource id="debugLog" />
-          </option>
-          <option value="api">
-            <LangResource id="apiLog" />
-          </option>
-        </select>
+        />
         {showLogType === 'game' || typeof showLogType === 'number' ? (
           <GameLog
             game={game}

@@ -30,6 +30,7 @@ import {
 import { extractLogOfPeriod, roleTextMap, voteEntries } from '../game-utils.js';
 import useLang from '../utils/useLang.js';
 import Player from './Player.js';
+import RoleTip from '../RoleTip.js';
 
 const LangResource = makeLangResource({
   noVote: { en: 'No Vote', ja: '投票なし' },
@@ -39,18 +40,6 @@ const LangResource = makeLangResource({
   you: { en: 'You', ja: 'あなた' },
   over: { en: '(over)', ja: '(発話終了)' },
   voted: { en: '(voted)', ja: '(投票終了)' },
-  speakerRole: {
-    en: (props: { role: AgentRole }) => (
-      <>{props.role.charAt(0).toUpperCase()}</>
-    ),
-    ja: (props: { role: AgentRole }) => (
-      <>
-        {props.role === 'werewolf'
-          ? '狼'
-          : roleTextMap.ja[props.role].charAt(0)}
-      </>
-    )
-  },
   prologueMessage: {
     en: (props: { counts: [AgentRole, number][] }) => {
       const { counts } = props;
@@ -483,11 +472,7 @@ const ChatLogItem: LogItem<ChatLogEntry> = props => {
     <li className={entry.type}>
       <span className="speaker">{agent.name}</span>
       <span className="content">
-        {myAgent === 'god' && (
-          <span className="speaker-role" title={agent.role}>
-            <LangResource id="speakerRole" role={agent.role} />
-          </span>
-        )}
+        {myAgent === 'god' && <RoleTip role={agent.role} />}
         {entry.content}
       </span>
     </li>
@@ -716,17 +701,6 @@ const StyledGameLog = styled.ul`
     border: 1px solid #eeeeee;
     .speaker {
       font-weight: bold;
-    }
-    .speaker-role {
-      display: inline-block;
-      text-align: center;
-      font-size: 80%;
-      color: white;
-      background: #000050;
-      border-radius: 10px;
-      padding: 0 2px;
-      margin-right: 5px;
-      min-width: 20px;
     }
     &.talk,
     &.whisper {
