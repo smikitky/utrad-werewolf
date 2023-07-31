@@ -426,13 +426,23 @@ const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
       return jsonResponse(400, 'You cannot remove your own god privilege');
   }
 
+  // If there is no god, the first user will be granted god privilege
+  const godsRef = db
+    .ref('users')
+    .orderByChild('canBeGod')
+    .equalTo(true)
+    .limitToFirst(1);
+  const gods = ((await godsRef.get()).val() ?? {}) as UserEntries;
+  const forceGod =
+    Object.keys(gods).length === 0 || inDemoMode ? true : undefined;
+
   const userRef = db.ref('users').child(target);
   const targetUser = (await userRef.get()).val() as Partial<UserEntry>;
   await userRef.update({
     createdAt: targetUser?.createdAt ?? now(),
     name: name ?? targetUser.name ?? 'new user',
     lang: lang ?? targetUser.lang ?? 'en',
-    canBeGod: canBeGod ?? targetUser.canBeGod ?? false
+    canBeGod: forceGod ?? canBeGod ?? targetUser.canBeGod ?? false
   });
   return jsonResponse(200, 'OK');
 };
