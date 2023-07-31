@@ -54,17 +54,17 @@ These six roles are available.
 
 A game can be started with 2 to 15 players. However, if a game starts with too few players or too many werewolves, the game will end right after it starts. At least 5 players are required to play a meaningful game.
 
-Our Werewolf game is basically based on Ai Werewolf Competition (hereafter, Aiwolf regulation). However, there are a few notable differences.
+Our Werewolf game is basically based on Ai Werewolf Competition (hereafter, AIWolf regulation). However, there are a few notable differences.
 
-- In Aiwolf protocol, conversations happen "passively" with a turn-based approach (Java functions are called many times for each opportunity to talk or whisper). However, since such an approach is unrealistic in human-vs-human or human-vs-AI settings, each agent (human or AI) can actively talk or whisper at any time as long as they are allowed to do so. Still, the number of talks/whispers allowed in each phase is limited to 10.
+- In AIWolf protocol, conversations happen "passively" with a turn-based approach (Java functions are called many times for each opportunity to talk or whisper). However, since such an approach is unrealistic in human-vs-human or human-vs-AI settings, each agent (human or AI) can actively talk or whisper at any time as long as they are allowed to do so. Still, the number of talks/whispers allowed in each phase is limited to 10.
 
 - The intention to end a conversation ("over") is recorded as a distinct event from the statement itself.
 
-- Aiwolf protocol says it _is_ possible to vote an invalid agent (a dead agent or the voter themself) in daytime, in which case the vote will be treated as a random vote to one of the valid agents. In this game, an agent can only vote a valid agent (i.e., someone who is alive and not themself).
+- AIWolf protocol says it _is_ possible to vote an invalid agent (a dead agent or the voter themself) in daytime, in which case the vote will be treated as a random vote to one of the valid agents. In this game, an agent can only vote a valid agent (i.e., someone who is alive and not themself).
 
-- Likewise, Aiwolf protocol says it _is_ possible to attack-vote an invalid agent (a dead agent or other surviving werewolves), in which case the vote is ignored as a faulty ballot. This effectively means a werewolf can abstain from attack-voting intentionally if they really want to. In this game, this is not possible; all werewolves must attack-vote one of the valid agents (i.e., living agents who are not werewolves).
+- Likewise, AIWolf protocol says it _is_ possible to attack-vote an invalid agent (a dead agent or other surviving werewolves), in which case the vote is ignored as a faulty ballot. This effectively means a werewolf can abstain from attack-voting intentionally if they really want to. In this game, this is not possible; all werewolves must attack-vote one of the valid agents (i.e., living agents who are not werewolves).
 
-Despite these limitations, it is possible to convert our game log into an Aiwolf log.
+Despite these limitations, it is possible to convert our game log into an AIWolf log.
 
 ## Manage Game as a God
 
