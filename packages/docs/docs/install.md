@@ -63,12 +63,12 @@ This is the hardest part. If you're stuck, refer to the official Firebase tutori
 
 - Create a new Firebase project. In this tutorial, we use `my-wolf` as the example project name. You don't need to enable Google Analytics.
 
-- You will be instructed to create your first app. Create a "Web" app and give it a nickname such as `werewolf-web`. You will be instructed to install Firebase SDK, but you can skip this step (SDK is included in our repository). Proceed to the console.
+- You will be instructed to create your first "app". Create a "Web" app and give it a nickname such as `werewolf-web`. You will be instructed to "Add Firebase SDK" to your project, but you can skip this step (SDK is included in our repository). Proceed to the console.
 
-- In the Firebase console, navigate to the Realtime Database section, and create a database. The default security rule should be "Locked".
+- In the Firebase console, navigate to the **<u>Realtime</u> Database** section, and create a database. The default security rules should be "Start in locked mode".
 
   :::note
-  **Do not use "Fire<u>store</u> Database"**. It's a different database solution, and we won't use it.
+  Do **NOT** choose "Fire<u>store</u> Database". Fire<u>store</u> is a different database solution, and we won't use it.
   :::
 
 - Go to the "Realtime Databae &gt; Rules" tab, copy and paste the folloing security rules into the text box, and save them. This step is important; if you forgot to do this, an attacker can steal all the infromation stored in the database.
@@ -107,6 +107,8 @@ This is the hardest part. If you're stuck, refer to the official Firebase tutori
   - Google
   - Mail/Password: Enable "Email link (passwordless sign-in)" option
 
+- Navigate to the "Authentication &gt; Settings" section, and find the "Authorized domains" setting. Add the domain Netlify uses to publish your site (`<your-site-name>.netlify.app`).
+
 - Navigate to the "Project settings &gt; Overview" section. You can find the "App" you created before. And there you can see the `firebaseConfig` data that looks like this:
 
   ```js
@@ -140,29 +142,35 @@ This is the hardest part. If you're stuck, refer to the official Firebase tutori
   The `base64` utility is available on Linux/Mac. If you're on Windows, Git Bash comes with the `base64` tool.
 
   :::caution
-  The data to encode must be valid as JSON. For example, property names such as `appId` must be enclosed in double quotes. A modern editor like VSCode may fix obvious errors when you save a file with the `.json` extention. You can use any online JavaScript-to-JSON converter, too (this data is not a secret, anyway).
+
+  - Make sure the `databaseURL` key is properly included in the app config object. If you don't see the databaseURL, check that you have correctly started your realtime database.
+  - The data to encode must be **valid as JSON**. For example, property names such as `appId` must be enclosed in double quotes. A modern editor like VSCode may fix obvious errors when you save a file with the `.json` extention. You can use any online JavaScript-to-JSON converter, too (this data is not a secret, anyway).
+
   :::
 
-- In the Project settings section, open "Service account". Click "Generate New Private Key", and download a JSON file called `serviceAccountKey.json`. Use the `base64` tool again to encode this into a one-line string.
+- In the Project settings section, visit "Service accounts". Click "Generate New Private Key", and download a JSON file. Use the `base64` tool again to encode this JSON file into a one-line string.
 
   ```bash title="In your terminal"
-  $ cat serviceAccountKey.json | base64 -w0 > serviceAccountKey-base64.txt
+  $ cat downloadedServiceAccountKey.json | base64 -w0 > serviceAccountKey-base64.txt
   ```
 
-- Finally, register these key data as Netlify's environment variables. Go to Netlify's dashboard, navigate to "Site configuration &gt; Environment variables", and add the following two environment variables:
+- Finally, register these key data in Netlify as environment variables. Go to Netlify's dashboard, navigate to "Site configuration &gt; Environment variables", and add the following two environment variables:
 
   - `FB_APP_CONFIG`: The base64-encoded data of the app config object (`firebaseConfig`).
   - `GCP_CREDENTIALS`: The base64-encoded data of the service account key file.
+  - `FB_DATABASE_URL`: The realtime database URL that looks like `https://xxxxxx-rtdb.firebaseio.com/`. You can find this URL in the Realtime Database section of Firebase console.
 
 <details>
 <summary>What are these encoded data for?</summary>
 
-- [The Firebase config object](https://firebase.google.com/docs/web/learn-more#config-object) (encoded as `FB_APP_CONFIG`) is an identity file that associates your web app (hosted by Netlify and running on browsers) and your Firebase project. This is a non-secret piece of data. This information is usually something you could write directly in JavaScript code and commit to Git, but we use an anvironment variable to make your own Firebase project available.
-- [The service account key file](https://firebase.google.com/docs/admin/setup#initialize_the_sdk_in_non-google_environments) (encoded as `GCP_CREDENTIALS`) is essentially a "password file" with which Firebase grants full admin access to your Realtime Database (and other resources). It's used only by the _server_ backend you trust. Never share this with anyone.
+- [The Firebase config object](https://firebase.google.com/docs/web/learn-more#config-object) (encoded as `FB_APP_CONFIG`) is an identity file that associates your web app (hosted by Netlify and running on browsers) with your Firebase project. This is a non-secret piece of data. This information is usually something you could write directly in JavaScript code and commit to Git, but we use an environment variable to make your own Firebase project available.
+- [The service account key file](https://firebase.google.com/docs/admin/setup#initialize_the_sdk_in_non-google_environments) (encoded as `GCP_CREDENTIALS`) is essentially a "password file" with which Firebase grants full admin access to your Realtime Database (and other resources). It's only used by the _server_ backend you trust. Do not share it with anyone.
 
 </details>
 
-- On the Netlify dashboard, re-run the deployment so that the new environment variables take effect. When the deployment succees, reopen the site URL. Congratulations, you should now see a log-in screen.
+- In the Netlify dashboard, re-run the deployment to make the new environment variables effective. To do this, select the "Deploys" section on the left sidebar and find the "Trigger Deploy" button. If the deployment was successful, reopen the site URL. Congratulations, you should now see a login screen.
+
+- Try logging in with your Google account. If this fails, check that you have correctly registered the domain in the "Authorized domains" settings in Firebase.
 
 You can now close Firebase console and Netlify dashboard tabs on your browser.
 
