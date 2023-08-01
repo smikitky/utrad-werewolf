@@ -11,6 +11,7 @@ import { auth, googleAuthProvider } from './utils/firebase.js';
 import { useApi } from './utils/useApi.js';
 import { useLoginUser } from './utils/user';
 import Alert from './Alert .js';
+import Icon from './Icon.js';
 
 const LoginScreen: FC = () => {
   const [busy, setBusy] = useState(false);
@@ -92,7 +93,7 @@ const LoginScreen: FC = () => {
       <div className="login-pane">
         <section>
           <button onClick={handleGoogleLoginClick} disabled={busy}>
-            Login with Google Account
+            <Icon icon="how_to_reg" /> Login with Google Account
           </button>
         </section>
         <div>or</div>
@@ -104,7 +105,7 @@ const LoginScreen: FC = () => {
             onChange={e => setEmail(e.target.value)}
           />
           <button onClick={handleEmailLoginClick} disabled={busy}>
-            Login with Email Address
+            <Icon icon="email" /> Login with Email Address
           </button>
           {mailSent && (
             <p>
@@ -134,7 +135,7 @@ const StyledDiv = styled.div`
     gap: 5px;
     background: #dddddd;
     border-radius: 5px;
-    padding: 10px;
+    padding: 20px;
   }
 `;
 
