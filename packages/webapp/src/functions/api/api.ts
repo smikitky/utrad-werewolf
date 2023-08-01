@@ -372,6 +372,10 @@ const handleAbortGame = asGod(async ({ uid, payload, game }) => {
 const handleAddUser = asGod(async ({ payload }) => {
   const newUid = payload.newUid as string;
   const name = (payload.name as string) ?? `bot-${newUid}`;
+
+  if (inDemoMode)
+    return jsonResponse(403, 'Sorry, you cannot add user in demo mode');
+
   if (typeof newUid !== 'string' || !newUid)
     return jsonResponse(400, 'New UID is required');
   if (/[^a-zA-Z0-9_-]/.test(newUid))
