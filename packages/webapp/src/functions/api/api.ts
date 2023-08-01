@@ -50,6 +50,7 @@ import { now } from './utils.js';
 config(); // Loads environment variables from .env file
 
 if (!process.env.GCP_CREDENTIALS) throw new Error('GCP_CREDENTIALS is not set');
+if (!process.env.FB_DATABASE_URL) throw new Error('FB_DATABASE_URL is not set');
 const credentials = JSON.parse(
   Buffer.from(process.env.GCP_CREDENTIALS, 'base64').toString()
 );
