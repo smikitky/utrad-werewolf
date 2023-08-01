@@ -90,9 +90,9 @@ const configCheck = (): ReactNode => {
   if (typeof import.meta.env.FB_APP_CONFIG === 'undefined') {
     return (
       <>
-        <code>FB_APP_CONFIG</code> environment variable is not set. Please set
-        them in Netlify Dashboard. (Or if you are running the app locally, set
-        them in <code>.env</code> file.)
+        <code>FB_APP_CONFIG</code> environment variable is not set. Set it in
+        Netlify Dashboard. (If you are running the app locally, set it in{' '}
+        <code>.env</code> file.)
       </>
     );
   }
@@ -106,13 +106,24 @@ const configCheck = (): ReactNode => {
       </>
     );
   }
+  let atobResult = '';
   try {
-    JSON.parse(atob(import.meta.env.FB_APP_CONFIG));
+    atobResult = atob(import.meta.env.FB_APP_CONFIG);
   } catch (err: any) {
     return (
       <>
-        Coult not parse <code>FB_APP_CONFIG</code> environment. The doceded
-        string is not a valid JSON string.
+        Coult not parse <code>FB_APP_CONFIG</code> environment. It's not a valid
+        base64 string.
+      </>
+    );
+  }
+  try {
+    JSON.parse(atobResult);
+  } catch (err: any) {
+    return (
+      <>
+        Coult not parse <code>FB_APP_CONFIG</code> environment. The decoded
+        string is not valid as JSON.
       </>
     );
   }

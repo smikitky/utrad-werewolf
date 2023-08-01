@@ -8,9 +8,9 @@ To deploy your own UTRAD Werewolf server, follow these steps.
 
 :::caution
 
-Before you begin, be aware that this is a platform to support researches of AI Werewolf. We do not offer any sophisticated user management features like a full-fledged SNS or a game app do. It is not intended to efficiently manage more than 100 users. User profile, including user names, cannot be private. Therefore, you must limit your use to a closed research group. **Do not make the URL available to the general public**.
+Before you begin, be aware that this is a platform to support AIWolf researches. We do not offer sophisticated user management features like a full-fledged SNS or game app do. It is not intended to efficiently manage more than 100 users. User profile, including user names, cannot be private. Therefore, you must limit your use to a closed research group. **Do not make the URL available to the general public**.
 
-Once your research is complete, it is recommended that the site itself be made invisible in the Netlify console or that Authentication be turned off in the Firebase console. This will make it impossible for existing users to re-log in or for new users to sign up.
+Once your research is complete, it is recommended that the site itself be shut down in the Netlify console or that Authentication be turned off in the Firebase console. This will make it impossible for existing users to re-log in or for new users to sign up.
 
 :::
 
@@ -30,7 +30,10 @@ In order to make it easy for everyone to set up a system that involves secure us
 - [**Netlify**](https://netlify.com/): This is a web hosting service that allows for the "push and deploy" experience.
 - [**Firebase**](https://firebase.google.com/): This is a BaaS (Backend-as-a-Service) managed by Google. We use this service to take care of user management, user authentication and database (Firebase [Realtime Database](https://firebase.google.com/docs/database)).
 
-The use of these services is **typically** free for a small research project. For example, Firebase's Spark plan can hold up to 1GB of game log data (text) for free, which should generally be sufficient. Still, please get an overview of what these services do and their pricing rules.
+The use of these services is _typically_ free for a small research project. For example, Firebase's Spark plan allows you to hold up to 1GB of game log data (text) for free, which should generally be sufficient. Still, it is recommended to get an overview of what these services do and their pricing rules:
+
+- [Netlify Pricing and Plans](https://www.netlify.com/pricing/)
+- [Firebase Pricing](https://firebase.google.com/pricing)
 
 ## Mininum Deployment Steps
 
@@ -38,9 +41,9 @@ The use of these services is **typically** free for a small research project. Fo
 
 Press the "Deploy to Netlify" button below, and follow the displayed instructions. If you're not a Netlify user yet, you need to sign up (you can use your GitHub account). You need to connect your GitHub account and Netlify. It automatically creates a fork of our "utrad-werewolf" repository into your GitHub account.
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/smikitky/jinro&base=packages/webapp)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/smikitky/utrad-werewolf&base=packages/webapp)
 
-After a successful deployment, you can open the deployed site by clicking the URL on the "Site overview" section of the dashboard. The URL should look like `https://<your-site-name>.netlify.app/`. An error screen like this should appear in your browser.
+After a successful deployment, you can open the deployed site by clicking the URL on the "Site overview" section of the dashboard. The URL should look like `https://<your-site-name>.netlify.app/`. In your browser, an error screen like this should appear:
 
 ![Startup error screen](./startup-error.png)
 
@@ -54,21 +57,21 @@ You can change the URL (subdomain) of your site in the site's dashboard. If you 
 
 ### 2. Create and Configure a Firebase Project
 
-This is the toughest part. If you're stuck, refer to the official Firebase tutorial, too.
+This is the hardest part. If you're stuck, refer to the official Firebase tutorial, too.
 
-- [Visit Firebase](https://firebase.google.com/), and sign in using your Google account.
+- Visit [Firebase](https://firebase.google.com/) and sign in with your Google account.
 
-- Create a new Firebase project. In this tutorial, we use `my-wolf` as the example project name. You don't need to turn on Google Analytics.
+- Create a new Firebase project. In this tutorial, we use `my-wolf` as the example project name. You don't need to enable Google Analytics.
 
-- You will be instructed to create your first "App". Create an Web app and give it a nickname such as `werewolf-web`. You will be instructed to install Firebase SDK, but you can skip this step (SDK is included in our repository). Proceed to the console.
+- You will be instructed to create your first app. Create a "Web" app and give it a nickname such as `werewolf-web`. You will be instructed to install Firebase SDK, but you can skip this step (SDK is included in our repository). Proceed to the console.
 
 - In the Firebase console, navigate to the Realtime Database section, and create a database. The default security rule should be "Locked".
 
   :::note
-  Don't use "_Firestore_ Database". It's a different solution, and we won't use it.
+  **Do not use "Fire<u>store</u> Database"**. It's a different database solution, and we won't use it.
   :::
 
-- Go to the "Realtime Databae &gt; Rules" tab, and copy-paste the folloing security rules into the text box, and save them. This step is important; if you forgot to do this, an attacker can steal all the infromation stored in the database.
+- Go to the "Realtime Databae &gt; Rules" tab, copy and paste the folloing security rules into the text box, and save them. This step is important; if you forgot to do this, an attacker can steal all the infromation stored in the database.
 
   ```json
   {
@@ -92,7 +95,8 @@ This is the toughest part. If you're stuck, refer to the official Firebase tutor
           "ready": {
             ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('canBeGod').val() === true"
           }
-        }
+        },
+        ".indexOn": "canBeGod"
       }
     }
   }
@@ -139,7 +143,7 @@ This is the toughest part. If you're stuck, refer to the official Firebase tutor
   The data to encode must be valid as JSON. For example, property names such as `appId` must be enclosed in double quotes. A modern editor like VSCode may fix obvious errors when you save a file with the `.json` extention. You can use any online JavaScript-to-JSON converter, too (this data is not a secret, anyway).
   :::
 
-- In the Project settings section, open "Service account". Click "Generate New Private Key", and download a JSON file called `serviceAccountKey.json`. Use the `base64` tool again to encode this into a one-line strong.
+- In the Project settings section, open "Service account". Click "Generate New Private Key", and download a JSON file called `serviceAccountKey.json`. Use the `base64` tool again to encode this into a one-line string.
 
   ```bash title="In your terminal"
   $ cat serviceAccountKey.json | base64 -w0 > serviceAccountKey-base64.txt

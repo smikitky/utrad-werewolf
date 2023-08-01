@@ -15,4 +15,4 @@ This project was created to support natural language Werewolf research based on 
 
 ## License
 
-This is an open-source software project licensed under the MIT License.
+This is an open-source software project licensed under the MIT License. See the `LICENSE` file for details.
