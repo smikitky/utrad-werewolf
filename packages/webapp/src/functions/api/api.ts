@@ -445,9 +445,9 @@ const handleSetProfile: ModeHandler = async ({ uid, payload }) => {
   const targetUser = (await userRef.get()).val() as Partial<UserEntry>;
   await userRef.update({
     createdAt: targetUser?.createdAt ?? now(),
-    name: name ?? targetUser.name ?? 'new user',
-    lang: lang ?? targetUser.lang ?? 'en',
-    canBeGod: forceGod ?? canBeGod ?? targetUser.canBeGod ?? false
+    name: name ?? targetUser?.name ?? 'new user',
+    lang: lang ?? targetUser?.lang ?? 'en',
+    canBeGod: forceGod ?? canBeGod ?? targetUser?.canBeGod ?? false
   });
   return jsonResponse(200, 'OK');
 };
