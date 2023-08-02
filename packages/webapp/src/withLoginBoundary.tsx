@@ -2,10 +2,15 @@ import { FC, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Alert from './Alert ';
 import { LoggedInUser, useLoginUser } from './utils/user';
+import { makeLangResource } from './LangResource';
 
 export type Page = FC<{
   loginUser: LoggedInUser;
 }>;
+
+const LangResource = makeLangResource({
+  notGod: { en: 'You are not a god', ja: 'あなたは神ではありません' }
+});
 
 export const withLoginBoundary = (options?: {
   mustBeGod?: boolean;
@@ -28,7 +33,7 @@ export const withLoginBoundary = (options?: {
         return (
           <div>
             <Alert>
-              <Link to="/login">ログイン</Link>してください
+              You must <Link to="/login">log in</Link> to view this page.
             </Alert>
           </div>
         );
@@ -36,7 +41,9 @@ export const withLoginBoundary = (options?: {
         if (mustBeGod && !loginUser.data.canBeGod) {
           return (
             <div>
-              <Alert>あなたは神にはなれません</Alert>
+              <Alert>
+                <LangResource id="notGod" />
+              </Alert>
             </div>
           );
         }
