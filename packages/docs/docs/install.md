@@ -168,7 +168,7 @@ This is the hardest part. If you're stuck, refer to the official Firebase tutori
 
 </details>
 
-- In the Netlify dashboard, re-run the deployment to make the new environment variables effective. To do this, select the "Deploys" section on the left sidebar and find the "Trigger Deploy" button. If the deployment was successful, reopen the site URL. Congratulations, you should now see a login screen.
+- In the Netlify dashboard, re-run the deployment to make the new environment variables effective. To do this, select the "Deploys" section on the left sidebar and find the "Trigger Deploy" button. If the deployment was successful, reopen the site URL. You should now see a login screen.
 
 - Try logging in with your Google account. If this fails, check that you have correctly registered the domain in the "Authorized domains" settings in Firebase.
 
@@ -176,15 +176,15 @@ You can now close Firebase console and Netlify dashboard tabs on your browser.
 
 ### 3. Log In to the Werewolf Server and Become Admin
 
-Sign-in to the app using your personal Google account. Go to the "Profile" page and change your user name to something other than "new user". **The first user who changed their user name on the profile screen** will be automatically granted an admin (aka "god") priviledge of the app. See "God Mode" menu will appear on the right of the top menu.
+Sign-in to the app using your personal Google account. **The first user who logged in to the system** will be automatically granted an admin (aka "god") priviledge of the app. See "God Mode" menu will appear on the right of the top menu.
 
 ### 4. Start Your First Game
 
 It takes 5 players to play a werewolf game, so let's create non-player character (NPC) accounts now.
 
-## Updating
+## Updating the App
 
-Your Netlify site is linked to the **fork** of our repository. To update the site, you can push new contents to your fork, and Netlify will re-deploy the site for you. If you just to want to update the app to the latest, the process will be something like this:
+Your Netlify site is linked to the **fork** of our repository. To update the site, you can push new contents to your fork, and Netlify will re-deploy the site for you. If you just to want to update the app to the latest, the update process will be something like this:
 
 ```bash
 $ git remote add upstream https://github.com/smikitky/utrad-werewolf
@@ -194,7 +194,7 @@ $ git merge upstream/main
 $ git push
 ```
 
-## Run on Your Local Machine (Optional)
+## Run the App on Your Local Machine (Optional)
 
 You can also run this app locally on your development machine. You still need Firebase Realtime Database account. You need some experience about Node.js, NPM and JavaScript.
 
@@ -206,12 +206,14 @@ You can also run this app locally on your development machine. You still need Fi
 
   ```env
   FB_APP_CONFIG="(base64-encoded string of your app config JSON)"
+  FB_DATABASE_URL="(url of the realtime database)"
   GCP_CREDENTIALS="(base64-encoded string of your server key)"
   ```
 
 - Run the following on a terminal. This will install all the dependencies and start a local web server.
 
   ```bash
+  $ cd utrad-werewolf/packages/webapp
   $ npm ci
   $ npm run dev
   ```
