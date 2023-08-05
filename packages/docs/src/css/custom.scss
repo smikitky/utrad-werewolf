@@ -33,11 +33,13 @@
   border: 1px solid var(--ifm-color-primary);
   padding: 0.5em;
   border-radius: 0.5em;
-  & p {
+  p {
     margin: 0;
-  }
-  > a {
-    color: var(--ifm-color-primary);
+    > a {
+      display: block;
+      color: var(--ifm-color-primary);
+      text-align: center;
+    }
   }
 }
 
