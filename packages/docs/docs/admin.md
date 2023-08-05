@@ -34,7 +34,7 @@ An **non-player character (NPC) account** (aka "bot account") is a _virtual_ acc
 
 ### Creating an NPC
 
-To create an NPC account, visit God Mode and use the "Add NPC Account" box. The user ID can be any unique string containing only alphanumerical characters and `_`, `-` (e.g., "bot-alice", "-NPC_15293").
+To create an NPC account, visit God Mode and use the "Add NPC Account" box. The user ID can be any unique string containing only alphanumerical characters and `_`, `-` (e.g., "bot-alice", "NPC_15293").
 
 ### Removing Accounts
 
@@ -61,10 +61,10 @@ An ordinary user can see the complete log of **any** finished game (even if they
 
 In God Mode, an admin can do the following.
 
-- Create an NPC account
 - View all users, including offline users
+- Create an NPC account (see [Creating AI Bot to Drive NPC Accounts](./bot))
 - View the complete log of all games stored in the database
-- Delete any game log completely
+- Completely delete any game log
 - Download game logs
 - Use an icon to categorize game logs
 - Forcibly mark an account as "online/offline" or "ready/not ready"

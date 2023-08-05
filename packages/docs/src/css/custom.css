@@ -40,3 +40,11 @@
     color: var(--ifm-color-primary);
   }
 }
+
+.figure {
+  margin: 1em 0;
+  width: 100%;
+  padding: 8px;
+  background-color: #88888822;
+  text-align: center;
+}

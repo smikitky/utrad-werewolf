@@ -2,6 +2,8 @@
 sidebar_position: 3
 ---
 
+import Figure from './Figure.js';
+
 # Installation
 
 To deploy your own UTRAD Werewolf server, follow these steps.
@@ -45,7 +47,7 @@ Press the "Deploy to Netlify" button below, and follow the displayed instruction
 
 After a successful deployment, you can open the deployed site by clicking the URL on the "Site overview" section of the dashboard. The URL should look like `https://<your-site-name>.netlify.app/`. In your browser, an error screen like this should appear:
 
-![Startup error screen](./startup-error.png)
+<Figure src="startup-error" size={500} />
 
 This is expected for now because we have not set up our database (the place to store the actual game log data) yet. Our next step is to resolve this error.
 
@@ -65,7 +67,11 @@ This is the hardest part. If you're stuck, refer to the official Firebase tutori
 
 - You will be instructed to create your first "app". Create a "Web" app and give it a nickname such as `werewolf-web`. You will be instructed to "Add Firebase SDK" to your project, but you can skip this step (SDK is included in our repository). Proceed to the console.
 
+  <Figure src="add-web-app" size={400} />
+
 - In the Firebase console, navigate to the **<u>Realtime</u> Database** section, and create a database. The default security rules should be "Start in locked mode".
+
+  <Figure src="rtdb" size={300} />
 
   :::note
   Do **NOT** choose "Fire<u>store</u> Database". Fire<u>store</u> is a different database solution, and we won't use it.
@@ -106,6 +112,8 @@ This is the hardest part. If you're stuck, refer to the official Firebase tutori
 
   - Google
   - Mail/Password: Enable "Email link (passwordless sign-in)" option
+
+    <Figure src="email-auth" size={500} />
 
 - Navigate to the "Authentication &gt; Settings" section, and find the "Authorized domains" setting. Add the domain Netlify uses to publish your site (`<your-site-name>.netlify.app`).
 
@@ -180,7 +188,13 @@ Sign-in to the app using your personal Google account. **The first user who logg
 
 ### 4. Start Your First Game
 
-It takes 5 players to play a werewolf game, so let's create non-player character (NPC) accounts now.
+It takes 5 players to play a meaningful werewolf game, so let's create several non-player character (NPC) accounts now. Alternatively, if you have human colleagues, invite them!
+
+<Figure src="add-npc-user" size={500} caption="Add NPC User" />
+
+Go to Home screen and make sure there are enough online players (green).
+
+<Figure src="start-game" size={300} />
 
 ## Updating the App
 
