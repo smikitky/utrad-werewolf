@@ -3,7 +3,6 @@ import clsx from "clsx";
 import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
-import HomepageFeatures from "@site/src/components/HomepageFeatures";
 
 import styles from "./index.module.css";
 
@@ -12,7 +11,13 @@ function HomepageHeader() {
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
-        <h1 className="hero__title">{siteConfig.title}</h1>
+        <h1 className="hero__title">
+          <img
+            className={styles.logo}
+            src="/img/title.jpg"
+            alt={siteConfig.title}
+          />
+        </h1>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
@@ -39,8 +44,44 @@ export default function Home() {
     >
       <HomepageHeader />
       <main>
-        <HomepageFeatures />
+        <div className={styles.main}>
+          <img
+            className={styles.topScreenshot}
+            src="/img/screenshot-wolf.jpg"
+            alt=""
+          />
+          <section className={styles.features}>
+            {FeatureList.map((props, idx) => (
+              <div className={styles.feature}>
+                <h3>{props.title}</h3>
+                <p>{props.description}</p>
+              </div>
+            ))}
+          </section>
+        </div>
       </main>
     </Layout>
   );
 }
+
+const FeatureList = [
+  {
+    title: "Human-to-Human",
+    description: (
+      <>
+        Our web UI let you play Werewolf game with human players, and you can
+        use the log to train (fine-tune) your AI. The rule is based on the
+        AiWolf regulation.
+      </>
+    ),
+  },
+  {
+    title: "Human-to-AI",
+    description: (
+      <>
+        You can create an NPC (bot) account that can play Werewolf game with
+        human players.
+      </>
+    ),
+  },
+];

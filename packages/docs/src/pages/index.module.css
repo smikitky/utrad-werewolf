@@ -22,3 +22,40 @@
   justify-content: center;
   gap: 1rem;
 }
+
+.main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem 0;
+}
+
+.features {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 2rem 0;
+  width: 100%;
+  gap: 30px;
+}
+
+.feature {
+  text-align: center;
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.logo {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.topScreenshot {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}

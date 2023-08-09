@@ -3,9 +3,15 @@ title: Home
 sidebar_position: 1
 ---
 
+import Figure from './Figure.js';
+
 # Welcome to UTRAD Werewolf Documentation
 
-**UTRAD Werewolf** is an open source web UI for the Werewolf game (the _Jinrō_ game). This app allows you to:
+**UTRAD Werewolf** is an open source web UI for the Werewolf game (the _Jinrō_ game).
+
+<Figure src="screenshot-god" caption="Example Game UI (God Mode View)" />
+
+This app allows you to:
 
 - **Play Werewolf between humans based on the AIWolf regulation**: Such data can be used for AI training, especially for fine-tuning a large language model.
 - **Play Werewolf between humans and AI**: You can [create AI-driven bot accounts](./bot), and make them play Werewolf with human players. (You need to develop an AI algorithm by yourself.)
