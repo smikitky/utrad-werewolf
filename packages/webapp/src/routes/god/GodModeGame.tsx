@@ -105,7 +105,7 @@ const lastAction = (game: Game, agent: AgentInfo) => {
 
 type ShowLogType = 'game' | 'debug' | 'api' | 'off' | AgentId;
 
-const GodMode: Page = () => {
+const GodModeGame: Page = () => {
   const [selectedAgent, setSelectedAgent] = useState('');
   const [selectedAction, setSelectedAction] = useState('talk');
   const [param, setParam] = useState('');
@@ -516,4 +516,4 @@ const StyledDiv = styled.div`
   }
 `;
 
-export default withLoginBoundary({ mustBeGod: true })(GodMode);
+export default withLoginBoundary({ mustBeGod: true })(GodModeGame);

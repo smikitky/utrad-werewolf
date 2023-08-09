@@ -34,12 +34,11 @@ import styled from 'styled-components';
 import LoginScreen from '@/routes/LoginScreen.js';
 import Menu from '@/routes/Menu.js';
 import Profile from '@/routes/Profile.js';
-import GodMenu, {
-  GodAllUsers,
-  GodGlobalLog,
-  GodSettings
-} from '@/routes/god/GodMenu.js';
-import GodMode from '@/routes/god/GodMode.js';
+import GodAllUsers from '@/routes/god/GodAllUsers';
+import GodGlobalLog from '@/routes/god/GodGlobalLog';
+import GodMenu from '@/routes/god/GodMenu';
+import GodModeGame from '@/routes/god/GodModeGame';
+import GodSettings from '@/routes/god/GodSettings';
 
 const Layout: FC = props => {
   const user = useLoginUser();
@@ -117,7 +116,7 @@ const router = createBrowserRouter([
           { path: 'settings', element: <GodSettings /> }
         ]
       },
-      { path: 'god/:gameId', element: <GodMode /> }
+      { path: 'god/:gameId', element: <GodModeGame /> }
     ],
     errorElement: <ErrorMessage />
   }
