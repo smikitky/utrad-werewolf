@@ -1,8 +1,8 @@
 import { FC } from 'react';
-import { AgentRole } from './game-data';
-import useLang from './utils/useLang';
-import { roleTextMap } from './game-utils';
 import styled from 'styled-components';
+import { AgentRole } from '@/game-data';
+import { roleTextMap } from '@/game-utils';
+import useLang from '@/utils/useLang';
 
 const RoleTip: FC<{ role: AgentRole; className?: string }> = props => {
   const { role, className } = props;

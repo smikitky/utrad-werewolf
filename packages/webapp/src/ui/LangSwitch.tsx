@@ -1,9 +1,9 @@
+import { Lang } from '@/game-utils';
+import Switch from '@/ui/Switch';
+import { useApi } from '@/utils/useApi';
+import useLang from '@/utils/useLang';
+import { useLoginUser } from '@/utils/user';
 import { FC, useState } from 'react';
-import Switch from './Switch';
-import { Lang } from './game-utils';
-import { useApi } from './utils/useApi';
-import useLang from './utils/useLang';
-import { useLoginUser } from './utils/user';
 
 const LangSwitch: FC<{
   value: Lang;

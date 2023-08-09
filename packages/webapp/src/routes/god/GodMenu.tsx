@@ -1,31 +1,25 @@
-import * as db from 'firebase/database';
-import { FC, useEffect, useMemo, useState } from 'react';
-import {
-  Link,
-  Outlet,
-  redirect,
-  useLocation,
-  useNavigate
-} from 'react-router-dom';
-import styled from 'styled-components';
-import Icon from './Icon';
-import { makeLangResource } from './LangResource';
-import { TeamDisplay } from './RoleDisplay';
-import Toggle from './Toggle';
-import UserList, { UserListCommand } from './UserList';
 import {
   GlobalGameHistory,
   GlobalGameHistoryEntry,
   Mark,
   UserEntry,
   marks
-} from './game-data';
-import { database } from './utils/firebase.js';
-import formatDate from './utils/formatDate';
-import { useApi } from './utils/useApi';
-import useTitle from './utils/useTitle';
-import withLoginBoundary from './withLoginBoundary';
-import { useMessageAdder } from './Messages';
+} from '@/game-data';
+import Icon from '@/ui/Icon';
+import { makeLangResource } from '@/ui/LangResource';
+import { useMessageAdder } from '@/ui/Messages';
+import { TeamDisplay } from '@/ui/RoleDisplay';
+import Toggle from '@/ui/Toggle';
+import UserList, { UserListCommand } from '@/ui/UserList';
+import { database } from '@/utils/firebase.js';
+import formatDate from '@/utils/formatDate';
+import { useApi } from '@/utils/useApi';
+import useTitle from '@/utils/useTitle';
+import withLoginBoundary from '@/withLoginBoundary';
+import * as db from 'firebase/database';
+import { FC, useEffect, useMemo, useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 
 const LangResource = makeLangResource({
   allUsers: { en: 'All Users', ja: '全ユーザー' },

@@ -1,9 +1,3 @@
-import classNames from 'classnames';
-import { FC, ReactElement, ReactNode, useEffect, useMemo, useRef } from 'react';
-import styled from 'styled-components';
-import Icon from '../Icon.js';
-import { makeLangResource } from '../LangResource.js';
-import { TeamDisplay } from '../RoleDisplay.js';
 import {
   AgentId,
   AgentInfo,
@@ -26,11 +20,17 @@ import {
   VoteLogEntry,
   agentRoles,
   team
-} from '../game-data.js';
-import { extractLogOfPeriod, roleTextMap, voteEntries } from '../game-utils.js';
-import useLang from '../utils/useLang.js';
-import Player from './Player.js';
-import RoleTip from '../RoleTip.js';
+} from '@/game-data.js';
+import { extractLogOfPeriod, roleTextMap, voteEntries } from '@/game-utils.js';
+import Icon from '@/ui/Icon.js';
+import { makeLangResource } from '@/ui/LangResource.js';
+import Player from '@/ui/Player.js';
+import { TeamDisplay } from '@/ui/RoleDisplay.js';
+import RoleTip from '@/ui/RoleTip.js';
+import useLang from '@/utils/useLang.js';
+import classNames from 'classnames';
+import { FC, ReactElement, ReactNode, useEffect, useMemo, useRef } from 'react';
+import styled from 'styled-components';
 
 const LangResource = makeLangResource({
   noVote: { en: 'No Vote', ja: '投票なし' },

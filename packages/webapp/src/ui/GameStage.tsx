@@ -1,17 +1,17 @@
+import { AgentId, AgentInfo, Game, GameStatus } from '@/game-data.js';
+import { Action, agentAction, extractLogOfPeriod } from '@/game-utils.js';
+import Alert from '@/ui/Alert .js';
+import GameLog from '@/ui/GameLog.js';
+import { BasicLangResource, makeLangResource } from '@/ui/LangResource.js';
+import Player from '@/ui/Player.js';
+import RoleDisplay from '@/ui/RoleDisplay.js';
+import { useApi } from '@/utils/useApi.js';
+import useFirebaseSubscription from '@/utils/useFirebaseSubscription.js';
+import withLoginBoundary, { Page } from '@/withLoginBoundary.js';
 import classNames from 'classnames';
 import { FC, KeyboardEventHandler, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import Alert from './Alert .js';
-import RoleDisplay from './RoleDisplay.js';
-import { AgentId, AgentInfo, Game, GameStatus } from './game-data.js';
-import { Action, agentAction, extractLogOfPeriod } from './game-utils.js';
-import GameLog from './game/GameLog.js';
-import Player from './game/Player.js';
-import { useApi } from './utils/useApi.js';
-import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
-import withLoginBoundary, { Page } from './withLoginBoundary.js';
-import { BasicLangResource, makeLangResource } from './LangResource.js';
 
 const LangResource = makeLangResource({
   gameStatus: {

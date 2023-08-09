@@ -1,4 +1,4 @@
-import { Lang } from '../game-utils';
+import { Lang } from '@/game-utils';
 import { useLoginUser } from './user';
 
 const useLang = (): Lang => {

@@ -1,18 +1,18 @@
+import { UserEntry, UserGameHistory, team } from '@/game-data';
+import { Lang } from '@/game-utils';
+import Alert from '@/ui/Alert ';
+import Icon from '@/ui/Icon';
+import { BasicLangResource, makeLangResource } from '@/ui/LangResource';
+import LangSwitch from '@/ui/LangSwitch';
+import RoleDisplay, { TeamDisplay } from '@/ui/RoleDisplay';
+import formatDate from '@/utils/formatDate';
+import { useApi } from '@/utils/useApi';
+import useFirebaseSubscription from '@/utils/useFirebaseSubscription';
+import useTitle from '@/utils/useTitle';
+import withLoginBoundary, { Page } from '@/withLoginBoundary';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import Icon from './Icon';
-import { BasicLangResource, makeLangResource } from './LangResource';
-import LangSwitch from './LangSwitch';
-import RoleDisplay, { TeamDisplay } from './RoleDisplay';
-import { UserEntry, UserGameHistory, team } from './game-data';
-import formatDate from './utils/formatDate';
-import { useApi } from './utils/useApi';
-import useFirebaseSubscription from './utils/useFirebaseSubscription';
-import useTitle from './utils/useTitle';
-import withLoginBoundary, { Page } from './withLoginBoundary';
-import { Lang } from './game-utils';
-import Alert from './Alert ';
 
 const LangResource = makeLangResource({
   userInformation: { en: 'User Information', ja: 'ユーザ情報' },

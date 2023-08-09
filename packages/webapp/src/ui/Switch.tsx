@@ -1,7 +1,6 @@
-import { KeyboardEventHandler, ReactNode, FC } from 'react';
-import classnames from 'classnames';
-import styled from 'styled-components';
 import classNames from 'classnames';
+import { FC, KeyboardEventHandler, ReactNode } from 'react';
+import styled from 'styled-components';
 
 export type SwitchStatus = 'left' | 'right';
 
@@ -38,7 +37,7 @@ const Switch: FC<{
       {leftLabel}
       <span className="track" onClick={handleClick}>
         <span
-          className={classnames('thumb', value === 'left' ? 'left' : 'right')}
+          className={classNames('thumb', value === 'left' ? 'left' : 'right')}
           tabIndex={0}
           onKeyDown={handleKeyDown}
         />

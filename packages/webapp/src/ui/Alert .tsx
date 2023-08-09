@@ -1,6 +1,6 @@
 import { FC, ReactNode } from 'react';
-import Icon from './Icon';
 import styled from 'styled-components';
+import Icon from '@/ui/Icon';
 
 const Alert: FC<{
   children: ReactNode;

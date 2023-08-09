@@ -1,6 +1,6 @@
 import { ReactNode, FC } from 'react';
-import useLang from './utils/useLang';
-import { Lang } from './game-utils';
+import useLang from '@/utils/useLang';
+import { Lang } from '@/game-utils';
 
 export type LangResource<T extends string> = {
   [id in T]: {

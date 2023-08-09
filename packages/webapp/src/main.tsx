@@ -1,7 +1,7 @@
+import Alert from '@/ui/Alert ';
 import React, { ReactNode } from 'react';
-import ReactDOM, { Root } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 import { createGlobalStyle } from 'styled-components';
-import Alert from './Alert ';
 
 const GlobalStyle = createGlobalStyle`
   body {

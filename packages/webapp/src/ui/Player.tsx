@@ -1,9 +1,9 @@
+import { AgentInfo } from '@/game-data.js';
+import { makeLangResource } from '@/ui/LangResource.js';
+import RoleDisplay from '@/ui/RoleDisplay.js';
 import classNames from 'classnames';
 import { FC, MouseEventHandler } from 'react';
 import styled from 'styled-components';
-import RoleDisplay from '../RoleDisplay.js';
-import { AgentInfo } from '../game-data.js';
-import { makeLangResource } from '../LangResource.js';
 
 const LangResource = makeLangResource({
   you: { en: 'You', ja: 'あなた' }

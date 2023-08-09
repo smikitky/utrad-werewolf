@@ -1,7 +1,7 @@
+import { AgentRole, Team } from '@/game-data';
+import { roleTextMap, teamTextMap } from '@/game-utils';
+import useLang from '@/utils/useLang';
 import { FC } from 'react';
-import { AgentRole, Team } from './game-data';
-import { roleTextMap, teamTextMap } from './game-utils';
-import useLang from './utils/useLang';
 
 const RoleDisplay: FC<{ role: AgentRole }> = props => {
   const { role } = props;

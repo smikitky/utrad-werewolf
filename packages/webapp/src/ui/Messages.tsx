@@ -1,7 +1,6 @@
+import Icon from '@/ui/Icon';
 import classNames from 'classnames';
-import { FC, ReactNode, useCallback, useContext, useReducer } from 'react';
-import { createContext } from 'react';
-import Icon from './Icon';
+import { FC, ReactNode, createContext, useCallback, useContext } from 'react';
 import { styled } from 'styled-components';
 
 export type MessageType = 'error' | 'info';

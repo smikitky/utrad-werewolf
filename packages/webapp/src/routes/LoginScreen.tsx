@@ -7,11 +7,11 @@ import {
 import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { auth, googleAuthProvider } from './utils/firebase.js';
-import { useApi } from './utils/useApi.js';
-import { useLoginUser } from './utils/user';
-import Alert from './Alert .js';
-import Icon from './Icon.js';
+import Alert from '@/ui/Alert .js';
+import Icon from '@/ui/Icon.js';
+import { auth, googleAuthProvider } from '@/utils/firebase.js';
+import { useApi } from '@/utils/useApi.js';
+import { useLoginUser } from '@/utils/user';
 
 const LoginScreen: FC = () => {
   const [busy, setBusy] = useState(false);

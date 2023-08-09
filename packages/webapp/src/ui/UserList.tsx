@@ -1,3 +1,9 @@
+import { UserEntry } from '@/game-data';
+import Icon from '@/ui/Icon';
+import { BasicLangResource, makeLangResource } from '@/ui/LangResource';
+import useFirebaseSubscription from '@/utils/useFirebaseSubscription';
+import { useLoginUser } from '@/utils/user';
+import classNames from 'classnames';
 import {
   FC,
   MouseEventHandler,
@@ -6,14 +12,8 @@ import {
   useMemo,
   useState
 } from 'react';
-import { UserEntry } from './game-data';
-import useFirebaseSubscription from './utils/useFirebaseSubscription';
-import classNames from 'classnames';
-import styled from 'styled-components';
-import Icon from './Icon';
-import { useLoginUser } from './utils/user';
 import { Link } from 'react-router-dom';
-import { BasicLangResource, makeLangResource } from './LangResource';
+import styled from 'styled-components';
 
 export type UserListCommand = 'toggleReady' | 'toggleOnline' | 'toggleGod';
 

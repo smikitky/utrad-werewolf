@@ -1,9 +1,9 @@
+import { AgentCount, AgentRole, agentRoles } from '@/game-data';
+import { agentTotalCount, isValidAgentCount } from '@/game-utils';
+import RoleDisplay from '@/ui/RoleDisplay';
 import classNames from 'classnames';
 import { FC } from 'react';
 import styled from 'styled-components';
-import RoleDisplay from './RoleDisplay';
-import { AgentCount, AgentRole, agentRoles } from './game-data';
-import { agentTotalCount, isValidAgentCount } from './game-utils';
 
 const AgentCountEditor: FC<{
   value: AgentCount;

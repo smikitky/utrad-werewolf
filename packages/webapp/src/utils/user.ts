@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { UserEntry } from '../game-data.js';
+import { UserEntry } from '@/game-data.js';
 
 export type LoginType = 'anonymous' | 'google' | 'emailLink';
 

@@ -1,13 +1,3 @@
-import classNames from 'classnames';
-import { ReactNode, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import styled from 'styled-components';
-import Alert from './Alert ';
-import Icon from './Icon';
-import { BasicLangResource, makeLangResource } from './LangResource';
-import RoleDisplay from './RoleDisplay';
-import RoleTip from './RoleTip';
-import Toggle from './Toggle';
 import {
   AgentId,
   AgentInfo,
@@ -18,14 +8,24 @@ import {
   GuardLogEntry,
   OverLogEntry,
   UserEntries
-} from './game-data';
-import { agentAction, extractLogOfPeriod } from './game-utils';
-import GameLog from './game/GameLog';
-import formatDate from './utils/formatDate';
-import { useApi } from './utils/useApi';
-import useFirebaseSubscription from './utils/useFirebaseSubscription';
-import useTitle from './utils/useTitle';
-import withLoginBoundary, { Page } from './withLoginBoundary';
+} from '@/game-data';
+import { agentAction, extractLogOfPeriod } from '@/game-utils';
+import Alert from '@/ui/Alert ';
+import GameLog from '@/ui/GameLog';
+import Icon from '@/ui/Icon';
+import { BasicLangResource, makeLangResource } from '@/ui/LangResource';
+import RoleDisplay from '@/ui/RoleDisplay';
+import RoleTip from '@/ui/RoleTip';
+import Toggle from '@/ui/Toggle';
+import formatDate from '@/utils/formatDate';
+import { useApi } from '@/utils/useApi';
+import useFirebaseSubscription from '@/utils/useFirebaseSubscription';
+import useTitle from '@/utils/useTitle';
+import withLoginBoundary, { Page } from '@/withLoginBoundary';
+import classNames from 'classnames';
+import { ReactNode, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import styled from 'styled-components';
 
 const LangResource = makeLangResource({
   gameId: { en: 'Game ID', ja: 'ゲーム ID' },

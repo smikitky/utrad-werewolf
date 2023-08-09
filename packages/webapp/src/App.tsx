@@ -1,3 +1,24 @@
+import { UserEntry } from '@/game-data.js';
+import Alert from '@/ui/Alert .js';
+import GameStage from '@/ui/GameStage.js';
+import Icon from '@/ui/Icon.js';
+import { BasicLangResource } from '@/ui/LangResource.js';
+import { LoginUserLangSwitch } from '@/ui/LangSwitch.js';
+import {
+  Messages,
+  MessagesContext,
+  MessagesDispatchContext,
+  messagesReducer
+} from '@/ui/Messages.js';
+import { auth, database } from '@/utils/firebase.js';
+import { ApiCaller, ApiContext } from '@/utils/useApi.js';
+import useFirebaseSubscription from '@/utils/useFirebaseSubscription.js';
+import {
+  LoginType,
+  LoginUser,
+  LoginUserContext,
+  useLoginUser
+} from '@/utils/user.js';
 import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
 import * as db from 'firebase/database';
 import { FC, useEffect, useMemo, useReducer, useRef, useState } from 'react';
@@ -9,33 +30,16 @@ import {
   useRouteError
 } from 'react-router-dom';
 import styled from 'styled-components';
-import Icon from './Icon.js';
-import { BasicLangResource } from './LangResource.js';
-import { LoginUserLangSwitch } from './LangSwitch.js';
-import {
-  Messages,
-  MessagesContext,
-  MessagesDispatchContext,
-  messagesReducer
-} from './Messages.js';
-import { UserEntry } from './game-data.js';
-import { auth, database } from './utils/firebase.js';
-import { ApiCaller, ApiContext } from './utils/useApi.js';
-import useFirebaseSubscription from './utils/useFirebaseSubscription.js';
-import {
-  LoginType,
-  LoginUser,
-  LoginUserContext,
-  useLoginUser
-} from './utils/user.js';
 
-import GameStage from './GameStage.js';
-import GodMenu, { GodAllUsers, GodGlobalLog, GodSettings } from './GodMenu.js';
-import GodMode from './GodMode.js';
-import LoginScreen from './LoginScreen.js';
-import Menu from './Menu.js';
-import Profile from './Profile.js';
-import Alert from './Alert .js';
+import LoginScreen from '@/routes/LoginScreen.js';
+import Menu from '@/routes/Menu.js';
+import Profile from '@/routes/Profile.js';
+import GodMenu, {
+  GodAllUsers,
+  GodGlobalLog,
+  GodSettings
+} from '@/routes/god/GodMenu.js';
+import GodMode from '@/routes/god/GodMode.js';
 
 const Layout: FC = props => {
   const user = useLoginUser();

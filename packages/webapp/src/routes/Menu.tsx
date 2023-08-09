@@ -1,17 +1,17 @@
+import { AgentCount, defaultAgentCount } from '@/game-data.js';
+import { agentTotalCount } from '@/game-utils.js';
+import AgentCountEditor from '@/ui/AgentCountEditor.js';
+import Icon from '@/ui/Icon.js';
+import { makeLangResource } from '@/ui/LangResource.js';
+import UserList from '@/ui/UserList.js';
+import { auth, database } from '@/utils/firebase.js';
+import { useApi } from '@/utils/useApi.js';
+import withLoginBoundary, { Page } from '@/withLoginBoundary.js';
 import { signOut } from 'firebase/auth';
 import * as db from 'firebase/database';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import AgentCountEditor from './AgentCountEditor.js';
-import { AgentCount, defaultAgentCount } from './game-data.js';
-import { agentTotalCount } from './game-utils.js';
-import Icon from './Icon.js';
-import UserList from './UserList.js';
-import { auth, database } from './utils/firebase.js';
-import { useApi } from './utils/useApi.js';
-import withLoginBoundary, { Page } from './withLoginBoundary.js';
-import { makeLangResource } from './LangResource.js';
 
 const LangResource = makeLangResource({
   start: {

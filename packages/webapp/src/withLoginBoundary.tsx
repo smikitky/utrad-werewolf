@@ -1,8 +1,8 @@
+import Alert from '@/ui/Alert ';
+import { makeLangResource } from '@/ui/LangResource';
+import { LoggedInUser, useLoginUser } from '@/utils/user';
 import { FC, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Alert from './Alert ';
-import { LoggedInUser, useLoginUser } from './utils/user';
-import { makeLangResource } from './LangResource';
 
 export type Page = FC<{
   loginUser: LoggedInUser;
