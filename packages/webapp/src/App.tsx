@@ -5,7 +5,8 @@ import {
   Link,
   Outlet,
   RouterProvider,
-  createBrowserRouter
+  createBrowserRouter,
+  useRouteError
 } from 'react-router-dom';
 import styled from 'styled-components';
 import Icon from './Icon.js';
@@ -29,11 +30,12 @@ import {
 } from './utils/user.js';
 
 import GameStage from './GameStage.js';
-import GodMenu from './GodMenu.js';
+import GodMenu, { GodAllUsers, GodGlobalLog, GodSettings } from './GodMenu.js';
 import GodMode from './GodMode.js';
 import LoginScreen from './LoginScreen.js';
 import Menu from './Menu.js';
 import Profile from './Profile.js';
+import Alert from './Alert .js';
 
 const Layout: FC = props => {
   const user = useLoginUser();
@@ -50,7 +52,7 @@ const Layout: FC = props => {
         <div>
           {user.status === 'loggedIn' && user.data.canBeGod === true && (
             <>
-              <Link to="/god">
+              <Link to="/god/all-users">
                 <Icon icon="policy" />
                 <BasicLangResource id="godMode" />
               </Link>{' '}
@@ -79,6 +81,20 @@ const Layout: FC = props => {
   );
 };
 
+const ErrorMessage = () => {
+  const err = useRouteError() as any;
+  return (
+    <Alert>
+      Applicatin Error
+      {err?.statusText && (
+        <div>
+          ({err.status} {err.statusText})
+        </div>
+      )}
+    </Alert>
+  );
+};
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -88,9 +104,18 @@ const router = createBrowserRouter([
       { path: 'login', element: <LoginScreen /> },
       { path: 'game/:gameId', element: <GameStage /> },
       { path: 'profile/:uid', element: <Profile /> },
-      { path: 'god', element: <GodMenu /> },
+      {
+        path: 'god',
+        element: <GodMenu />,
+        children: [
+          { path: 'all-users', element: <GodAllUsers /> },
+          { path: 'all-games', element: <GodGlobalLog /> },
+          { path: 'settings', element: <GodSettings /> }
+        ]
+      },
       { path: 'god/:gameId', element: <GodMode /> }
-    ]
+    ],
+    errorElement: <ErrorMessage />
   }
 ]);
 

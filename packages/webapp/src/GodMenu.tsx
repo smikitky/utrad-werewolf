@@ -1,6 +1,12 @@
 import * as db from 'firebase/database';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import {
+  Link,
+  Outlet,
+  redirect,
+  useLocation,
+  useNavigate
+} from 'react-router-dom';
 import styled from 'styled-components';
 import Icon from './Icon';
 import { makeLangResource } from './LangResource';
@@ -49,8 +55,25 @@ const LangResource = makeLangResource({
 });
 
 const GodMenu: FC = () => {
-  const [selected, setSelected] = useState(0);
   useTitle('God Mode Menu');
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const locations = ['all-users', 'all-games', 'settings'];
+  const selected = locations.indexOf(
+    location.pathname.split('/').at(-1) ?? 'all-users'
+  );
+
+  useEffect(() => {
+    if (selected < 0) navigate('/god/all-users');
+  }, [selected]);
+
+  if (selected < 0) return null;
+
+  const handleSelect = (index: number) => {
+    navigate(locations[index]);
+  };
 
   const choices = [
     <>
@@ -67,10 +90,8 @@ const GodMenu: FC = () => {
   return (
     <StyledDiv>
       <h1>God Mode</h1>
-      <Toggle choices={choices} value={selected} onChange={setSelected} />
-      {selected === 0 && <GodAllUsers />}
-      {selected === 1 && <GodGlobalLog />}
-      {selected === 2 && <GodSettings />}
+      <Toggle choices={choices} value={selected} onChange={handleSelect} />
+      <Outlet />
     </StyledDiv>
   );
 };
@@ -81,7 +102,7 @@ const StyledDiv = styled.div`
 
 export default withLoginBoundary({ mustBeGod: true })(GodMenu);
 
-const GodAllUsers: FC = () => {
+export const GodAllUsers: FC = () => {
   const api = useApi();
 
   const handleUserCommand = async (
@@ -123,7 +144,7 @@ const GodAllUsers: FC = () => {
   );
 };
 
-const GodGlobalLog: FC = () => {
+export const GodGlobalLog: FC = () => {
   const api = useApi();
   const [gameLog, setGameLog] = useState<GlobalGameHistory | Error>();
   const [showFullLog, setShowFullLog] = useState(false);
@@ -346,7 +367,7 @@ const StyledLogTr = styled.tr`
   }
 `;
 
-const GodSettings: FC = () => {
+export const GodSettings: FC = () => {
   const api = useApi();
   const [newUid, setNewUid] = useState('');
   const [newName, setNewName] = useState('');
