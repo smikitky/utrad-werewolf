@@ -1,6 +1,5 @@
 import { UserEntry } from '@/game-data.js';
 import Alert from '@/ui/Alert .js';
-import GameStage from '@/ui/GameStage.js';
 import Icon from '@/ui/Icon.js';
 import { BasicLangResource } from '@/ui/LangResource.js';
 import { LoginUserLangSwitch } from '@/ui/LangSwitch.js';
@@ -31,6 +30,7 @@ import {
 } from 'react-router-dom';
 import styled from 'styled-components';
 
+import GameStage from '@/routes/GameStage.js';
 import LoginScreen from '@/routes/LoginScreen.js';
 import Menu from '@/routes/Menu.js';
 import Profile from '@/routes/Profile.js';
