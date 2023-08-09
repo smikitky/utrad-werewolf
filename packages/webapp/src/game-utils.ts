@@ -106,7 +106,6 @@ export const agentAction = (game: Game, agent: AgentInfo): Action => {
             ? 'wait'
             : 'divine';
         case 'medium':
-          console.warn('Medium is not implemented yet');
           return 'wait';
         case 'bodyguard':
           return periodLog.some(
