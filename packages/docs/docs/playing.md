@@ -2,6 +2,8 @@
 sidebar_position: 5
 ---
 
+import Figure from './Figure.js';
+
 # Playing Werewolf
 
 ## Starting a Game
@@ -21,14 +23,33 @@ The roles and agent numbers of the players will be assigned randomly by the game
 
 ## Game Screen
 
-During a game, players will see a screen like this. They choose their next action at the bottom of the screen. The available actions are:
+During a game, players will see a screen like this.
+
+<Figure src="start" />
+
+They choose their next action at the bottom of the screen. The available actions are:
 
 - **Talk**: All surviving players can do this during daytime, before a vote. Each player can do this up to 10 times per day.
+
+  <Figure src="action-talk" />
+
 - **Whisper**: Only werewolves can do this at night. Each player can do this up to 10 times per night.
+
+  <Figure src="action-whisper" />
+
 - **Over**: This is to indicate your intention not to talk/whisper further any more at this time period. When all players who have the right to talk/whisper at this period have indicated "over", the game moves to the voting phase.
 - **Vote**: Determines who the player wishes to expel from the village.
+
+  <Figure src="action-expel" />
+
 - **Attack Vote**: Determines who the player wishes to attack as a werewolf.
+
+  <Figure src="action-attack" />
+
 - **Divine**: Determines who to divine.
+
+  <Figure src="action-divine" />
+
 - **Guard**: Determines who to guard from werewolf attacks.
 
 Only actions that are available according to the progress of the game will be displayed, so the user should not get lost.
