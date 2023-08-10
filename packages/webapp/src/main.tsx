@@ -66,6 +66,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   button {
+    color: black;
     border: 1px solid gray;
     border-radius: 4px;
     background: #eeeeff;

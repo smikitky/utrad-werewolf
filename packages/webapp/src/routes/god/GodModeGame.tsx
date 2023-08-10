@@ -11,10 +11,10 @@ import {
 } from '@/game-data';
 import { agentAction, extractLogOfPeriod } from '@/game-utils';
 import Alert from '@/ui/Alert ';
-import { confirm } from '@/ui/Modal';
 import GameLog from '@/ui/GameLog';
 import Icon from '@/ui/Icon';
 import { BasicLangResource, makeLangResource } from '@/ui/LangResource';
+import { confirm } from '@/ui/Modal';
 import RoleDisplay from '@/ui/RoleDisplay';
 import RoleTip from '@/ui/RoleTip';
 import Toggle from '@/ui/Toggle';

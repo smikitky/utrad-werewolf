@@ -6,6 +6,7 @@ import {
 } from '@/game-data';
 import Icon from '@/ui/Icon';
 import { makeLangResource } from '@/ui/LangResource';
+import { confirm } from '@/ui/Modal';
 import { TeamDisplay } from '@/ui/RoleDisplay';
 import Toggle from '@/ui/Toggle';
 import { database } from '@/utils/firebase.js';
@@ -15,7 +16,6 @@ import * as db from 'firebase/database';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { confirm } from '@/ui/Modal';
 
 const LangResource = makeLangResource({
   allLog: { en: 'Full Game Log', ja: '全ゲーム一覧' },

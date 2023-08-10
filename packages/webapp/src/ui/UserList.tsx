@@ -15,10 +15,15 @@ import {
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
-export type UserListCommand = 'toggleReady' | 'toggleOnline' | 'toggleGod';
+export type UserListCommand =
+  | 'matchNewGame'
+  | 'toggleReady'
+  | 'toggleOnline'
+  | 'toggleGod';
 
 const LangResource = makeLangResource({
   goToGame: { en: 'Go to This Game', ja: 'ゲームへ' },
+  matchNewGame: { en: 'Match New Game', ja: '新規ゲームをマッチング' },
   makeReady: { en: 'Make Ready', ja: '準備OKにする' },
   makeUnready: { en: 'Make Unready', ja: '一時待機中にする' },
   forceOnline: { en: 'Force Online', ja: '強制オンライン化' },
@@ -168,6 +173,13 @@ const UserList: FC<{
                 </Link>
               </li>
             )}
+            {!selectedUser.currentGameId &&
+              selectedUser.onlineStatus &&
+              selectedUser.ready && (
+                <li data-command="matchNewGame">
+                  <LangResource id="matchNewGame" />
+                </li>
+              )}
             {selectedUser.onlineStatus && !selectedUser.currentGameId && (
               <li data-command="toggleReady">
                 {selectedUser.ready ? (

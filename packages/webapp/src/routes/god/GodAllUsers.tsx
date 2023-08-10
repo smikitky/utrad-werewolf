@@ -1,10 +1,13 @@
-import { UserEntry } from '@/game-data';
-import { makeLangResource } from '@/ui/LangResource';
+import { AgentCount, UserEntry, defaultAgentCount } from '@/game-data';
+import AgentCountEditor from '@/ui/AgentCountEditor';
+import { BasicLangResource, makeLangResource } from '@/ui/LangResource';
+import Modal from '@/ui/Modal';
 import UserList, { UserListCommand } from '@/ui/UserList';
 import { database } from '@/utils/firebase.js';
 import { useApi } from '@/utils/useApi';
 import * as db from 'firebase/database';
-import { FC } from 'react';
+import { FC, useState } from 'react';
+import styled from 'styled-components';
 
 const LangResource = makeLangResource({
   allUsers: { en: 'All Users', ja: '全ユーザー' }
@@ -12,6 +15,11 @@ const LangResource = makeLangResource({
 
 const GodAllUsers: FC = () => {
   const api = useApi();
+  const [match, setMatch] = useState<{
+    showModal: boolean;
+    leader?: string;
+    agentCount?: AgentCount;
+  }>({ showModal: false, agentCount: defaultAgentCount });
 
   const handleUserCommand = async (
     uid: string,
@@ -19,6 +27,14 @@ const GodAllUsers: FC = () => {
     command: UserListCommand
   ) => {
     switch (command) {
+      case 'matchNewGame': {
+        setMatch({
+          showModal: true,
+          leader: uid,
+          agentCount: defaultAgentCount
+        });
+        break;
+      }
       case 'toggleReady': {
         const ref = db.ref(database, `users/${uid}/ready`);
         await db.set(ref, !user.ready);
@@ -38,6 +54,14 @@ const GodAllUsers: FC = () => {
     }
   };
 
+  const handleMatchDialogStart = async () => {
+    await api('matchNewGame', {
+      leader: match.leader,
+      agentCount: match.agentCount
+    });
+    setMatch({ showModal: false });
+  };
+
   return (
     <>
       <h2>
@@ -48,8 +72,36 @@ const GodAllUsers: FC = () => {
         onlineOnly={false}
         showAdminMenu={true}
       />
+      {match.showModal && (
+        <Modal open onCancel={() => setMatch({ showModal: false })}>
+          <StyledDialogDiv>
+            <h2>Match New Game</h2>
+            <AgentCountEditor
+              value={match.agentCount!}
+              onChange={agentCount => setMatch({ ...match, agentCount })}
+            />
+            <nav>
+              <button onClick={() => setMatch({ showModal: false })}>
+                <BasicLangResource id="cancel" />
+              </button>
+              <button onClick={handleMatchDialogStart}>
+                <BasicLangResource id="start" />
+              </button>
+            </nav>
+          </StyledDialogDiv>
+        </Modal>
+      )}
     </>
   );
 };
+
+const StyledDialogDiv = styled.div`
+  nav {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+`;
 
 export default GodAllUsers;

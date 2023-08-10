@@ -1,17 +1,13 @@
-import React, { EventHandler, ReactNode, useEffect, useRef } from 'react';
+import React, { EventHandler, FC, ReactNode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import styled from 'styled-components';
 
-type Dialog<T> = React.FC<{
-  onReturn: (value: T) => void;
-}>;
-
-const Modal = <T extends any>(props: {
+const Modal = (props: {
   open: boolean;
-  content: Dialog<T>;
-  onReturn: (value: T | null) => void;
+  children: ReactNode;
+  onCancel: () => void;
 }): ReactNode => {
-  const { open, onReturn, content: Content } = props;
+  const { open, children, onCancel } = props;
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -24,14 +20,9 @@ const Modal = <T extends any>(props: {
     }
   }, [open]);
 
-  const handleCancel: EventHandler<any> = ev => {
-    onReturn(null);
-    ev.preventDefault();
-  };
-
   return (
-    <StyledDialog className="dialog" ref={dialogRef} onCancel={handleCancel}>
-      <Content onReturn={onReturn} />
+    <StyledDialog className="dialog" ref={dialogRef} onCancel={onCancel}>
+      {children}
     </StyledDialog>
   );
 };
@@ -47,24 +38,24 @@ const StyledDialog = styled.dialog`
 
 export default Modal;
 
-const createChoiceDialog = (
-  children: ReactNode,
-  choices: [label: string, key: string][]
-): Dialog<string> => {
-  return ({ onReturn }) => {
-    return (
-      <StyledChoiceDiv>
-        <div className="prompt">{children}</div>
-        <div className="choices">
-          {choices.map(c => (
-            <button key={c[1]} onClick={() => onReturn(c[1])}>
-              {c[0]}
-            </button>
-          ))}
-        </div>
-      </StyledChoiceDiv>
-    );
-  };
+const ChoiceDialog: FC<{
+  children: ReactNode;
+  choices: [label: string, key: string][];
+  onSelect: (key: string) => void;
+}> = props => {
+  const { children, choices, onSelect } = props;
+  return (
+    <StyledChoiceDiv>
+      <div className="prompt">{children}</div>
+      <div className="choices">
+        {choices.map(c => (
+          <button key={c[1]} onClick={() => onSelect(c[1])}>
+            {c[0]}
+          </button>
+        ))}
+      </div>
+    </StyledChoiceDiv>
+  );
 };
 
 const StyledChoiceDiv = styled.div`
@@ -78,22 +69,28 @@ const StyledChoiceDiv = styled.div`
   }
 `;
 
+type Dialog<T> = FC<{
+  onReturn: (value: T) => void;
+}>;
+
 export const showDialog = <T extends any>(
-  content: Dialog<T>
+  Content: Dialog<T>
 ): Promise<T | null> => {
   return new Promise(resolve => {
     const div = document.createElement('div');
     document.body.appendChild(div);
     const root = createRoot(div);
 
-    const handleReturn = (value: T | null) => {
+    const handleReturn = (value: T) => {
       root.unmount();
       div.remove();
       resolve(value);
     };
 
     root.render(
-      <Modal<T> open={true} content={content} onReturn={handleReturn} />
+      <Modal open={true} onCancel={() => resolve(null)}>
+        <Content onReturn={handleReturn} />
+      </Modal>
     );
   });
 };
@@ -102,7 +99,15 @@ const showChoiceDialog = (
   message: ReactNode,
   choices: [string, string][]
 ): Promise<string | null> => {
-  return showDialog(createChoiceDialog(message, choices));
+  const choiceDialog: Dialog<string> = props => {
+    const { onReturn } = props;
+    return (
+      <ChoiceDialog choices={choices} onSelect={onReturn}>
+        {message}
+      </ChoiceDialog>
+    );
+  };
+  return showDialog(choiceDialog);
 };
 
 export const alert = async (message: ReactNode): Promise<void> => {

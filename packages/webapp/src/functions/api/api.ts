@@ -22,7 +22,6 @@ import {
   StatusLogEvent,
   UserEntries,
   VoteLogEntry,
-  Team,
   UserEntry,
   Mark,
   marks
@@ -288,6 +287,17 @@ const releaseUsers = async (userIds: string[]): Promise<void> => {
 const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
   const agentCount = (payload.agentCount as AgentCount) ?? defaultAgentCount;
 
+  if (payload.leader) {
+    if (typeof payload.leader !== 'string')
+      return jsonResponse(400, 'Invalid leader UID');
+    const me = (await db.ref('users').child(uid).get()).val();
+    if (!me.canBeGod) return jsonResponse(403, 'Only god can specify a leader');
+    if (!(await db.ref('users').child(payload.leader).get()).exists()) {
+      return jsonResponse(400, 'Specified leader does not exist');
+    }
+  }
+  const leader = (payload.leader as string) ?? uid;
+
   if (!isValidAgentCount(agentCount))
     return jsonResponse(400, 'Invalid agent count');
 
@@ -304,18 +314,18 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
     // Pick the current user and other users waiting for a match
     if (data) {
       const waitingUsers = Object.entries(data).filter(
-        ([userId, entry]) =>
-          userId !== uid &&
+        ([uid, entry]) =>
+          uid !== leader &&
           entry.onlineStatus === true &&
           entry.ready === true &&
           !entry.currentGameId
       );
-      // pick random users
       if (waitingUsers.length < count - 1) return data;
+      // pick random users
       pickedUsers = shuffleArray(waitingUsers)
         .slice(0, count - 1)
         .map(([uid]) => uid);
-      [uid, ...pickedUsers].forEach(uid => {
+      [leader, ...pickedUsers].forEach(uid => {
         data[uid].currentGameId = gameId;
       });
     }
@@ -325,7 +335,7 @@ const handleMatchNewGame: ModeHandler = async ({ uid, payload }) => {
   if (pickedUsers.length + 1 < count) {
     return jsonResponse(400, 'Not enough players');
   }
-  const agents = assignRoles(shuffleArray([uid, ...pickedUsers]), roles);
+  const agents = assignRoles(shuffleArray([leader, ...pickedUsers]), roles);
   const initialGame: Game = {
     startedAt: now(),
     agents,

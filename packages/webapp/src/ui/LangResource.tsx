@@ -26,6 +26,7 @@ export const BasicLangResource = makeLangResource({
   yes: { en: 'Yes', ja: 'はい' },
   no: { en: 'No', ja: 'いいえ' },
   ok: { en: 'OK', ja: 'OK' },
+  start: { en: 'Start', ja: '開始' },
   cancel: { en: 'Cancel', ja: 'キャンセル' },
   home: { en: 'Home', ja: 'ホーム' },
   logout: { en: 'Log Out', ja: 'ログアウト' },
