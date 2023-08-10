@@ -194,12 +194,15 @@ export const GodGameLogItem: FC<{
         <button className="menu" onClick={() => onDownloadLogClick(gameId)}>
           <Icon icon="download" />
         </button>
-        <button className="menu" onClick={() => onDeleteGameClick(gameId)}>
-          <Icon icon="delete_forever" />
-        </button>
+        {!game.protected && (
+          <button className="menu" onClick={() => onDeleteGameClick(gameId)}>
+            <Icon icon="delete_forever" />
+          </button>
+        )}
       </td>
       <td className="game-id" role="button">
         {gameId}
+        {game.protected && <span className="protected">protected</span>}
       </td>
     </StyledLogTr>
   );
@@ -251,5 +254,13 @@ const StyledLogTr = styled.tr`
     background: none;
     border: none;
     padding: 0;
+  }
+
+  .protected {
+    margin-left: 10px;
+    color: white;
+    padding: 0 5px;
+    background: #ff4400;
+    font-size: 70%;
   }
 `;
