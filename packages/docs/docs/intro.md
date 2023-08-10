@@ -11,7 +11,7 @@ sidebar_position: 1
 
 This app allows you to:
 
-- **Play Werewolf between humans based on the AIWolf regulation**: Such data can be used for AI training, especially for fine-tuning a large language model.
+- **Play Werewolf online between humans based on the AIWolf regulation**: Such data can be used for AI training, especially for fine-tuning a large language model.
 - **Play Werewolf between humans and AI**: You can [create AI-driven bot accounts](./bot), and make them play Werewolf with human players. (You need to develop an AI algorithm by yourself.)
 - **Play an AI-to-AI Werewolf game**: This could be useful for AI reinforcement learning. Use this app as a game viewer.
 

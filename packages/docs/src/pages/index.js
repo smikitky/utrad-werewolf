@@ -14,7 +14,7 @@ function HomepageHeader() {
         <h1 className="hero__title">
           <img
             className={styles.logo}
-            src="/img/title.jpg"
+            src="/img/utrad-werewolf-logo.webp"
             alt={siteConfig.title}
           />
         </h1>
@@ -66,12 +66,21 @@ export default function Home() {
 
 const FeatureList = [
   {
+    title: "Fully Web-based",
+    description: (
+      <>
+        You can play Werewolf game everywhere using your browser. No
+        installation required.
+      </>
+    ),
+  },
+  {
     title: "Human-to-Human",
     description: (
       <>
         Our web UI let you play Werewolf game with human players, and you can
         use the log to train (fine-tune) your AI. The rule is based on the
-        AiWolf regulation.
+        AIWolf regulation.
       </>
     ),
   },

@@ -34,7 +34,6 @@
 
 .features {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
   justify-content: center;
   padding: 2rem 0;
