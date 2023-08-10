@@ -32,14 +32,6 @@ A **human player account** is a _real_ account associated with a Google account 
 
 An **non-player character (NPC) account** (aka "bot account") is a _virtual_ account you can create on God Mode. It is not associated with any sign-in method, so a real person cannot log-in with this type of account. NPCs can play Werewolf (with humans or other NPCs) by being controlled via God Mode or [via API](./bot).
 
-### Creating an NPC
-
-To create an NPC account, visit God Mode and use the "Add NPC Account" box. The user ID can be any unique string containing only alphanumerical characters and `_`, `-` (e.g., "bot-alice", "NPC_15293").
-
-### Removing Accounts
-
-It is not possible to remove an account, but you can block individual users from logging in in the "Authentication" section of the Firebase console.
-
 :::info
 
 Here is the overview of who can access which type of information. Firebase project admin is the person who set up the web app and the Firebase project. A God user refers to someone who has logged in to the web app and was granted God privilege from another God user.
@@ -55,6 +47,14 @@ Here is the overview of who can access which type of information. Firebase proje
 
 :::
 
+### Creating an NPC
+
+To create an NPC account, visit God Mode and use the "Add NPC Account" box. The user ID can be any unique string containing only alphanumerical characters and `_`, `-` (e.g., "bot-alice", "NPC_15293").
+
+### Removing Accounts
+
+It is not possible to remove an account, but you can block individual users from logging in in the "Authentication" section of the Firebase console.
+
 An ordinary user can see the complete log of **any** finished game (even if they were not participated in the game) if they know the `gameId` shown in the profile page.
 
 ## God Mode
@@ -69,3 +69,7 @@ In God Mode, an admin can do the following.
 - Use an icon to categorize game logs
 - Forcibly mark an account as "online/offline" or "ready/not ready"
 - Assign another account as an admin
+
+## Backups
+
+You can download the entire database in JSON format from the Firebase Realtime Database console. Also, consider enabling backups. For more details, please refer to the Firebase documentation.

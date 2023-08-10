@@ -14,19 +14,23 @@ Here is the URL of the demo site:
 
 After logging-in, you can try the following:
 
-- [Visit God Mode](https://werewolf-demo-2p8r3o.netlify.app/god)
-- See game logs as a God user ([example](https://werewolf-demo-2p8r3o.netlify.app/god/-NFwt6NTTsR2qgJ0OrVR))
+- [Visit God Mode](https://werewolf-demo-2p8r3o.netlify.app/god/all-users)
+- See game logs as a God user ([example](https://werewolf-demo-2p8r3o.netlify.app/god/-NbPKZUYsZYNGuD9Q6GY))
 - Start a new game from the [Home screen](https://werewolf-demo-2p8r3o.netlify.app/). Users with a robot icon are bot (NPC) users, so they won't do anything unless you control them in God Mode. Open a god mode, click one of the users playing a game (yellow), and select "Go to game". (Don't forget to finish or abort the game!)
 
 ## Automatic Admin Privilege
 
-On the demo site, when you first log-in, you are automatically granted the administrator (God) privilege. You will see the "God Mode" menu on the top navigation bar. This means that everyone is able to view all logs, delete them, enter God mode, and freely control other players.
+On the demo site, when you first log-in, you are automatically granted the administrator (God) privilege. You will see the "God Mode" menu on the top navigation bar.
+
+<Figure src="god-mode" size={120} caption="God Mode Menu" />
+
+This means that everyone is able to view all logs, delete them, enter God mode, and freely control other players.
 
 However, to maintain minimum functionality, even administrators are not allowed to do the following. Attempts to do so will result in an API error.
 
 - You cannot change the profile of other players, including their user name.
 - You cannot add new NPC accounts.
-- You cannot delete protected game logs created in 2022.
+- You cannot delete some protected game logs we have prepared.
 
 ## Terms of Use for the Demo Site
 

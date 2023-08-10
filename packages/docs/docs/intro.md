@@ -3,8 +3,6 @@ title: Home
 sidebar_position: 1
 ---
 
-import Figure from './Figure.js';
-
 # Welcome to UTRAD Werewolf Documentation
 
 **UTRAD Werewolf** is an open source web UI for the Werewolf game (the _Jinrō_ game).

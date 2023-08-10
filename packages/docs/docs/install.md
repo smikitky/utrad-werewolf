@@ -2,17 +2,15 @@
 sidebar_position: 3
 ---
 
-import Figure from './Figure.js';
-
 # Installation
 
 To deploy your own UTRAD Werewolf server, follow these steps.
 
 :::caution
 
-Before you begin, be aware that this is a platform to support AIWolf researches. We do not offer sophisticated user management features like a full-fledged SNS or game app do. It is not intended to efficiently manage more than 100 users. User profile, including user names, cannot be private. Therefore, you must limit your use to a closed research group. **Do not make the URL available to the general public**.
+Before you begin, be aware that this is a platform to support AIWolf researches. We do not provide sophisticated user management features like a full-fledged SNS or game app do. It is not designed to efficiently manage more than 100 users. User profiles, including user names, cannot be private. Therefore, you must limit your use to a closed research group. **Do not make the URL available to the general public**.
 
-Once your research is complete, it is recommended that the site itself be shut down in the Netlify console or that Authentication be turned off in the Firebase console. This will make it impossible for existing users to re-log in or for new users to sign up.
+Once your research is complete, it is recommended that you shut down the site itself in the Netlify console or turn off authentication in the Firebase console. This will make it impossible for existing users to log in again or for new users to register.
 
 :::
 
@@ -20,7 +18,7 @@ Once your research is complete, it is recommended that the site itself be shut d
 
 This is a web-based project, but our docs do not assume you have any prior knowledge of web technologies, including JavaScript and HTML. Just follow the steps below and you should be able to get things working! However, we _do_ assume the following:
 
-- You have basic knowledge of **Git** and **GitHub**.
+- You have a basic understanding of **Git** and **GitHub**.
 - You have a valid **GitHub account**.
 - You have a valid **Google account** (because we rely on Firebase).
 - You can use a terminal (command line).

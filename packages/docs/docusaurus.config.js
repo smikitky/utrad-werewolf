@@ -7,7 +7,7 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "UTRAD Werewolf",
-  tagline: "Werewolf Game UI for Research",
+  tagline: "Werewolf Game UI for Your Research",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here

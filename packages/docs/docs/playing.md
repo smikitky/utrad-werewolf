@@ -2,8 +2,6 @@
 sidebar_position: 5
 ---
 
-import Figure from './Figure.js';
-
 # Playing Werewolf
 
 ## Starting a Game

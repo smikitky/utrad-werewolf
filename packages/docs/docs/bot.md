@@ -95,8 +95,8 @@ curl -X POST https://your-site/.netlify/functions/api \
 - The `content-type` header is always `'application/json'`.
 - The `authorization` and `x-godmode-uid-override` headers specify the user.
   - The authorization token (`1a2b3c4d` in the example above) is the `MASTER_PASS` environment variable described below.
-  - The `x-godmode-uid-override` header let you "pretend" any valid user (NPC or human). You must specify a valid UID (you can find the UID of a user in their profile page).
-- The `data` is the HTTP request body. It describes the command you are issueing to the API.
+  - The `x-godmode-uid-override` header lets you "pretend" any valid user (NPC or human). You must specify a valid UID, which can be found in the user's profile page.
+- The `data` is the HTTP request body. It specifies the command you are issueing to the API. The details are described below.
 
 For this to work, you must set the `MASTER_PASS` environment variable on the Netlify dashboard. Use a safe password with a sufficient length. Note that you need to re-deploy the site so that the new environment variable takes effect.
 

@@ -339,7 +339,8 @@ The log data is a large JSON object that hold the following as the top-most keys
 
 ## Top-level Keys
 
-- `agents`: The basic information about each player, including its current surviging status. When the game has been finished, contains the final status.
+- `agents`: The basic information about each player, including their current survival status. When the game has been finished, contains the final status.
+- `startedAt`: Contains the timestamp of when the game started.
 - `finishedAt`: Contains the timestamp if this game has been finished (either successfully or forcibly).
 - `abortedAt`: Contains the timestamp if this game was forcibly aborted by a God user.
 - `status`: An object that contains the current status of the game (if the game is finished, contains the final status).
