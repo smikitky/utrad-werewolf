@@ -1,4 +1,4 @@
-import React, { EventHandler, FC, ReactNode, useEffect, useRef } from 'react';
+import { FC, ReactElement, ReactNode, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import styled from 'styled-components';
 
@@ -6,7 +6,7 @@ const Modal = (props: {
   open: boolean;
   children: ReactNode;
   onCancel: () => void;
-}): ReactNode => {
+}): ReactElement => {
   const { open, children, onCancel } = props;
   const dialogRef = useRef<HTMLDialogElement>(null);
 
