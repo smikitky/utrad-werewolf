@@ -11,6 +11,7 @@ import {
 } from '@/game-data';
 import { agentAction, extractLogOfPeriod } from '@/game-utils';
 import Alert from '@/ui/Alert ';
+import { confirm } from '@/ui/Modal';
 import GameLog from '@/ui/GameLog';
 import Icon from '@/ui/Icon';
 import { BasicLangResource, makeLangResource } from '@/ui/LangResource';
@@ -185,7 +186,12 @@ const GodModeGame: Page = () => {
   };
 
   const handleAbortClick = async () => {
-    if (!confirm('Forcibly abort this game?')) return;
+    if (
+      !(await confirm(
+        'Are you sure you want to abort this game? You cannot undo this.'
+      ))
+    )
+      return;
     await api('abortGame', { gameId });
   };
 

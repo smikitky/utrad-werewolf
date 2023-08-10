@@ -15,6 +15,7 @@ import * as db from 'firebase/database';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { confirm } from '@/ui/Modal';
 
 const LangResource = makeLangResource({
   allLog: { en: 'Full Game Log', ja: '全ゲーム一覧' },
@@ -70,7 +71,11 @@ const GodGlobalLog: FC = () => {
   };
 
   const handleDeleteGame = async (gameId: string) => {
-    if (!confirm(`Delete game ${gameId} permanently? You cannot undo this.`))
+    if (
+      !(await confirm(
+        `Delete game ${gameId} permanently? You cannot undo this.`
+      ))
+    )
       return;
     await api('deleteGame', { gameId });
   };
