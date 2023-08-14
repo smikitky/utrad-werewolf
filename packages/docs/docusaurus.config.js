@@ -100,6 +100,10 @@ const config = {
                 label: "Home",
                 to: "/docs/intro",
               },
+              {
+                label: "Online Demo",
+                to: "/docs/demo",
+              },
             ],
           },
           {
@@ -108,6 +112,14 @@ const config = {
               {
                 label: "GitHub",
                 href: "https://github.com/smikitky/utrad-werewolf",
+              },
+              {
+                label: "GitHub Issues",
+                href: "https://github.com/smikitky/utrad-werewolf/issues",
+              },
+              {
+                label: "GitHub Discussions",
+                href: "https://github.com/smikitky/utrad-werewolf/discussions",
               },
             ],
           },
