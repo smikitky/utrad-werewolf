@@ -45,6 +45,10 @@ import checkPeriodFinish from './status-checkers/checkPeriodFinish.js';
 import checkVoteFinish from './status-checkers/checkVoteFinish.js';
 import StatusChecker from './status-checkers/StatusChecker.js';
 import { now } from './utils.js';
+import jsYaml from 'js-yaml';
+import Ajv from 'ajv';
+import fs from 'node:fs';
+import path from 'node:path';
 
 config(); // Loads environment variables from .env file
 
@@ -723,9 +727,17 @@ const handleDivineGuard = makeGameHandler(
   }
 );
 
+const schemaObject = jsYaml.load(
+  fs.readFileSync(path.join(__dirname, 'schema.yaml'), 'utf8')
+) as any;
+const ajv = new Ajv();
+
 export const handler: Handler = async (event, context) => {
   try {
-    const { type, payload = {} } = parseInput(event) as GameRequestData;
+    const input = parseInput(event) as GameRequestData;
+    if (typeof input !== 'object' || input.type === undefined)
+      throw jsonResponse(400, 'Invalid request');
+    const { type, payload = {} } = input;
 
     if (type === 'ping')
       return jsonResponse(200, { message: 'pong', timestamp: now() });
@@ -748,7 +760,24 @@ export const handler: Handler = async (event, context) => {
       divine: handleDivineGuard,
       guard: handleDivineGuard
     };
+
     if (!handlers[type]) throw jsonResponse(400, 'Invalid request type');
+
+    const validateSchema = ajv.compile({
+      ...schemaObject.modes[type],
+      $defs: schemaObject.$defs
+    });
+    if (!validateSchema(payload)) {
+      console.error(payload);
+      throw jsonResponse(
+        400,
+        'Invalid request payload:\n' +
+          validateSchema
+            .errors!.map(e => `${e.instancePath} ${e.message}`)
+            .join('\n')
+      );
+    }
+
     return await handlers[type]({ requestType: type, uid, payload });
   } catch (err: any) {
     if ('statusCode' in err && 'headers' in err) return err;

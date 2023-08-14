@@ -1,0 +1,132 @@
+# This is a set of JSON Schema.
+# The top-level key is the name of the event,
+# and its value is the schema for the payload.
+modes:
+  # Admin commands
+  addUser:
+    type: object
+    properties:
+      newUid: { $ref: '#/$defs/uid' }
+      name: { $ref: '#/$defs/userName' }
+    required:
+      - newUid
+    additionalProperties: false
+
+  setProfile:
+    type: object
+    properties:
+      target: { $ref: '#/$defs/uid' }
+      updates:
+        type: object
+        properties:
+          name: { $ref: '#/$defs/userName' }
+          lang:
+            enum:
+              - en
+              - ja
+          canBeGod:
+            type: boolean
+        additionalProperties: false
+    required:
+      - updates
+    additionalProperties: false
+
+  deleteGame:
+    $ref: '#/$defs/gameIdPayload'
+
+  setGameAttributes:
+    type: object
+    properties:
+      gameId: { $ref: '#/$defs/gameId' }
+      mark:
+        type: string
+    required:
+      - gameId
+      - mark
+    additionalProperties: false
+
+  abortGame:
+    $ref: '#/$defs/gameIdPayload'
+
+  getGameLog:
+    $ref: '#/$defs/gameIdPayload'
+
+  matchNewGame:
+    type: object
+    properties:
+      agentCount: { $ref: '#/$defs/agentCount' }
+      leader: { $ref: '#/$defs/uid' }
+    additionalProperties: false
+
+  # Game commands
+  talk:
+    $ref: '#/$defs/chatPayload'
+  whisper:
+    $ref: '#/$defs/chatPayload'
+  over:
+    $ref: '#/$defs/gameIdPayload'
+  vote:
+    $ref: '#/$defs/agentSelectPayload'
+  attackVote:
+    $ref: '#/$defs/agentSelectPayload'
+  divine:
+    $ref: '#/$defs/agentSelectPayload'
+  guard:
+    $ref: '#/$defs/agentSelectPayload'
+$defs:
+  agentId:
+    type: integer
+    minimum: 1
+    maximum: 15
+  agentCount:
+    type: object
+    properties:
+      villager: { type: integer, minimum: 0 }
+      werewolf: { type: integer, minimum: 0 }
+      seer: { type: integer, minimum: 0 }
+      possessed: { type: integer, minimum: 0 }
+      medium: { type: integer, minimum: 0 }
+      bodyguard: { type: integer, minimum: 0 }
+    required: [villager, werewolf, seer, possessed, medium, bodiguard]
+    additionalProperties: false
+  userName:
+    type: string
+    maxLength: 32
+    minLength: 1
+  uid:
+    type: string
+    maxLength: 50
+    minLength: 1
+    pattern: '^[a-zA-Z0-9_-]+$'
+  gameId:
+    type: string
+    maxLength: 50
+    pattern: '^[a-zA-Z0-9_-]+$'
+  gameIdPayload:
+    type: object
+    properties:
+      gameId: { $ref: '#/$defs/gameId' }
+    required:
+      - gameId
+    additionalProperties: false
+  chatPayload:
+    type: object
+    properties:
+      gameId: { $ref: '#/$defs/gameId' }
+      content:
+        type: string
+        maxLength: 2048
+        minLength: 1
+    required:
+      - gameId
+      - content
+    additionalProperties: false
+  agentSelectPayload:
+    type: object
+    properties:
+      gameId: { $ref: '#/$defs/gameId' }
+      target: { $ref: '#/$defs/agentId' }
+    required:
+      - gameId
+      - target
+    additionalProperties: false

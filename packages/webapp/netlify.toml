@@ -8,6 +8,7 @@
 
 [functions]
   directory = "src/functions"
+  included_files = ["src/functions/api/schema.yaml"]
 
 [[redirects]]
   from = "/game/:gameId"

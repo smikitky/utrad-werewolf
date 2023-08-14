@@ -365,7 +365,7 @@ const ChooseAction: ActionComp = props => {
   const handleVote = async () => {
     if (typeof target === 'number') {
       setBusy(true);
-      await api(action, { gameId, type: action, target });
+      await api(action, { gameId, target });
       setBusy(false);
     }
   };
