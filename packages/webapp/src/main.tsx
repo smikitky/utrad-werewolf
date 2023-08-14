@@ -77,6 +77,7 @@ const GlobalStyle = createGlobalStyle`
       background: #ddddee;
     }
     &:disabled {
+      color: silver;
       background: #eeeeee;
     }
   }
