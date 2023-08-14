@@ -20,3 +20,7 @@ This project was created to support natural language Werewolf research based on 
 ## License
 
 This is an open-source software project licensed under the MIT License. See the `LICENSE` file for details.
+
+## Support
+
+Please report bugs or improvements on [GitHub Issues](https://github.com/smikitky/utrad-werewolf/issues). If you need support regarding installation or if you have any questions, please post them on [GitHub Discussions](https://github.com/smikitky/utrad-werewolf/discussions).
